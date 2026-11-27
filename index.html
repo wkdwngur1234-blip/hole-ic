@@ -4700,6 +4700,7 @@ function clearWorld(){
   cells.clear(); pendingCells.length=0; cellPos.init=false;
   clearGroup(objectsGroup); clearGroup(fxGroup); clearGroup(hazardGroup); clearGroup(sceneryGroup);
   ripples.length=0; poofs.length=0;
+  if(typeof renderer!=='undefined' && renderer && renderer.renderLists) renderer.renderLists.dispose();
 }
 function buildStageWorld(){
   clearWorld();
@@ -5141,23 +5142,42 @@ function buildScenery(){
   if(ex.indexOf('lake')>=0){
     makeLake(-105,70,18); makeLake(100,-88,14);
   }
+  // 맵 밖(±HALF 너머) 원거리 스카이라인 실루엣 + 대교 2개 (가벼운 장식 18개 — 허전함 해소)
+  const rimMat=mat(T.id==='night'||T.id==='neon'||T.id==='space'?0x14223d:0x7892b0);
+  for(let i=0;i<16;i++){
+    const a=(i/16)*Math.PI*2 + 0.12;
+    const dist=HALF+42+(i%3)*18;
+    const w=14+(i%4)*5, h=18+(i%5)*9;
+    const sil=box(w,h,w,rimMat);
+    sil.position.set(Math.cos(a)*dist, h*0.5-2, Math.sin(a)*dist);
+    sil.castShadow=false; sil.receiveShadow=false;
+    sceneryGroup.add(sil);
+  }
+  [-1,1].forEach(s=>{
+    const br=box(110,2.5,8,mat(0x5b6c82));
+    br.position.set(0, 6, s*(HALF+28));
+    sceneryGroup.add(br);
+    const p1=box(3.5,16,3.5,mat(0x889ab0)); p1.position.set(-28,8,s*(HALF+28));
+    const p2=box(3.5,16,3.5,mat(0x889ab0)); p2.position.set(28,8,s*(HALF+28));
+    sceneryGroup.add(p1,p2);
+  });
   if(ex.indexOf('sea')>=0){
-    const sea=new THREE.Mesh(new THREE.PlaneGeometry(700,520), new THREE.MeshLambertMaterial({color:C(0x2fa8c8)}));
-    sea.rotation.x=-Math.PI/2; sea.position.set(0,0.01,340); sea.receiveShadow=false;
+    const sea=new THREE.Mesh(new THREE.PlaneGeometry(900,520), new THREE.MeshLambertMaterial({color:C(0x2fa8c8)}));
+    sea.rotation.x=-Math.PI/2; sea.position.set(0,-0.25,HALF+260); sea.receiveShadow=false;
     sceneryGroup.add(sea);
-    const shallow=new THREE.Mesh(new THREE.PlaneGeometry(700,60), new THREE.MeshLambertMaterial({color:C(0x6fd6e8),transparent:true,opacity:0.85}));
-    shallow.rotation.x=-Math.PI/2; shallow.position.set(0,0.02,104); sceneryGroup.add(shallow);
-    const foam=new THREE.Mesh(new THREE.PlaneGeometry(700,3.2), basicMat(0xf2ffff,{transparent:true,opacity:0.8}));
-    foam.rotation.x=-Math.PI/2; foam.position.set(0,0.03,76); sceneryGroup.add(foam);
+    const shallow=new THREE.Mesh(new THREE.PlaneGeometry(900,60), new THREE.MeshLambertMaterial({color:C(0x6fd6e8),transparent:true,opacity:0.85}));
+    shallow.rotation.x=-Math.PI/2; shallow.position.set(0,-0.22,HALF+34); sceneryGroup.add(shallow);
+    const foam=new THREE.Mesh(new THREE.PlaneGeometry(900,3.2), basicMat(0xf2ffff,{transparent:true,opacity:0.8}));
+    foam.rotation.x=-Math.PI/2; foam.position.set(0,-0.20,HALF+6); sceneryGroup.add(foam);
     // pier
-    const pier=box(5,0.5,40,mat(0xb08a5a)); pier.position.set(-40,0.6,96); sceneryGroup.add(pier);
+    const pier=box(5,0.5,40,mat(0xb08a5a)); pier.position.set(-40,0.4,HALF+24); sceneryGroup.add(pier);
     for(let i=0;i<5;i++){
-      const p=cyl(0.3,0.3,3.0,6,mat(0x8a6a42)); p.position.set(-42+i*0.001,0,80+i*7);
-      p.position.x=-42.2; sceneryGroup.add(p);
+      const p=cyl(0.3,0.3,3.0,6,mat(0x8a6a42)); p.position.set(-42.2,0,HALF+8+i*7);
+      sceneryGroup.add(p);
     }
     for(let i=0;i<3;i++){
       const isl=new THREE.Mesh(new THREE.SphereGeometry(rnd(12,22),8,6), mat(0x5fae5a));
-      isl.position.set(rnd(-180,180), -4, rnd(260,420)); isl.scale.y=0.5; sceneryGroup.add(isl);
+      isl.position.set(rnd(-180,180), -4, HALF+180+rnd(40,160)); isl.scale.y=0.5; sceneryGroup.add(isl);
     }
   }
   if(ex.indexOf('harbor')>=0){
@@ -7403,6 +7423,10 @@ function updateCamera(dt, immediate, intro){
   /* 화면 비율과 무관하게 '세로 구도'를 고정 — 폴드(정사각형에 가까운 비율)에서도
      카메라가 가까워져 건물에 시야가 막히지 않도록 기준 비율(0.46)로 거리를 계산한다. */
   const d=clamp(span/(2*tanV*0.46), 44, 380);
+  if(scene && scene.fog){
+    scene.fog.near = Math.max(190, d + 120);
+    scene.fog.far  = Math.max(640, d + 480);
+  }
   const tx=player.pos.x + state.input.x*Math.min(3.2,R*0.3);
   const tz=player.pos.z + state.input.z*Math.min(3.2,R*0.3) - 6.5;
   camState.target.x=damp(camState.target.x, tx, 5, dt);

@@ -1509,6 +1509,27 @@ canvas#cv{position:fixed;inset:0;width:100%;height:100%;display:block;touch-acti
 #sweepBtn,.titleBtns{width:100% !important;max-width:410px !important}
 .titleBtns{display:grid !important;grid-template-columns:1fr 1fr !important;gap:10px !important}
 .titleBtns button,#sweepBtn{padding:13px 14px !important;font-size:15px !important;border-radius:16px !important;font-weight:800 !important}
+
+/* v4.0.8 — 첫 화면 TAP TO START & 모험 스테이지 선택 */
+@keyframes tgBlink{0%,100%{opacity:.95;transform:translateY(0)}50%{opacity:.45;transform:translateY(-3px)}}
+body.tap-locked #tabBar,body.tap-locked #title{opacity:0 !important;pointer-events:none !important}
+#tapGate{position:fixed;inset:0;z-index:95;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 20px;cursor:pointer;
+  background:radial-gradient(110% 75% at 50% 32%,rgba(24,48,96,.42),rgba(4,7,16,.84) 76%);transition:opacity .28s ease}
+#tapGate.gone{opacity:0;pointer-events:none}
+#tapGate .tgTop{font-size:11px;letter-spacing:5px;color:#72e8ff;padding:5px 14px;border-radius:999px;background:rgba(14,32,64,.8);border:1px solid rgba(114,232,255,.35);margin-bottom:14px}
+#tapGate .tgLogo{font-family:"Black Han Sans",sans-serif;text-align:center}
+#tapGate .tgLogo .a{display:block;font-size:82px;color:#fff;line-height:.95;text-shadow:0 6px 28px rgba(87,230,255,.6),0 0 44px rgba(155,120,255,.4)}
+#tapGate .tgLogo .b{display:block;font-size:16px;letter-spacing:11px;color:#9fe8ff;margin-top:6px}
+#tapGate .tgSub{margin-top:14px;font-size:14px;color:#d6ecff;font-weight:700;text-shadow:0 2px 10px rgba(0,0,0,.7)}
+#tapGate .tgPrompt{margin-top:78px;padding:12px 26px;border-radius:999px;font-family:"Black Han Sans",sans-serif;font-size:18px;letter-spacing:1.2px;color:#fff3b0;
+  background:rgba(12,22,44,.75);border:1.5px solid rgba(255,211,77,.55);box-shadow:0 0 24px rgba(255,180,60,.3);animation:tgBlink 1.7s ease-in-out infinite}
+.stPicker{width:100%;max-width:410px;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px;border-radius:18px;
+  background:linear-gradient(180deg,rgba(20,36,72,.92),rgba(10,18,40,.95));border:1.5px solid rgba(114,232,255,.45);box-shadow:0 8px 24px rgba(0,0,0,.45);pointer-events:auto}
+.stPicker button{width:42px;height:42px;border-radius:12px;border:1px solid rgba(114,232,255,.45);background:rgba(30,56,104,.85);color:#fff;font-size:16px;font-weight:800;cursor:pointer;flex-shrink:0}
+.stPicker button:active{transform:scale(.94)}
+.stPicker .stCenter{text-align:center;flex:1;min-width:0}
+.stPicker .stLabel{font-size:10.5px;color:#8fd9ff;font-weight:700;letter-spacing:.8px}
+.stPicker .stVal{font-family:"Black Han Sans",sans-serif;font-size:17px;color:#fff;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 </style>
 </head>
 <body>
@@ -1573,6 +1594,13 @@ canvas#cv{position:fixed;inset:0;width:100%;height:100%;display:block;touch-acti
   <div id="bossGuide" class="hidden">⚡ 공격을 피하며 바닥의 노란 잔해를 삼키세요!</div>
 <div id="toast"></div>
 
+  <!-- TAP TO START GATE (첫 화면) -->
+  <div id="tapGate">
+    <div class="tgTop">3D BLACK HOLE ACTION</div>
+    <div class="tgLogo"><span class="a">홀릭</span><span class="b">HOLE-IC</span></div>
+    <div class="tgSub">몬스터를 삼켜 심연의 제왕이 되어라</div>
+    <div class="tgPrompt">화면을 터치하여 시작하세요</div>
+  </div>
   <!-- TITLE -->
   <div id="title" class="overlay">
     <div class="tWrap">
@@ -1581,6 +1609,14 @@ canvas#cv{position:fixed;inset:0;width:100%;height:100%;display:block;touch-acti
       <div class="tTag" id="gameTagline">몬스터를 삼켜 심연의 제왕이 되어라</div>
       <button id="startBtn"><span class="tri">▶</span> <span id="playBtnTxt">게임 시작</span></button>
       <div id="bestLine">BEST <b id="bestScore">0</b></div>
+      <div id="stagePicker" class="stPicker">
+        <button id="stPrev" type="button" aria-label="이전 스테이지">◀</button>
+        <div class="stCenter">
+          <div class="stLabel">도전 스테이지 선택</div>
+          <div class="stVal" id="stPickLabel">STAGE 1 · ☀️ 맑은 도심</div>
+        </div>
+        <button id="stNext" type="button" aria-label="다음 스테이지">▶</button>
+      </div>
       <div id="homeMeta"><span id="homeThemeName">☀️ 맑은 도심</span><span id="homeStageCode">STAGE 1-1</span></div>
       <div id="homeProg"></div>
       <div id="homeSynergy" class="homeSyn"></div>
@@ -1826,7 +1862,7 @@ canvas#cv{position:fixed;inset:0;width:100%;height:100%;display:block;touch-acti
   <div id="tabBar">
     <button data-tab="shop"><span>🛒</span><em>상점</em><i class="tdot"></i></button>
     <button data-tab="upgrade"><span>⚡</span><em>강화</em></button>
-    <button data-tab="home" class="on"><span>🏠</span><em>홈</em></button>
+    <button data-tab="home" class="on"><span>⚔️</span><em>모험</em></button>
     <button data-tab="world"><span>🌐</span><em>월드</em></button>
     <button data-tab="mission"><span>🎯</span><em>미션</em><i class="tdot"></i></button>
   </div>
@@ -17980,6 +18016,57 @@ function initProfile(){
   const ex=document.getElementById('pfExport'); if(ex) ex.addEventListener('click', exportSave);
   const im=document.getElementById('pfImport'); if(im) im.addEventListener('click', importSave);
 }
+
+
+/* v4.0.8 — 첫 화면 TAP TO START & 모험 스테이지 선택 */
+(function initTapGateAndPicker(){
+  document.body.classList.add('tap-locked');
+  const gate = document.getElementById('tapGate');
+  if(gate){
+    const unlock = ()=>{
+      if(gate.classList.contains('gone')) return;
+      gate.classList.add('gone');
+      document.body.classList.remove('tap-locked');
+      try{ if(typeof Sound!=='undefined' && Sound.click) Sound.click(); }catch(_){}
+      setTimeout(()=>{ gate.style.display='none'; }, 300);
+    };
+    gate.addEventListener('click', unlock);
+    gate.addEventListener('touchend', (e)=>{ e.preventDefault(); unlock(); }, {passive:false});
+  }
+  window.__selectedStage = window.__selectedStage || 1;
+  function syncPickLabel(){
+    const el = document.getElementById('stPickLabel');
+    const pb = document.getElementById('playBtnTxt');
+    const n = window.__selectedStage || 1;
+    let tName = '';
+    try{
+      if(typeof themeForStage==='function'){
+        const th = themeForStage(n);
+        tName = (th.emoji||'') + ' ' + (th.name||'');
+      }
+    }catch(_){}
+    if(el) el.textContent = 'STAGE ' + n + (tName ? ' · ' + tName : '');
+    if(pb) pb.textContent = 'STAGE ' + n + ' 모험 시작';
+    try{
+      const hn = document.getElementById('homeThemeName');
+      const hs = document.getElementById('homeStageCode');
+      if(hn && tName) hn.textContent = tName;
+      if(hs) hs.textContent = 'STAGE ' + n;
+    }catch(_){}
+  }
+  const prev = document.getElementById('stPrev');
+  const next = document.getElementById('stNext');
+  if(prev) prev.addEventListener('click', ()=>{
+    window.__selectedStage = Math.max(1, (window.__selectedStage||1) - 1);
+    syncPickLabel();
+  });
+  if(next) next.addEventListener('click', ()=>{
+    window.__selectedStage = Math.min(20, (window.__selectedStage||1) + 1);
+    syncPickLabel();
+  });
+  window.__syncStagePickLabel = syncPickLabel;
+  setTimeout(syncPickLabel, 250);
+})();
 
 /* ==== bh_v2_p9_boot.js ==== */
 applyGameName();

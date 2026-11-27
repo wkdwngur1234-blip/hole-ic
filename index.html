@@ -8855,7 +8855,7 @@ function scoreEat(obj){
   const prev=state.R;
   recalcR();
   if(state.R>prev*1.04) spawnRipple(0x9bf24b, state.R, false);
-  gainXP(xp * 0.72);
+  gainXP(xp * 0.42);
   if(t>=3) state.bestLabel = obj.name;
   const col = t>=5?'#ffd34d': t>=4?'#ffb0d8': t>=3?'#9bf24b': t>=2?'#57e6ff':'#ffffff';
   popupAt(obj.group.position, '+'+fmt(sc), col);
@@ -16742,22 +16742,18 @@ function themedGroundTex(id){
       g.beginPath(); g.ellipse(sr()*512,sr()*512,3+sr()*5,2+sr()*3,sr()*3.14,0,6.28); g.fill();
     }
   } else if(id==='volcano'){
-    // 반지의 제왕 모르도르 검붉은 현무암 + 용암 균열
-    g.fillStyle='#190e11'; g.fillRect(0,0,512,512);
-    for(let i=0;i<70;i++){
-      g.fillStyle=sr()<0.5?'#241418':'#12090b';
-      g.beginPath(); g.arc(sr()*512,sr()*512,10+sr()*28,0,6.28); g.fill();
+    // 깔끔하고 차분한 현무암 + 절제된 용암 균열 5줄 (시인성 확보)
+    g.fillStyle='#24191c'; g.fillRect(0,0,512,512);
+    for(let i=0;i<16;i++){
+      g.fillStyle=sr()<0.5?'#2c1f23':'#1d1417';
+      g.beginPath(); g.arc(sr()*512,sr()*512,24+sr()*38,0,6.28); g.fill();
     }
-    for(let i=0;i<22;i++){
+    for(let i=0;i<5;i++){
       let x=sr()*512, y=sr()*512;
-      g.strokeStyle=i%2?'#ff4500':'#ff9922'; g.lineWidth=2.5+sr()*3;
+      g.strokeStyle='rgba(235,75,20,0.42)'; g.lineWidth=3;
       g.beginPath(); g.moveTo(x,y);
-      for(let k=0;k<5;k++){ x+=(sr()-0.5)*110; y+=(sr()-0.5)*110; g.lineTo(x,y); }
+      for(let k=0;k<3;k++){ x+=(sr()-0.5)*130; y+=(sr()-0.5)*130; g.lineTo(x,y); }
       g.stroke();
-    }
-    for(let i=0;i<90;i++){
-      g.fillStyle=sr()<0.6?'#ff6a1a':'#ffd34d';
-      g.fillRect(sr()*512,sr()*512,3,3);
     }
   } else if(id==='snow'){
     g.fillStyle='#e8f3ff'; g.fillRect(0,0,512,512);

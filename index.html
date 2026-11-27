@@ -1485,7 +1485,7 @@ canvas#cv{position:fixed;inset:0;width:100%;height:100%;display:block;touch-acti
 
 #devJump{display:none !important}
 
-#bossGuide{position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 86px);transform:translateX(-50%);z-index:45;
+#bossGuide{position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 122px);transform:translateX(-50%);z-index:45;
   padding:8px 16px;border-radius:999px;font-family:"Black Han Sans",sans-serif;font-size:13.5px;color:#fff7d6;
   background:linear-gradient(180deg,rgba(45,14,24,.92),rgba(20,6,12,.94));border:1.8px solid rgba(255,211,77,.75);
   box-shadow:0 6px 20px rgba(0,0,0,.6),0 0 18px rgba(255,95,120,.35);white-space:nowrap;pointer-events:none;text-align:center}
@@ -10460,7 +10460,14 @@ function adaptQuality(){
     qT0=now; qFrames=0;
     if(fps<26){
       qReduced=true;
-      renderer.setPixelRatio(1);
+      renderer.domElement.addEventListener('webglcontextlost', function(e){
+  e.preventDefault();
+  try{ if(typeof showToast==='function') showToast('⚠️ 그래픽 복구 중...', '잠시만 기다려 주세요', '#ffd34d'); }catch(_){}
+}, false);
+renderer.domElement.addEventListener('webglcontextrestored', function(){
+  try{ if(typeof rebuildAfterContext==='function') rebuildAfterContext(); }catch(_){}
+}, false);
+renderer.setPixelRatio(1);
       renderer.setSize(window.innerWidth, window.innerHeight, false);
       renderer.shadowMap.enabled=false;
       scene.traverse(o=>{ if(o.isMesh) o.castShadow=false; });
@@ -16601,7 +16608,7 @@ function applyMonsterSkin(o){
   if(!o || !o.group || o.monstered) return;
   if(!o.isGiant && !o.isArenaDebris && !o.isRaider && (o.tier||1)<=3 && ((o.id||0)%100)<55){
     o.monstered=true; o.alive=false; o.group.visible=false;
-    if(o.group.parent) o.group.parent.remove(o.group);
+    if(o.group.parent) o.group.parent.remove(o.group); try{ if(typeof disposeTree==='function') disposeTree(o.group); }catch(e){}
     return;
   }
   if(o.monMesh && o.monMesh.parent===o.group){ o.monstered=1; return; }
@@ -16720,7 +16727,7 @@ const ACT_CD={};            // 기술별 쿨다운
 /* 임시 이펙트 등록 — life 초 뒤 자동 제거 */
 function actEmit(mesh, life, opt){
   opt=opt||{};
-  if(ACT_FX.length>120) return null;
+  if(ACT_FX.length>45) return null;
   (typeof fxGroup!=='undefined'?fxGroup:scene).add(mesh);
   const rec={m:mesh, t:0, life:life, op:opt.op, spin:opt.spin||0, grow:opt.grow||0,
     move:opt.move||null, keep:!!opt.keep};

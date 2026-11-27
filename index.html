@@ -2947,23 +2947,16 @@ function buildGround(){
     ? pts.map(p=>[p[0]+px(off), p[1]])
     : pts.map(p=>[p[0], p[1]+px(off)]);
   const drawAvenue=(center, vertical)=>{
+    /* v3.6.4 — 판타지 던전/필드 흙길·고대 석판길 (아스팔트 차선 제거) */
     const pts=roadPts(center, vertical);
-    /* 도로 가장자리가 딱 떨어지지 않게 자갈·흙이 번진 어깨 */
-    strokePts(pts, ROAD_W+4.6, G.curb, 0.15);
-    strokePts(pts, ROAD_W+2.2, G.dark, 0.20);
-    strokePts(pts, ROAD_W, G.road, 1);
-    strokePts(pts, ROAD_W*0.62, 'rgba(255,255,255,.045)', 1);
-    /* 타이어 자국 */
-    strokePts(offsetPts(pts,vertical, 2.0), 1.5, 'rgba(0,0,0,.10)', 1);
-    strokePts(offsetPts(pts,vertical,-2.0), 1.5, 'rgba(0,0,0,.10)', 1);
-    /* 중앙 점선 */
-    const neonLane = theme.id==='neon' || theme.id==='space';
-    strokePts(pts, 0.26, G.lane, 0.85, [2.0,2.8], neonLane?10:0);
-    /* 노면 때 */
-    for(let i=0;i<24;i++){
+    strokePts(pts, ROAD_W+3.4, G.curb, 0.14);
+    strokePts(pts, ROAD_W*0.72, G.plaza2||G.dark, 0.34);
+    strokePts(pts, ROAD_W*0.36, G.dark, 0.18);
+    /* 고대 이끼·돌조각·균열 디테일 */
+    for(let i=0;i<36;i++){
       const x=gr()*S, y=gr()*S;
-      g.fillStyle=gr()>.6?'rgba(30,34,42,.15)':'rgba(120,96,64,.12)';
-      g.beginPath(); g.arc(x,y,px(0.15+gr()*0.5),0,7); g.fill();
+      g.fillStyle=gr()>.5?'rgba(60,90,50,.14)':'rgba(110,92,68,.15)';
+      g.beginPath(); g.arc(x,y,px(0.25+gr()*0.85),0,7); g.fill();
     }
   };
   drawAvenue(AVE_V, true);
@@ -6205,6 +6198,7 @@ function patch(cx,cz,w,d,color,y){
    ═══════════════════════════════════════════════════════════ */
 function disposeTree(root){
   root.traverse(o=>{
+    if(o.userData && o.userData.shared) return;
     if(o.isMesh){
       if(o.geometry) o.geometry.dispose();
       const list=Array.isArray(o.material)?o.material:[o.material];
@@ -10382,21 +10376,30 @@ function updateCamera(dt, immediate, intro){
     return;
   }
   let pitchUse=PITCH, yawUse=YAW, dUse=d;
+  /* v3.6.4 — 보스전 시점 전환: 각도를 낮추고 뒤로 빼서 내 블랙홀 + 보스 전신이 한눈에 들어오게 */
+  const bossView = (state.phase==='boss' || (typeof BOSS!=='undefined' && BOSS.alive && BOSS.revealed && !BOSS.mini));
+  if(bossView){
+    pitchUse = THREE.MathUtils.degToRad(40);
+    dUse = d * 1.28;
+  }
   if(scene && scene.fog){
     scene.fog.near = Math.max(260, dUse + 130);
     scene.fog.far  = Math.max(1300, dUse + 620);
   }
-  const tx=player.pos.x + state.input.x*Math.min(3.2,R*0.3);
-  const tz=player.pos.z + state.input.z*Math.min(3.2,R*0.3) - 6.5;
+  let tx=player.pos.x + state.input.x*Math.min(3.2,R*0.3);
+  let tz=player.pos.z + state.input.z*Math.min(3.2,R*0.3) - 6.5;
+  if(bossView && typeof BOSS!=='undefined' && BOSS.alive){
+    tx = lerp(player.pos.x, BOSS.pos.x, 0.34);
+    tz = lerp(player.pos.z, BOSS.pos.z, 0.34);
+  }
   camState.target.x=damp(camState.target.x, tx, 5, dt);
   camState.target.z=damp(camState.target.z, tz, 5, dt);
-  // fixed camera angle & distance — never zoom/rotate behind buildings
   camState.yaw = yawUse;
   const yaw = yawUse;
   const cPitch = pitchUse;
-  const cpx = player.pos.x + Math.sin(yaw)*Math.cos(cPitch)*dUse;
-  const cpy = Math.sin(cPitch)*dUse + 1.2;
-  const cpz = player.pos.z + Math.cos(yaw)*Math.cos(cPitch)*dUse;
+  const cpx = camState.target.x + Math.sin(yaw)*Math.cos(cPitch)*dUse;
+  const cpy = Math.sin(cPitch)*dUse + (bossView?6.0:1.2);
+  const cpz = camState.target.z + Math.cos(yaw)*Math.cos(cPitch)*dUse;
   if(immediate || !camState.init){
     camState.pos.set(cpx,cpy,cpz); camState.init=true;
   } else {
@@ -16545,6 +16548,38 @@ function animateMonsters(dt){
 
 /* ───────── 8. 매 프레임 진입점 ───────── */
 function updateConceptSystems(dt){
+
+  /* v3.6.4 — 몬스터 자연스러운 배회·도망·걷기 바운스 */
+  if(typeof objects!=='undefined' && state.mode==='playing'){
+    const px=player.pos.x, pz=player.pos.z, rNow=state.R;
+    const tNow=performance.now()*0.001;
+    for(let i=0;i<objects.length;i++){
+      const o=objects[i];
+      if(!o || !o.alive || o.sucking || !o.monstered || !o.group) continue;
+      const gx=o.group.position.x, gz=o.group.position.z;
+      const dx=gx-px, dz=gz-pz, distSq=dx*dx+dz*dz;
+      if(distSq>7500) continue; /* 시야 밖(86m+) 스킵으로 프레임 유지 */
+      if(!o._mw){ o._mw={ang:Math.random()*6.28, turnT:0.8+Math.random()*2.0, ph:Math.random()*6.28, spd:(o.tier<=2?3.2:o.tier<=3?2.1:1.2)}; }
+      const mw=o._mw;
+      mw.turnT -= dt;
+      if(mw.turnT<=0){ mw.ang += (Math.random()-0.5)*2.1; mw.turnT=1.2+Math.random()*2.4; }
+      const d=Math.sqrt(distSq)||1;
+      let moveSpd=mw.spd;
+      /* 나보다 작은 몬스터가 가까이 오면 겁먹고 도망 */
+      if(d < rNow*3.2 + 6 && o.eatR <= rNow * 1.05){
+        mw.ang = Math.atan2(dx, dz);
+        moveSpd = mw.spd * 1.65;
+      }
+      o.group.position.x += Math.sin(mw.ang) * moveSpd * dt;
+      o.group.position.z += Math.cos(mw.ang) * moveSpd * dt;
+      /* 회전 보간 + 걷기 통통 바운스 */
+      let da = mw.ang - o.group.rotation.y;
+      while(da>Math.PI) da-=Math.PI*2; while(da<-Math.PI) da+=Math.PI*2;
+      o.group.rotation.y += da * Math.min(1, dt*6.5);
+      o.group.position.y = Math.abs(Math.sin(tNow*6.2 + mw.ph)) * (o.tier<=2?0.32:0.20);
+    }
+  }
+
   checkSynergy();
   updateConceptStyle(dt);
   updateCompanions(dt);

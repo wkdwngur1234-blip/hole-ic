@@ -9569,7 +9569,7 @@ function startStage(n, opts){
   }catch(e){}
   /* 포그·카메라도 플레이 시점으로 강제 리셋 — 잔여 컷신 좌표가 남지 않게 */
   if(typeof scene!=='undefined' && scene && scene.fog){
-    scene.fog.near=Math.max(260, 300);
+    // scene.fog.near=Math.max(260, 300);
     scene.fog.far=Math.max(1300, 1400);
   }
   camState.init=false;
@@ -10420,14 +10420,14 @@ function updateCamera(dt, immediate, intro){
   const tanV=Math.tan(halfV);
   /* 화면 비율과 무관하게 '세로 구도'를 고정 — 폴드(정사각형에 가까운 비율)에서도
      카메라가 가까워져 건물에 시야가 막히지 않도록 기준 비율(0.46)로 거리를 계산한다. */
-  let d=clamp(span/(2*tanV*0.46), 44, 380);
+  let d=clamp((span/(2*tanV*0.46))*5.0, 180, 980);
   /* ── 시네마틱 컷신: 연출된 궤도로 직접 카메라를 몬다 ── */
   if(cut.active){
     const pose=cutCamPose(d);
     camera.position.set(pose.x,pose.y,pose.z);
     camera.lookAt(pose.tx,pose.ty,pose.tz);
     camera.updateMatrixWorld();
-    if(scene && scene.fog){ scene.fog.near=Math.max(340, d*3.4); scene.fog.far=Math.max(1150, d*9.0); }
+    if(scene && scene.fog){ // scene.fog.near=Math.max(340, d*3.4); scene.fog.far=Math.max(1150, d*9.0); }
     sun.position.set(player.pos.x+58, 92, player.pos.z+42);
     sun.target.position.set(player.pos.x,0,player.pos.z);
     sun.target.updateMatrixWorld();
@@ -10439,7 +10439,7 @@ function updateCamera(dt, immediate, intro){
     camera.position.set(pose.x,pose.y,pose.z);
     camera.lookAt(pose.tx,pose.ty,pose.tz);
     camera.updateMatrixWorld();
-    if(scene && scene.fog){ scene.fog.near=Math.max(240,d*3.2); scene.fog.far=Math.max(900,d*8.0); }
+    if(scene && scene.fog){ // scene.fog.near=Math.max(240,d*3.2); scene.fog.far=Math.max(900,d*8.0); }
     sun.position.set(player.pos.x+58, 92, player.pos.z+42);
     sun.target.position.set(player.pos.x,0,player.pos.z);
     sun.target.updateMatrixWorld();
@@ -10458,7 +10458,7 @@ function updateCamera(dt, immediate, intro){
     camera.position.set(pose.x,pose.y,pose.z);
     camera.lookAt(pose.tx,pose.ty,pose.tz);
     camera.updateMatrixWorld();
-    if(scene && scene.fog){ scene.fog.near=Math.max(240,d*3.2); scene.fog.far=Math.max(1200,d*9.0); }
+    if(scene && scene.fog){ // scene.fog.near=Math.max(240,d*3.2); scene.fog.far=Math.max(1200,d*9.0); }
     sun.position.set(player.pos.x+58, 92, player.pos.z+42);
     sun.target.position.set(player.pos.x,0,player.pos.z);
     sun.target.updateMatrixWorld();
@@ -10470,7 +10470,7 @@ function updateCamera(dt, immediate, intro){
     camera.position.set(pose.x,pose.y,pose.z);
     camera.lookAt(pose.tx,pose.ty,pose.tz);
     camera.updateMatrixWorld();
-    if(scene && scene.fog){ scene.fog.near=Math.max(240,d*3.2); scene.fog.far=Math.max(1200,d*9.0); }
+    if(scene && scene.fog){ // scene.fog.near=Math.max(240,d*3.2); scene.fog.far=Math.max(1200,d*9.0); }
     sun.position.set(player.pos.x+58, 92, player.pos.z+42);
     sun.target.position.set(player.pos.x,0,player.pos.z);
     sun.target.updateMatrixWorld();
@@ -10484,7 +10484,7 @@ function updateCamera(dt, immediate, intro){
     dUse = d * 1.28;
   }
   if(scene && scene.fog){
-    scene.fog.near = Math.max(260, dUse + 130);
+    // scene.fog.near = Math.max(260, dUse + 130);
     scene.fog.far  = Math.max(1300, dUse + 620);
   }
   let tx=player.pos.x + state.input.x*Math.min(3.2,R*0.3);
@@ -10525,7 +10525,7 @@ function updateCamera(dt, immediate, intro){
   camState.aimY = clamp(camState.aimY + aimErr*22*Math.min(0.06, Math.max(0.008,dt)), -6, 40);
   camera.lookAt(tx, camState.aimY, tz);
   if(scene.fog){
-    scene.fog.near=Math.max(theme.fog.near, dUse*1.15);
+    // scene.fog.near=Math.max(theme.fog.near, dUse*1.15);
     scene.fog.far=Math.max(theme.fog.far, dUse*3.4);
   }
   sun.position.set(player.pos.x+58, 92, player.pos.z+42);

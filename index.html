@@ -16615,14 +16615,12 @@ let _monPass=0;
 function monsterPass(dt){
   _monPass-=dt;
   if(_monPass>0) return;
-  _monPass=0.35;
-  let n=0;
-  for(let i=0;i<objects.length && n<20;i++){
+  _monPass=0.15;
+  for(let i=0;i<objects.length;i++){
     const o=objects[i];
-    if(!o || !o.alive || o.monstered || !o.group) continue;
-    const d=Math.hypot(o.group.position.x-player.pos.x, o.group.position.z-player.pos.z);
-    if(d>150){ o.monstered=2; continue; }   /* 멀리 있는 건 건너뛴다 */
-    applyMonsterSkin(o); n++;
+    if(!o || !o.alive || o.monstered===true || !o.group) continue;
+    o.monstered=false;
+    applyMonsterSkin(o);
   }
 }
 function animateMonsters(dt){

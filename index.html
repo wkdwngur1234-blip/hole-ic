@@ -16582,6 +16582,11 @@ function dungeonTone(){
 /* 기존 도시 오브젝트를 몬스터로 치환 (1회) */
 function applyMonsterSkin(o){
   if(!o || !o.group || o.monstered) return;
+  if(!o.isGiant && !o.isArenaDebris && !o.isRaider && (o.tier||1)<=3 && ((o.id||0)%100)<55){
+    o.monstered=true; o.alive=false; o.group.visible=false;
+    if(o.group.parent) o.group.parent.remove(o.group);
+    return;
+  }
   if(o.monMesh && o.monMesh.parent===o.group){ o.monstered=1; return; }
   o.monstered=true;
   if(o.isArenaDebris) return;
@@ -16734,7 +16739,7 @@ function actClear(){
 function actReady(key, every, dt){
   ACT_CD[key]=(ACT_CD[key]===undefined?0.35:ACT_CD[key])-dt;
   if(ACT_CD[key]>0) return false;
-  ACT_CD[key]=every;
+  ACT_CD[key]=Math.max(0.35, every*0.45);
   return true;
 }
 /* 주변 몬스터(가까운 순) */
@@ -16753,8 +16758,8 @@ function actTargets(maxD, maxEat){
 }
 function actSuck(o){
   if(!o || !o.alive) return false;
-  if(o.eatR<=state.R*1.35){ startSuck(o,true); return true; }
-  o.eatR*=0.965;
+  if(o.eatR<=state.R*2.05){ startSuck(o,true); return true; }
+  o.eatR*=0.88;
   return false;
 }
 /* 번개 줄기 */
@@ -16771,13 +16776,13 @@ function actBoltLine(x1,y1,z1,x2,y2,z2,col){
   const l=new THREE.Line(g, new THREE.LineBasicMaterial({color:C(col||0xbfe9ff), transparent:true,
     opacity:1, blending:THREE.AdditiveBlending, depthWrite:false}));
   actEmit(l, 0.24, {op:1});
-  const tip=sphereGlow(1.1, col||0xbfe9ff, 0.9);
-  tip.position.set(x2,y2,z2); actEmit(tip, 0.3, {op:0.9, grow:2.2});
+  const tip=sphereGlow(2.2, col||0xbfe9ff, 0.9);
+  tip.position.set(x2,y2,z2); actEmit(tip, 0.3, {op:0.9, grow:3.6});
 }
 
 /* ───────── ⚡ 체인 라이트닝 ───────── */
 function fxChainLightning(lv){
-  const list=actTargets(30, state.R*3.5).slice(0, 2+lv);
+  const list=actTargets(30, state.R*3.5).slice(0, 4+lv*2);
   if(!list.length) return;
   let x1=player.pos.x, y1=1.4, z1=player.pos.z;
   for(let i=0;i<list.length;i++){

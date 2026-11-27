@@ -1448,6 +1448,12 @@ canvas#cv{position:fixed;inset:0;width:100%;height:100%;display:block;touch-acti
     <div class="skip">탭하면 바로 시작</div>
   </div>
 
+  <!-- TEST JUMP BAR (테스트용 빠른 이동 — 출시 시 display:none) -->
+  <div id="devJump" style="position:fixed;left:10px;bottom:14px;z-index:9500;display:flex;gap:5px;opacity:0.82;">
+    <button data-j="mini" style="background:rgba(15,20,34,.86);color:#ffd34d;border:1px solid #ffd34d66;border-radius:8px;padding:5px 8px;font-size:11px;font-weight:700;cursor:pointer;">⚡1-3</button>
+    <button data-j="boss" style="background:rgba(15,20,34,.86);color:#ff6b7a;border:1px solid #ff6b7a66;border-radius:8px;padding:5px 8px;font-size:11px;font-weight:700;cursor:pointer;">🔥1-5</button>
+    <button data-j="outro" style="background:rgba(15,20,34,.86);color:#9fe8ff;border:1px solid #9fe8ff66;border-radius:8px;padding:5px 8px;font-size:11px;font-weight:700;cursor:pointer;">🎬엔딩</button>
+  </div>
   <!-- AD DEMO -->
   <div id="ad" class="hidden">
     <div class="box">
@@ -8111,6 +8117,12 @@ function clampPlayerToMap(){
    MAIN SIMULATION
    ═══════════════════════════════════════════════════════════ */
 function updatePlaying(dt){
+  /* 미니 보스 강림 컷(1.5초) — 입력·타이머·월드 진행을 잠깐 멈춘다 */
+  if(typeof MINI_CUT!=='undefined' && MINI_CUT.active){
+    updateMiniBossCine(dt);
+    state.input.x=0; state.input.z=0; state.velocity.set(0,0);
+    return;
+  }
   state.elapsed += dt;
   state.invuln=Math.max(0,(state.invuln||0)-dt);
 
@@ -8621,6 +8633,66 @@ function endCutscene(){
   showToast('STAGE '+stageInfo(state.stage).code+' START!', theme.emoji+' '+theme.label, '#8fe9ff');
   setTimeout(()=>showToast('도시를 삼켜라!', theme.label+' · '+Math.round(state.stageTime)+'초', '#9bf24b'), 900);
   if(state.stageRule==='giant') setTimeout(()=>showToast('🏙️ 거대 랜드마크 러시!', '초대형 목표물을 노려라', '#9fe8ff'), 700);
+}
+/* ═══════════════════════════════════════════════════════════
+   v3.1 — 미니 보스(3스테이지 등) 강림 1.5초 줌인 컷
+   · 강림 지점으로 카메라가 빠르게 붙었다가 포효(링·번개)를 보여주고 돌아온다
+   · state.mode 는 'playing' 그대로 — 입력/타이머만 잠깐 멈추고 스킵 가능
+   ═══════════════════════════════════════════════════════════ */
+const MINI_CUT = {active:false, t:0, t0:0, dur:1.5, x:0, z:0, roar1:false, roar2:false};
+function startMiniBossCine(x,z){
+  if(MINI_CUT.active) return;
+  MINI_CUT.active=true; MINI_CUT.t=0; MINI_CUT.t0=performance.now();
+  MINI_CUT.x=x; MINI_CUT.z=z; MINI_CUT.roar1=false; MINI_CUT.roar2=false;
+  state.input.x=0; state.input.z=0; state.velocity.set(0,0);
+  ui.cutBars.classList.remove('hidden'); void ui.cutBars.offsetWidth; ui.cutBars.classList.add('on');
+  if(ui.cutSkip){ ui.cutSkip.classList.remove('hidden'); ui.cutSkip.textContent='건너뛰기 ⏭'; }
+  camState.init=false;
+  try{ Sound.bossArrival(); }catch(e){}
+  state.flash=Math.max(state.flash,0.32);
+}
+function endMiniBossCine(){
+  if(!MINI_CUT.active) return;
+  MINI_CUT.active=false; MINI_CUT.t=0;
+  if(ui.cutSkip) ui.cutSkip.classList.add('hidden');
+  ui.cutBars.classList.remove('on');
+  setTimeout(()=>{ if(!cut.active && !MINI_CUT.active) ui.cutBars.classList.add('hidden'); }, 320);
+  showToast('⚔️ 보스 강림!', '동력 기둥을 뽑아 무적을 풀어라', '#ff5a5a');
+  camState.init=false;
+}
+function updateMiniBossCine(dt){
+  if(!MINI_CUT.active) return;
+  MINI_CUT.t=(performance.now()-MINI_CUT.t0)/1000;
+  const t=MINI_CUT.t;
+  if(!MINI_CUT.roar1 && t>=0.35){
+    MINI_CUT.roar1=true;
+    try{ bossRing(MINI_CUT.x, MINI_CUT.z, 0xff1a36, 34, 1.0); }catch(e){}
+    state.shake=Math.max(state.shake,0.55);
+  }
+  if(!MINI_CUT.roar2 && t>=0.85){
+    MINI_CUT.roar2=true;
+    try{
+      bossRing(MINI_CUT.x, MINI_CUT.z, 0xffd34d, 24, 0.85);
+      bossRing(MINI_CUT.x, MINI_CUT.z, 0x8b3bff, 40, 1.2);
+      bossBolt(MINI_CUT.x+rnd(-8,8), MINI_CUT.z+rnd(-8,8));
+    }catch(e){}
+    state.shake=Math.max(state.shake,0.75);
+    state.flash=Math.max(state.flash,0.22);
+    try{ Sound.siren(); }catch(e){}
+  }
+  if(t>=MINI_CUT.dur) endMiniBossCine();
+}
+function miniBossCamPose(d){
+  const px=player.pos.x, pz=player.pos.z;
+  const playPose=Object.assign(orbitPos(px,pz,YAW,PITCH,d),{tx:px,ty:3.0,tz:pz-6.5});
+  const bx=MINI_CUT.x, bz=MINI_CUT.z;
+  const dist=clamp(d*0.72, 96, 210);
+  const far=Object.assign(orbitPos(bx,bz,YAW-0.78,PITCH-0.02,d*0.98),{tx:bx,ty:14,tz:bz});
+  const near=Object.assign(orbitPos(bx,bz,YAW-0.32,PITCH-0.26,dist),{tx:bx,ty:17,tz:bz});
+  const k=clamp(MINI_CUT.t/MINI_CUT.dur,0,1);
+  if(k<0.30) return mixPose(playPose, far, easeOut3(k/0.30));
+  if(k<0.72) return mixPose(far, near, easeInOut((k-0.30)/0.42));
+  return mixPose(near, playPose, easeInOut((k-0.72)/0.28));
 }
 function showSplash(){
   ui.sEmoji.textContent=theme.emoji;
@@ -9165,6 +9237,25 @@ function updateCamera(dt, immediate, intro){
     sun.target.updateMatrixWorld();
     return;
   }
+  /* ── 테스트용 카메라 고정(__BOSSAI.orbitCam) ── */
+  if(typeof BOSS_CAM!=='undefined' && BOSS_CAM){
+    const c=BOSS_CAM;
+    camera.position.set(c.px,c.py,c.pz); camera.lookAt(c.tx,c.ty,c.tz);
+    camera.updateMatrixWorld();
+    return;
+  }
+  /* ── v3.1 미니 보스 강림 1.5초 줌인 ── */
+  if(MINI_CUT.active){
+    const pose=miniBossCamPose(d);
+    camera.position.set(pose.x,pose.y,pose.z);
+    camera.lookAt(pose.tx,pose.ty,pose.tz);
+    camera.updateMatrixWorld();
+    if(scene && scene.fog){ scene.fog.near=Math.max(240,d*3.2); scene.fog.far=Math.max(1200,d*9.0); }
+    sun.position.set(player.pos.x+58, 92, player.pos.z+42);
+    sun.target.position.set(player.pos.x,0,player.pos.z);
+    sun.target.updateMatrixWorld();
+    return;
+  }
   /* ── 1:1 결투장 전환 컷신 카메라 ── */
   if(state.mode==='arena' && typeof arenaCamPose==='function'){
     const pose=arenaCamPose(d);
@@ -9338,7 +9429,7 @@ function bindUI(){
     ui.muteBtn.textContent=Sound.muted?'🔇':'🔊';
     if(!Sound.muted) Sound.init();
   });
-  if(ui.cutSkip) ui.cutSkip.addEventListener('click', ()=>{ if(cut.active) endCutscene(); });
+  if(ui.cutSkip) ui.cutSkip.addEventListener('click', ()=>{ if(MINI_CUT.active) endMiniBossCine(); else if(cut.active) endCutscene(); });
   /* v3.0 — 보스전: 폭탄 터치 발사 · 엔딩 시네마 스킵 */
   if(ui.bombHud) ui.bombHud.addEventListener('click', ()=>{ if(state.bomb) launchBomb('터치'); });
   if(ui.outroSkip) ui.outroSkip.addEventListener('click', ()=>{ if(typeof endBossOutro==='function') endBossOutro(); });
@@ -9466,6 +9557,7 @@ window.__BH = {
   setTime(t){ state.timeLeft=t; },
   skipCut(){ if(cut.active) endCutscene(); return {mode:state.mode, cut:cut.active}; },
   cutInfo(){ return {active:cut.active, t:+cut.t.toFixed(2), dur:cut.dur, full:cut.full, taunt:cut.taunt,
+    mini:{active:MINI_CUT.active, t:+MINI_CUT.t.toFixed(2), dur:MINI_CUT.dur, x:+MINI_CUT.x.toFixed(1), z:+MINI_CUT.z.toFixed(1)},
     tauntText:(document.getElementById('cutLine')||{}).textContent,
     tauntOn:ui.cutTaunt.classList.contains('on'),
     skipVisible:!ui.cutSkip.classList.contains('hidden')}; },
@@ -9695,6 +9787,28 @@ window.__BH = {
   }
 };
 
+/* 테스트용 빠른 점프 바 (#devJump) */
+document.addEventListener('click', e=>{
+  const btn = e.target && e.target.closest && e.target.closest('#devJump button');
+  if(!btn || !window.__BH) return;
+  const j=btn.dataset.j;
+  const intro=document.getElementById('intro'); if(intro) intro.classList.add('hidden');
+  if(j==='mini'){
+    __BH.stageNow(3, true);
+    setTimeout(()=>{ try{ __BH.bossWake(); }catch(err){} }, 120);
+  } else if(j==='boss'){
+    __BH.stageNow(5, true);
+    setTimeout(()=>{ try{ __BH.bossWake(); }catch(err){} }, 120);
+  } else if(j==='outro'){
+    if(typeof BOSS!=='undefined' && BOSS.alive && BOSS.revealed && !BOSS.mini && typeof bossDefeat==='function'){
+      bossDefeat();
+    } else {
+      __BH.stageNow(5, true);
+      setTimeout(()=>{ try{ __BH.bossWake(); }catch(err){} setTimeout(()=>{ try{ if(typeof bossDefeat==='function') bossDefeat(); }catch(e2){} }, 2500); }, 120);
+    }
+  }
+});
+
 
 /* ==== bh_v2_p5_boss.js ==== */
 /* ═══════════════════════════════════════════════════════════
@@ -9714,7 +9828,12 @@ const BOSS = {
   pillars:[], pillarGroup:null, pillarNeed:3, inv:0,
   bombs:[], barbs:[], bolts:null, carry:null, fireT:4.0,
   groggy:0, groggyDur:5.5, bites:0, bitesNeed:4, biteCd:0, weak:null,
-  baseScale:1, scaleMul:1, defeated:false, arenaStarted:false, lastFire:0
+  baseScale:1, scaleMul:1, defeated:false, arenaStarted:false, lastFire:0,
+  /* v3.1 — 살아 움직이는 괴수 AI (활보·돌진·점프 찍기) */
+  rig:null, motion:'roam', motionT:0, walkPhase:0, crouch:0, lean:0, jumpY:0,
+  velX:0, velZ:0, chargeT:4.6, jumpT:9.6, strafeDir:1, strafeT:3.0, dashT:0,
+  dashDirX:0, dashDirZ:0, dashSpd:46, dashTele:null, dashFxT:0, slammed:false,
+  homeX:0, homeZ:0, markerY:0
 };
 const defenseList = [];
 const telegraphs = [];
@@ -9758,7 +9877,7 @@ const BOSS_SCALE = 1.65;
    (실드 HP + 그로기 규칙은 모든 보스 공통)
    ═══════════════════════════════════════════════════════════ */
 const BOSS_THEMES = {
-  sunny:  {kind:'fortress', name:'흑요석 심연 요새',      emoji:'☠️', atk:'triple', accent:0xff1a36},
+  sunny:  {kind:'beast',    name:'심연의 거신 크리처',    emoji:'👹', atk:'triple', accent:0xff1a36},
   beach:  {kind:'crab',     name:'왕관 쓴 대왕 꽃게',      emoji:'🦀', atk:'wave',   accent:0xff7a4a},
   neon:   {kind:'cube',     name:'사이버 홀로그램 큐브',  emoji:'🧊', atk:'cross',  accent:0x57e6ff},
   port:   {kind:'gear',     name:'용광로 톱니 골렘',      emoji:'⚙️', atk:'heat',   accent:0xff8a2a},
@@ -9782,9 +9901,9 @@ function bossGroundRings(g,c1,c2,R){
   }
   g.add(rg);
 }
-function bossBeam(g,color){
+function bossBeam(g,color,op){
   const beam=new THREE.Mesh(new THREE.CylinderGeometry(2.4,4.8,140,16,1,true),
-    new THREE.MeshBasicMaterial({color:C(color), transparent:true, opacity:0.14,
+    new THREE.MeshBasicMaterial({color:C(color), transparent:true, opacity:(op===undefined?0.14:op),
       blending:THREE.AdditiveBlending, depthWrite:false, side:THREE.DoubleSide}));
   beam.userData.noFade=true; beam.position.y=70; g.add(beam); BOSS.beam=beam;
 }
@@ -9808,44 +9927,181 @@ function bossEye(g,x,y,z,r,color){
   return e;
 }
 
+/* ── 곡선 가시: 뿔·등 가시를 베지어 곡선을 따라 테이퍼 체인으로 만든다 ── */
+const BOSS_UP=new THREE.Vector3(0,1,0);
+function bossBezierSpike(p0,p1,p2,r0,r1,material,segs){
+  const curve=new THREE.QuadraticBezierCurve3(p0,p1,p2);
+  const grp=new THREE.Group();
+  const N=segs||5;
+  let prev=curve.getPoint(0);
+  for(let i=1;i<=N;i++){
+    const p=curve.getPoint(i/N);
+    const rA=lerp(r0,r1,(i-1)/N), rB=lerp(r0,r1,i/N);
+    const len=prev.distanceTo(p);
+    const m=cyl(Math.max(0.04,rB), Math.max(0.05,rA), len, 6, material);
+    m.position.copy(prev).add(p).multiplyScalar(0.5);
+    m.quaternion.setFromUnitVectors(BOSS_UP, new THREE.Vector3().subVectors(p,prev).normalize());
+    grp.add(m);
+    prev=p;
+  }
+  return grp;
+}
+
 /* ── 조형 빌더 ── */
 function buildBossBody(kind,g){
   const kit=bossTheme();
   switch(kind){
-  case 'fortress':{
-    const obs=mat(0x0b0d13), armor=mat(0x161b26), steel=mat(0x282f40), crimson=basicMat(0xff1a36);
-    const base=cyl(10.8,12.4,2.4,8,armor); base.position.y=1.2; g.add(base);
-    const base2=cyl(8.8,10.2,1.6,8,obs); base2.position.y=3.0; g.add(base2);
-    for(let i=0;i<8;i++){
-      const a=i/8*Math.PI*2;
-      const fang=cone(1.15,5.8,4,steel);
-      fang.position.set(Math.cos(a)*10.4, 3.6, Math.sin(a)*10.4);
-      fang.rotation.z=-Math.cos(a)*0.34; fang.rotation.x=Math.sin(a)*0.34; g.add(fang);
+  case 'beast':{
+    /* ═══════ 심연의 거신 크리처 ═══════
+       팔다리 · 큰 주먹 팔 · 뿔 · 등 가시 · 꼬리 · 붉은 안광을 가진 살아있는 괴수.
+       rig 의 각 피벗을 animateBossRig() 이 계속 흔들어 '살아 움직이는' 인상을 준다. */
+    const hide=mat(0x2c2140), hide2=mat(0x1b1428), plate=mat(0x483463),
+          bone=mat(0xc0aed6), ember=basicMat(0xff1a36), ember2=basicMat(0xff5a2a);
+    const rig={root:new THREE.Group(), torso:null, head:null, jaw:null,
+      arms:[], legs:[], tail:[], spikes:[], eyes:[], chestGlow:null};
+    g.add(rig.root);
+    const root=rig.root;
+
+    /* ── 다리 2개: 엉덩이 피벗 → 허벅지 → 무릎 → 정강이 → 발·발톱 ── */
+    [-1,1].forEach(s=>{
+      const hip=new THREE.Group(); hip.position.set(s*5.5, 13.65, 0.1); root.add(hip);
+      const thigh=cyl(2.5,3.1,6.2,8,hide); thigh.position.y=-3.1; hip.add(thigh);
+      const knee=sph(2.5,10,plate); knee.position.y=-6.5; hip.add(knee);
+      const shin=cyl(1.9,2.6,5.6,8,hide2); shin.position.set(0,-9.3,0.35); hip.add(shin);
+      const ankle=sph(2.0,8,plate); ankle.position.set(0,-12.15,0.5); hip.add(ankle);
+      const foot=box(4.4,1.5,5.8,hide2); foot.position.set(0,-12.9,1.4); hip.add(foot);
+      for(let c=0;c<3;c++){
+        const claw=cone(0.55,2.6,5,bone);
+        claw.position.set((c-1)*1.55,-12.75,4.4); claw.rotation.x=Math.PI/2.15; hip.add(claw);
+      }
+      const ksp=cone(0.85,2.8,5,plate); ksp.position.set(s*1.9,-5.2,1.2); ksp.rotation.z=-s*0.55; hip.add(ksp);
+      rig.legs.push({g:hip, side:s});
+    });
+
+    /* ── 꼬리: 5마디 사슬 — 마디마다 흔들린다 ── */
+    const tailRoot=new THREE.Group(); tailRoot.position.set(0,15.4,-5.0); tailRoot.rotation.x=-0.06; tailRoot.rotation.y=0.26; root.add(tailRoot);
+    const segLen=[6.2,5.4,4.6,3.8,3.0];
+    let node=tailRoot;
+    for(let i=0;i<segLen.length;i++){
+      const seg=new THREE.Group();
+      seg.position.set(0,0, i===0?0:-segLen[i-1]);
+      node.add(seg);
+      const rA=3.1*(1-i*0.15), rB=3.1*(1-(i+1)*0.15);
+      const m=cyl(Math.max(0.35,rB), rA, segLen[i], 7, i%2?hide2:hide);
+      m.rotation.x=Math.PI/2; m.position.z=-segLen[i]/2; seg.add(m);
+      if(i%2===1){
+        const sp=cone(0.75,2.6,5,bone); sp.rotation.x=Math.PI/2;
+        sp.position.set(0,0,-segLen[i]*0.45); seg.add(sp);
+      }
+      rig.tail.push(seg);
+      node=seg;
     }
-    const body=cyl(6.4,7.6,18.5,8,obs); body.position.y=3.0+9.25; g.add(body);
-    for(let i=0;i<8;i++){
-      const a=i/8*Math.PI*2;
-      const rib=box(1.5,19.2,1.9,armor);
-      rib.position.set(Math.cos(a)*6.8, 3.0+9.4, Math.sin(a)*6.8); rib.rotation.y=-a; g.add(rib);
-      const vein=box(0.32,17.0,0.32,crimson); vein.userData.noFade=true;
-      vein.position.set(Math.cos(a+0.39)*6.6, 3.0+9.2, Math.sin(a+0.39)*6.6); g.add(vein);
-    }
+    const tip=cone(1.0,4.2,6,bone); tip.rotation.x=-Math.PI/2; tip.position.z=-2.6; node.add(tip);
+
+    /* ── 몸통 ── */
+    const torso=new THREE.Group(); torso.position.y=13.4; root.add(torso); rig.torso=torso;
+    const pelvis=sph(6.2,14,hide); pelvis.scale.set(1.30,0.86,1.05); pelvis.position.y=0.7; torso.add(pelvis);
+    const belly=sph(6.4,16,hide); belly.scale.set(1.26,1.04,1.02); belly.position.set(0,4.8,0.2); torso.add(belly);
+    const chest=sph(7.0,18,hide); chest.scale.set(1.42,0.96,1.08); chest.position.set(0,8.6,0.3); torso.add(chest);
+    /* 흉갑 판금 3겹 */
     for(let i=0;i<3;i++){
-      const band=cyl(7.35-i*0.35,7.35-i*0.35,0.55,8,crimson);
-      band.userData.noFade=true; band.position.y=6.5+i*5.0; g.add(band);
+      const p=box(15.0-i*1.9, 1.5, 2.8, plate);
+      p.position.set(0, 6.6+i*2.2, 6.2-i*0.5); p.rotation.x=-0.20+i*0.06; torso.add(p);
     }
-    const crown=cyl(7.8,6.6,3.2,8,armor); crown.position.y=3.0+18.5+1.4; g.add(crown);
-    for(let i=0;i<8;i++){
-      const a=i/8*Math.PI*2, big=(i%4===0);
-      const sp=cone(big?1.45:0.9, big?13.5:8.2, 4, obs);
-      sp.position.set(Math.cos(a)*6.4, 3.0+18.5+(big?6.4:4.2), Math.sin(a)*6.4);
-      sp.rotation.z=-Math.cos(a)*0.22; sp.rotation.x=Math.sin(a)*0.22; g.add(sp);
+    /* 등 혹 */
+    const hump=sph(5.4,14,hide2); hump.scale.set(0.95,0.80,0.9); hump.position.set(0,9.6,-3.8); torso.add(hump);
+    /* 붉은 균열 — 몸통을 타고 흐르는 심연의 열 */
+    [[0,9.0,7.0,0.55,3.4,0],[0,4.4,6.4,0.5,3.0,0],[-4.6,6.8,5.6,0.45,2.6,-0.35],
+     [4.6,6.8,5.6,0.45,2.6,0.35],[-2.4,2.2,5.4,0.4,2.0,-0.2],[2.4,2.2,5.4,0.4,2.0,0.2]].forEach((v,i)=>{
+      const crack=box(v[3],v[4],0.4, i%3===0?ember2:ember);
+      crack.userData.noFade=true; crack.position.set(v[0],v[1],v[2]); crack.rotation.z=v[5]; torso.add(crack);
+    });
+    /* 가슴 속 심연 코어 */
+    const inner=sphereGlow(3.4,0xff1a36,0.30); inner.position.set(0,8.6,3.8); torso.add(inner); rig.chestGlow=inner;
+    const rim=new THREE.Mesh(new THREE.TorusGeometry(3.2,0.30,6,26), basicMat(0xff2b46,{transparent:true,opacity:0.9}));
+    rim.userData.noFade=true; rim.position.set(0,8.6,5.7); torso.add(rim);
+
+    /* ── 어깨 · 팔 · 큰 주먹 ── */
+    [-1,1].forEach(s=>{
+      const sh=new THREE.Group(); sh.position.set(s*9.2, 24.2, 0.7); root.add(sh);
+      const cap=sph(4.2,12,plate); cap.scale.set(1.05,0.95,1.0); sh.add(cap);
+      for(let k=0;k<2;k++){
+        const sp=cone(0.9,3.6,5,bone);
+        sp.position.set(s*(2.5+k*0.9),1.5+k*0.7,-0.5+k*1.0);
+        sp.rotation.z=-s*(0.9+k*0.28); sh.add(sp);
+      }
+      const upper=cyl(2.3,3.0,7.4,8,hide); upper.position.set(s*0.7,-4.0,0.2); upper.rotation.z=-s*0.09; sh.add(upper);
+      const elbow=sph(2.6,10,plate); elbow.position.set(s*1.1,-7.9,0.6); sh.add(elbow);
+      const fore=cyl(2.5,3.1,6.2,8,hide2); fore.position.set(s*1.3,-11.1,1.4); sh.add(fore);
+      /* 큰 주먹 */
+      const fist=new THREE.Group(); fist.position.set(s*1.5,-14.8,2.0); sh.add(fist);
+      const kn=sph(3.6,14,hide); kn.scale.set(1.15,1.0,1.12); fist.add(kn);
+      const backf=sph(2.7,10,plate); backf.position.set(s*0.5,0.9,-1.1); fist.add(backf);
+      for(let k=0;k<4;k++){
+        const kb=sph(1.0,8,plate); kb.position.set(s*(k-1.5)*1.3,0.7,2.8); fist.add(kb);
+      }
+      for(let k=0;k<3;k++){
+        const cl=cone(0.5,1.8,5,bone); cl.position.set((k-1)*1.35,-1.9,2.4); cl.rotation.x=Math.PI/1.85; fist.add(cl);
+      }
+      rig.arms.push({g:sh, side:s, baseY:sh.position.y});
+    });
+
+    /* ── 목 · 머리 · 아가리 ── */
+    const neck=cyl(3.3,4.8,3.6,10,hide2); neck.position.set(0,27.9,0.5); root.add(neck);
+    const head=new THREE.Group(); head.position.set(0,28.9,0.9); root.add(head); rig.head=head;
+    const skull=sph(4.7,16,hide); skull.scale.set(1.12,0.94,1.06); skull.position.y=2.4; head.add(skull);
+    /* 주둥이(윗턱) — 평평한 면도 죽지 않게 살짝 자체 발광 */
+    const muzzleMat=mat(0x4a3966,{emissive:0x120a1e});
+    const snout=box(5.6,2.6,3.0,muzzleMat); snout.position.set(0,1.45,4.0); head.add(snout);
+    const snoutTop=box(4.8,0.9,2.8,plate); snoutTop.position.set(0,2.9,3.9); head.add(snoutTop);
+    const nose=box(2.0,0.6,0.9,mat(0x0a0510)); nose.position.set(0,2.25,5.5); head.add(nose);
+    /* 아가리 — 이빨 사이로 붉은 빛이 새어 나온다 */
+    const maw=box(4.8,1.4,0.7, basicMat(0x8a0f22)); maw.userData.noFade=true; maw.position.set(0,0.05,5.55); head.add(maw);
+    /* 눈두덩 + 붉은 안광 2개 */
+    [-1,1].forEach(s=>{
+      const brow=box(3.0,1.0,1.6,plate); brow.position.set(s*2.2,3.85,4.55); brow.rotation.z=-s*0.30; head.add(brow);
+      const socket=box(2.1,1.8,0.9,mat(0x0a0510)); socket.position.set(s*2.15,2.85,4.75); head.add(socket);
+      const eye=sph(0.92,10,basicMat(0xff3350)); eye.position.set(s*2.15,2.85,5.1); head.add(eye);
+      const gl=sphereGlow(1.35,0xff1a36,0.85); gl.position.set(s*2.15,2.85,5.3); head.add(gl);
+      rig.eyes.push(gl);
+    });
+    /* 아랫턱 + 이빨 */
+    const jaw=new THREE.Group(); jaw.position.set(0,0.1,2.2); head.add(jaw); rig.jaw=jaw;
+    const jawM=box(5.2,1.5,3.8,mat(0x3a2b52,{emissive:0x0d0816})); jawM.position.set(0,-1.2,2.2); jaw.add(jawM);
+    for(let k=0;k<6;k++){
+      const t=cone(0.40,1.3,4,bone); t.position.set((k-2.5)*1.02,-0.55,4.1); jaw.add(t);
     }
-    const core=new THREE.Mesh(new THREE.OctahedronGeometry(3.5,1), crimson);
-    core.userData.noFade=true; core.position.y=3.0+18.5+5.4; g.add(core); BOSS.eye=core;
-    const cglow=sphereGlow(7.6,0xff1a36,0.6); cglow.position.copy(core.position); g.add(cglow);
-    bossGroundRings(g,0x9911ff,0xff1a36,11.8);
-    bossBeam(g,0xff1a36); bossMarker(g,3.0+18.5+14,'☠️ BOSS');
+    for(let k=0;k<7;k++){
+      const t=cone(0.38,1.2,4,bone); t.position.set((k-3)*1.00,-0.05,5.55); t.rotation.x=Math.PI; head.add(t);
+    }
+    /* 뿔 2쌍 — 머리에서 위·바깥으로 크게 휘어진다 */
+    [-1,1].forEach(s=>{
+      head.add(bossBezierSpike(
+        new THREE.Vector3(s*3.2,3.5,-0.5),
+        new THREE.Vector3(s*8.0,7.2,-2.6),
+        new THREE.Vector3(s*5.2,10.6,-6.4), 1.55, 0.12, bone, 5));
+      head.add(bossBezierSpike(
+        new THREE.Vector3(s*4.0,1.2,-2.2),
+        new THREE.Vector3(s*6.6,2.0,-4.4),
+        new THREE.Vector3(s*6.2,3.4,-6.6), 0.85, 0.10, bone, 3));
+    });
+    /* 등 가시 — 척추를 따라 솟은 뼈 가시 */
+    for(let i=0;i<4;i++){
+      const y=17.6+i*2.7, z=-3.4-i*0.35;
+      const sp=bossBezierSpike(
+        new THREE.Vector3(0,y,z),
+        new THREE.Vector3(0,y+4.2,z-2.4),
+        new THREE.Vector3(0,y+4.6,z-5.6), 1.45-i*0.16, 0.10, bone, 4);
+      root.add(sp); rig.spikes.push(sp);
+    }
+
+    /* ── 땅 마법진 · 빛기둥 · 마커 ── */
+    bossGroundRings(g,0x9911ff,0xff1a36,13.2);
+    BOSS.beamMul=0.28;
+    bossBeam(g,0xff1a36,0.03); bossMarker(g,40,'👹 BOSS');
+    BOSS.markerY=40;
+    BOSS.eye=rig.eyes[0];
+    BOSS.rig=rig;
     break;
   }
   case 'crab':{
@@ -10108,6 +10364,7 @@ function buildBoss(){
   if(BOSS.group){ scene.remove(BOSS.group); disposeTree(BOSS.group); }
   BOSS.group=null; BOSS.rings=[]; BOSS.spinners=[]; BOSS.eye=null; BOSS.beam=null; BOSS.marker=null;
   BOSS.spikes=[]; BOSS.queue=[]; BOSS.sealRings=[]; BOSS.fx.length=0;
+  BOSS.rig=null; BOSS.markerY=0; BOSS.beamMul=1; bossResetMotion();
   const mini = state.bossKind==='mini';
   BOSS.mini=mini;
   const g=new THREE.Group();
@@ -10168,6 +10425,7 @@ function clearBossForNormal(){
   BOSS.group=null; BOSS.rings=[]; BOSS.spinners=[]; BOSS.eye=null; BOSS.beam=null; BOSS.marker=null;
   BOSS.core=null; BOSS.seal=null; BOSS.sealRings=[]; BOSS.fx.length=0;
   BOSS.spikes=[]; BOSS.queue=[]; BOSS.kit=null; BOSS.lastCheck=null;
+  BOSS.rig=null; BOSS.markerY=0; BOSS.beamMul=1; bossResetMotion(); bossDashTeleHide(0);
   BOSS.alive=false; BOSS.down=false; BOSS.revealed=false; BOSS.riseT=0;
   BOSS.hp=0; BOSS.maxHp=0; BOSS.shield=0; BOSS.shieldMax=0; BOSS.stagger=0;
   BOSS.eatT=0; BOSS.hitT=0; BOSS.atkTimer=0; BOSS.boltT=0; BOSS.mini=false;
@@ -10409,6 +10667,7 @@ function triggerBossArrival(atX, atZ){
   const spot = (atX!==undefined && atZ!==undefined) ? {x:atX, z:atZ, r:0} : bossArrivalSpot();
   BOSS.pos.set(spot.x, 0, spot.z);
   BOSS.group.position.set(spot.x, 0, spot.z);
+  BOSS.homeX=spot.x; BOSS.homeZ=spot.z; bossResetMotion();
   /* 솟아오를 자리 정리 — 건물/거대 목표물을 치운다 */
   try{ clearGiantFootprint(spot.x, spot.z, 26); }catch(e){}
   for(let gi=giantList.length-1;gi>=0;gi--){
@@ -10448,6 +10707,10 @@ function triggerBossArrival(atX, atZ){
   for(let i=0;i<18;i++){
     const a=RNG()*6.283, rr=rnd(3,15);
     spawnPoof(spot.x+Math.cos(a)*rr, spot.z+Math.sin(a)*rr, i%3?0x2a1a33:0xff2b46, 3);
+  }
+  /* 미니 보스(1-3 등) — 1.5초 줌인 컷으로 강림 지점을 비춘다 (스킵 가능) */
+  if(BOSS.mini && typeof startMiniBossCine==='function'){
+    try{ startMiniBossCine(spot.x, spot.z); }catch(e){ console.error(e); }
   }
 }
 function animateBoss(dt){
@@ -10511,9 +10774,11 @@ function animateBoss(dt){
 
   BOSS.rings.forEach((r,i)=>{ r.rotation.z += dt*(0.5+i*0.22); r.material.opacity=0.45+0.28*Math.sin(t*1.6+i); });
   BOSS.spinners.forEach((r,i)=>{ r.rotation.z -= dt*(0.7+i*0.3); });
-  if(BOSS.beam) BOSS.beam.material.opacity=0.09+0.07*Math.sin(t*2.2);
+  if(BOSS.beam) BOSS.beam.material.opacity=(BOSS.beamMul===undefined?1:BOSS.beamMul)*(0.09+0.07*Math.sin(t*2.2));
+  /* v3.1 — 괴수 리깅: 팔·꼬리·몸통이 살아 움직인다 (엔딩 시네마 제외) */
+  if(!(typeof BOSS_OUTRO!=='undefined' && BOSS_OUTRO.active)) animateBossRig(dt,t);
   if(BOSS.marker){
-    BOSS.marker.position.y=2.7+17+11+Math.sin(t*1.5)*1.2;
+    BOSS.marker.position.y=(BOSS.markerY||30.7)+Math.sin(t*1.5)*1.2;
     BOSS.marker.material.opacity = state.bossUnlocked?1:0.82;
   }
   if(BOSS.hitT>0){ BOSS.hitT=Math.max(0,BOSS.hitT-dt); }
@@ -10717,6 +10982,320 @@ function bossStrike(){
   Sound.siren();
   if(Settings.shake) state.shake=Math.max(state.shake,0.5);
 }
+/* ═══════════════════════════════════════════════════════════
+   v3.1 — 괴수 활보 AI
+   · 기둥(BOSS.inv>0)이 남아 있어도 그로기가 아니면 결투장을 계속 누빈다
+   · 순찰/추적(플레이어 주변 선회) · 예고선 돌진 · 점프 찍기
+   · 결투장 밖으로는 나가지 않는다 (ARENA.r - 10)
+   ═══════════════════════════════════════════════════════════ */
+function bossResetMotion(){
+  BOSS.motion='roam'; BOSS.motionT=0; BOSS.walkPhase=0; BOSS.crouch=0; BOSS.lean=0;
+  BOSS.jumpY=0; BOSS.velX=0; BOSS.velZ=0; BOSS.chargeT=4.6; BOSS.jumpT=9.6;
+  BOSS.strafeDir=RNG()<0.5?-1:1; BOSS.strafeT=2.5; BOSS.dashT=0; BOSS.dashFxT=0;
+  BOSS.slammed=false; BOSS.lastCheck2=null;
+}
+function bossSetMotion(m){ BOSS.motion=m; BOSS.motionT=0; }
+
+/* 보스가 돌아다닐 수 있는 범위 — 결투장이 있으면 그 안쪽 10유닛까지 */
+function bossArenaBounds(){
+  if(typeof ARENA!=='undefined' && ARENA.on)
+    return {x:ARENA.cx, z:ARENA.cz, r:Math.max(8,(ARENA.r||46)-10)};
+  return {x:BOSS.homeX||0, z:BOSS.homeZ||0, r:34};
+}
+function bossClampPos(x,z){
+  const b=bossArenaBounds();
+  const dx=x-b.x, dz=z-b.z, d=Math.hypot(dx,dz);
+  if(d>b.r && d>0.0001){ x=b.x+dx/d*b.r; z=b.z+dz/d*b.r; }
+  return {x:x, z:z};
+}
+function bossApplyPos(x,z,dt){
+  const cl=bossClampPos(x,z);
+  const cur=BOSS.group.position;
+  BOSS.velX=(cl.x-cur.x)/Math.max(dt,0.0001);
+  BOSS.velZ=(cl.z-cur.z)/Math.max(dt,0.0001);
+  cur.x=cl.x; cur.z=cl.z;
+  BOSS.pos.set(cur.x,0,cur.z);
+}
+
+/* ── 돌진 예고선: 보스 발치에서 플레이어 방향으로 길게 뻗는 붉은 직선 ── */
+function bossDashTeleShow(){
+  bossDashTeleHide(true);
+  const len=84, w=15.5;
+  const g=new THREE.Group();
+  const strip=new THREE.Mesh(new THREE.PlaneGeometry(w,len),
+    new THREE.MeshBasicMaterial({color:C(0xff1a36), transparent:true, opacity:0.10,
+      blending:THREE.AdditiveBlending, depthWrite:false, side:THREE.DoubleSide}));
+  strip.rotation.x=Math.PI/2; strip.position.set(0,0.12,len/2); g.add(strip);
+  const edge=new THREE.Mesh(new THREE.PlaneGeometry(w+2.6,len),
+    new THREE.MeshBasicMaterial({color:C(0xff4a5e), transparent:true, opacity:0.16,
+      blending:THREE.AdditiveBlending, depthWrite:false, side:THREE.DoubleSide}));
+  edge.rotation.x=Math.PI/2; edge.position.set(0,0.07,len/2); g.add(edge);
+  const rails=[];
+  [-1,1].forEach(s=>{
+    const r=box(0.55,0.14,len, basicMat(0xff2b46,{transparent:true,opacity:0.85}));
+    r.userData.noFade=true; r.position.set(s*w/2,0.18,len/2); g.add(r); rails.push(r);
+  });
+  const ring=new THREE.Mesh(new THREE.TorusGeometry(w*0.62,0.34,6,34),
+    new THREE.MeshBasicMaterial({color:C(0xff1a36), transparent:true, opacity:0.8,
+      blending:THREE.AdditiveBlending, depthWrite:false}));
+  ring.rotation.x=-Math.PI/2; ring.position.y=0.2; g.add(ring);
+  g.position.set(BOSS.pos.x,0,BOSS.pos.z);
+  g.rotation.y=Math.atan2(BOSS.dashDirX||0, BOSS.dashDirZ||1);
+  scene.add(g);
+  BOSS.dashTele={group:g, strip:strip, edge:edge, rails:rails, ring:ring, on:true};
+}
+function bossDashTeleAim(ux,uz){
+  const D=BOSS.dashTele; if(!D) return;
+  D.group.rotation.y=Math.atan2(ux,uz);
+}
+function bossDashTeleHide(force){
+  const D=BOSS.dashTele; if(!D) return;
+  if(!force && D.on && D.group){ D.on=false; return; }   /* 페이드 후 update 가 정리 */
+  if(D.group){ scene.remove(D.group); disposeTree(D.group); }
+  BOSS.dashTele=null;
+}
+function bossDashTeleUpdate(dt,t){
+  const D=BOSS.dashTele; if(!D) return;
+  D.group.position.set(BOSS.pos.x,0,BOSS.pos.z);
+  if(D.on){
+    const p=0.5+0.5*Math.sin(t*16);
+    D.strip.material.opacity=0.20+0.26*p;
+    D.edge.material.opacity=0.18+0.18*(1-p);
+    D.rails.forEach(r=>{ r.material.opacity=0.55+0.40*p; });
+    D.ring.material.opacity=0.45+0.45*p;
+  } else {
+    const k=Math.max(0, 1-dt*7.0);
+    D.strip.material.opacity*=k; D.edge.material.opacity*=k; D.ring.material.opacity*=k;
+    D.rails.forEach(r=>{ r.material.opacity*=k; });
+    if(D.strip.material.opacity<0.02) bossDashTeleHide(true);
+  }
+}
+
+/* ── 점프 찍기 착지 — 발밑 충격파 링 (밀려나기만, 하트 피해 없음) ── */
+function bossSlamImpact(){
+  const x=BOSS.pos.x, z=BOSS.pos.z;
+  bossRing(x,z,0xff1a36,38,1.1);
+  bossRing(x,z,0xffd34d,24,0.85);
+  bossRing(x,z,0x8b3bff,14,0.6);
+  for(let i=0;i<12;i++){
+    const a=RNG()*6.283, rr=rnd(4,20);
+    spawnPoof(x+Math.cos(a)*rr, z+Math.sin(a)*rr, i%2?0x2a1a33:0xff5a2a, 4, 1.2);
+  }
+  spawnPoof(x,z,0x2a1a33,16,1.6);
+  state.shake=Math.max(state.shake,1.15);
+  state.flash=Math.max(state.flash,0.26);
+  Sound.boom(); vibrate([60,40,120]);
+  const d=Math.hypot(player.pos.x-x, player.pos.z-z);
+  if(d<34) knockPlayer(x,z, 26, '🪨 지진!');
+}
+
+function updateBossMotion(dt, dxp, dzp, dp){
+  const B=BOSS;
+  if(!B.group || B.eatT>0 || (typeof BOSS_OUTRO!=='undefined' && BOSS_OUTRO.active)){
+    B.velX=0; B.velZ=0;
+    if(B.dashTele) bossDashTeleHide();
+    return;
+  }
+  B.motionT=(B.motionT||0)+dt;
+  const ux=dxp/(dp||1), uz=dzp/(dp||1);
+  const cur=B.group.position;
+
+  /* ── 그로기: 축 늘어진 채 멈춘다 ── */
+  if(B.groggy>0){
+    if(B.motion!=='groggy') bossSetMotion('groggy');
+    B.crouch=damp(B.crouch,1.15,5,dt);
+    B.lean=damp(B.lean,0,6,dt);
+    B.jumpY=damp(B.jumpY,0,9,dt);
+    B.velX=damp(B.velX,0,8,dt); B.velZ=damp(B.velZ,0,8,dt);
+    if(B.motionT>0.25) bossDashTeleHide();
+    return;
+  }
+  if(B.motion==='groggy') bossSetMotion('roam');
+
+  B.chargeT-=dt; B.jumpT-=dt;
+  const mt=B.motionT;
+
+  /* ① 몸을 숙여 돌진 준비 */
+  if(B.motion==='crouch'){
+    B.crouch=damp(B.crouch,1.0,9,dt);
+    B.velX=damp(B.velX,0,10,dt); B.velZ=damp(B.velZ,0,10,dt);
+    if(mt>=0.5){
+      B.dashDirX=ux; B.dashDirZ=uz;
+      bossDashTeleShow();
+      bossSetMotion('aim');
+      Sound.tone(180,0.30,'sawtooth',0.05,90);
+    }
+    return;
+  }
+  /* ② 0.6초 붉은 직선 예고 */
+  if(B.motion==='aim'){
+    B.crouch=damp(B.crouch,1.0,9,dt);
+    B.velX=0; B.velZ=0;
+    if(mt<0.40){ B.dashDirX=ux; B.dashDirZ=uz; }
+    bossDashTeleAim(B.dashDirX,B.dashDirZ);
+    if(mt>=0.6){
+      bossSetMotion('dash');
+      B.dashT=0; B.lean=0;
+      if(B.dashTele) B.dashTele.on=false;
+      Sound.siren(); Sound.boom();
+      state.shake=Math.max(state.shake,0.45);
+    }
+    return;
+  }
+  /* ③ 돌진 — 닿으면 세게 밀어내기 (하트 피해는 붉은 가시탄만) */
+  if(B.motion==='dash'){
+    B.dashT+=dt;
+    B.crouch=damp(B.crouch,0.30,12,dt);
+    B.lean=damp(B.lean,1.0,14,dt);
+    const px=cur.x, pz=cur.z;
+    const step=B.dashSpd*dt;
+    bossApplyPos(px+B.dashDirX*step, pz+B.dashDirZ*step, dt);
+    const moved=Math.hypot(cur.x-px, cur.z-pz);
+    B.dashFxT-=dt;
+    if(B.dashFxT<=0){
+      B.dashFxT=0.05;
+      spawnPoof(cur.x-B.dashDirX*5, cur.z-B.dashDirZ*5, 0x2a1a33, 3, 0.45);
+      spawnSpark(new THREE.Vector3(cur.x+B.dashDirX*4, 1.2, cur.z+B.dashDirZ*4), 0xff5a2a, 0.4, 0.4);
+      state.shake=Math.max(state.shake,0.20);
+    }
+    const dn=Math.hypot(player.pos.x-cur.x, player.pos.z-cur.z);
+    if(dn < state.R*0.9+B.R*0.62 && B.hitCd<=0){
+      B.hitCd=1.2;
+      knockPlayer(cur.x, cur.z, 32, '💥 돌진!');
+      bossRing(cur.x, cur.z, 0xff1a36, 26, 0.7);
+      bossRing(cur.x, cur.z, 0xffd34d, 16, 0.5);
+      B.dashT=9;
+    }
+    if(moved < step*0.4 || B.dashT>=0.62){
+      B.lean=damp(B.lean,0,6,dt);
+      bossSetMotion('recover');
+      bossRing(cur.x, cur.z, 0x8b3bff, 30, 0.85);
+      spawnPoof(cur.x, cur.z, 0x2a1a33, 10);
+      B.chargeT=rnd(4.5,6.0);
+      state.shake=Math.max(state.shake,0.35);
+    }
+    return;
+  }
+  /* ④ 회복 — 잠깐 숨을 고른 뒤 다시 활보 */
+  if(B.motion==='recover'){
+    B.crouch=damp(B.crouch,0.15,5,dt);
+    B.lean=damp(B.lean,0,6,dt);
+    B.velX=damp(B.velX,0,6,dt); B.velZ=damp(B.velZ,0,6,dt);
+    if(mt>=0.85) bossSetMotion('roam');
+    return;
+  }
+  /* ⑤ 점프 찍기 — 위로 솟았다가 쿵 내려찍는다 */
+  if(B.motion==='jump'){
+    const k=clamp(mt/1.0,0,1);
+    if(k<0.42) B.jumpY=9.5*(k/0.42);
+    else if(k<0.58) B.jumpY=9.5;
+    else B.jumpY=9.5*Math.max(0, 1-(k-0.58)/0.24);
+    B.crouch=damp(B.crouch, k<0.58?-0.35:1.25, 9, dt);
+    B.lean=damp(B.lean,0,8,dt);
+    if(k>=0.80 && !B.slammed){ B.slammed=true; bossSlamImpact(); }
+    if(k>=1){ B.jumpY=0; bossSetMotion('recover'); }
+    return;
+  }
+
+  /* ⑥ 순찰/추적 — 플레이어 주변을 빙글빙글 선회하며 다가온다 */
+  B.crouch=damp(B.crouch,0,6,dt);
+  B.lean=damp(B.lean,0,6,dt);
+
+  if(B.jumpT<=0 && dp<58){
+    B.jumpT=rnd(9.0,13.5);
+    B.slammed=false;
+    bossSetMotion('jump');
+    Sound.tone(150,0.35,'sine',0.05,80);
+    return;
+  }
+  if(B.chargeT<=0 && dp>9 && dp<72){
+    bossSetMotion('crouch');
+    Sound.tone(120,0.28,'square',0.05,70);
+    return;
+  }
+
+  B.strafeT-=dt;
+  if(B.strafeT<=0){ B.strafeT=rnd(2.6,4.8); if(RNG()<0.5) B.strafeDir=-(B.strafeDir||1); }
+
+  const want = B.inv>0 ? 24.0 : 19.0;          /* 기둥을 뽑는 동안은 조금 멀찌감치 */
+  const spd = (B.inv>0 ? 6.4 : 8.6) + Math.min(3.0, state.stage*0.05);
+  const radial = clamp((dp-want)*0.30, -1, 1);
+  const tang = 0.85*B.strafeDir;
+  let vx = ux*radial*spd + (-uz)*tang*spd;
+  let vz = uz*radial*spd + ( ux)*tang*spd;
+  const vl=Math.hypot(vx,vz);
+  if(vl<0.001){ vx=0; vz=0; }
+  else { const k=spd/vl; vx*=k; vz*=k; }
+  if(dp>46){ vx=ux*spd*1.15; vz=uz*spd*1.15; }  /* 너무 멀면 곧장 다가온다 */
+
+  const px=cur.x, pz=cur.z;
+  bossApplyPos(px+vx*dt, pz+vz*dt, dt);
+  const spdNow=Math.hypot(B.velX,B.velZ);
+  if(spdNow>0.4) B.walkPhase += dt*(1.5+spdNow*0.34);
+  B.lastCheck2={motion:B.motion, spd:+spdNow.toFixed(2), x:+cur.x.toFixed(2), z:+cur.z.toFixed(2),
+    walk:+B.walkPhase.toFixed(2), crouch:+B.crouch.toFixed(2), charge:+B.chargeT.toFixed(1)};
+}
+
+/* ── 괴수 리깅 — 팔·꼬리·몸통·머리·안광을 계속 살아 움직이게 ── */
+function animateBossRig(dt,t){
+  const rig=BOSS.rig; if(!rig) return;
+  const spd=Math.hypot(BOSS.velX||0, BOSS.velZ||0);
+  const walkK=clamp(spd/7.0, 0, 1.35);
+  const w=BOSS.walkPhase||0;
+  const crouch=BOSS.crouch||0;
+  const lean=BOSS.lean||0;
+  const jumpY=BOSS.jumpY||0;
+  const breath=Math.sin(t*1.25);
+
+  if(rig.root){
+    /* 묵직한 걷기 바운스 + 몸통 흔들림 */
+    const bob=Math.abs(Math.sin(w))*0.95*Math.min(1.35,walkK);
+    rig.root.position.y = bob + jumpY - Math.max(0,crouch)*0.85;
+    rig.root.position.x = Math.sin(w*0.5)*0.38*Math.min(1,walkK);
+    rig.root.rotation.z = Math.sin(w*0.5)*0.035*Math.min(1,walkK) + Math.sin(t*0.8)*0.012;
+    rig.root.rotation.x = lean*0.20 - crouch*0.13;
+  }
+  if(rig.torso){
+    const s=1+0.022*breath;
+    rig.torso.scale.set(s, 1+0.030*breath, s);
+    rig.torso.rotation.x = -Math.max(0,crouch)*0.10 + lean*0.05;
+    rig.torso.rotation.y = Math.sin(t*0.62)*0.035;
+  }
+  if(rig.head){
+    rig.head.rotation.x = 0.05 + Math.sin(t*0.85)*0.05 - crouch*0.30 + lean*0.16
+      + Math.abs(Math.sin(w))*0.04*Math.min(1,walkK);
+    rig.head.rotation.y = Math.sin(t*0.55)*0.12;
+    rig.head.rotation.z = Math.sin(t*0.70)*0.04;
+  }
+  if(rig.jaw){
+    const roar=Math.max(0, Math.sin(t*1.7)-0.55)/0.45;
+    rig.jaw.rotation.x = 0.05 + 0.22*roar + Math.max(0,crouch)*0.10;
+  }
+  rig.arms.forEach((a,i)=>{
+    const s=a.side;
+    const swing=Math.sin(w + (s>0?Math.PI:0))*0.55*walkK;
+    a.g.rotation.x = swing - crouch*0.55 + lean*0.95;
+    a.g.rotation.z = s*(0.10 + 0.05*Math.sin(t*1.4+s)) + s*crouch*0.10;
+    a.g.position.y = a.baseY + Math.sin(t*1.1+i*0.9)*0.10;
+  });
+  rig.legs.forEach(l=>{
+    const s=l.side;
+    const step=Math.sin(w + (s>0?Math.PI:0));
+    l.g.rotation.x = step*0.50*walkK + Math.max(0,crouch)*0.30 + (jumpY>0.6?0.40:0);
+    l.g.rotation.z = s*0.05;
+  });
+  rig.tail.forEach((seg,i)=>{
+    seg.rotation.y = Math.sin(t*1.5 - i*0.6)*0.15 + Math.sin(w*0.8 - i*0.5)*0.10*Math.min(1,walkK);
+    seg.rotation.x = Math.sin(t*1.1 - i*0.45)*0.05;
+  });
+  rig.eyes.forEach((e,i)=>{
+    if(e.material) e.material.opacity=0.55+0.40*Math.abs(Math.sin(t*(2.4+i*0.4)+i));
+    e.scale.setScalar(0.9+0.22*Math.abs(Math.sin(t*(3.1+i))));
+  });
+  if(rig.chestGlow) rig.chestGlow.material.opacity=0.30+0.22*Math.abs(Math.sin(t*2.0));
+  bossDashTeleUpdate(dt,t);
+}
+
 function updateBoss(dt){
   if(!state.hasBoss || !BOSS.alive) return;
   const R=state.R;
@@ -10737,13 +11316,19 @@ function updateBoss(dt){
   if(BOSS.defeated) return;
   if(BOSS.riseT < BOSS.riseDur-0.001) return;      /* 강림 연출 중 */
 
-  /* ② 3단 기믹: 동력 기둥 → 흡수 폭탄 반사 → 약점 갉아먹기 */
+  /* ② 활보 AI — 기둥이 남아 있어도 그로기가 아닌 한 결투장을 계속 누빈다
+        (순찰/추적 · 예고선 돌진 · 점프 찍기) */
+  const dxp=player.pos.x-BOSS.pos.x, dzp=player.pos.z-BOSS.pos.z;
+  const dp=Math.hypot(dxp,dzp)||1;
+  updateBossMotion(dt, dxp, dzp, dp);
+
+  /* ③ 3단 기믹: 동력 기둥 → 흡수 폭탄 반사 → 약점 갉아먹기 (기둥은 보스를 따라다닌다) */
   updateBossPillars(dt);
   updateBossBullets(dt);
   updateBombCarry(dt);
   updateBossWeak(dt);
 
-  /* ③ 그로기 타이머 */
+  /* ④ 그로기 타이머 */
   state.bossUnlocked = BOSS.inv<=0 && BOSS.groggy<=0 && !BOSS.defeated;
   if(BOSS.groggy>0){
     BOSS.groggy=Math.max(0,BOSS.groggy-dt);
@@ -10756,25 +11341,14 @@ function updateBoss(dt){
     }
   }
 
-  /* ④ 추격 — 무적이 풀린 뒤에만 위압적으로 다가온다 */
-  const dxp=player.pos.x-BOSS.pos.x, dzp=player.pos.z-BOSS.pos.z;
-  const dp=Math.hypot(dxp,dzp)||1;
-  if(BOSS.inv<=0 && BOSS.groggy<=0){
-    const chase=3.2+state.stage*0.08;
-    if(dp>15){
-      BOSS.group.position.x += dxp/dp*chase*dt;
-      BOSS.group.position.z += dzp/dp*chase*dt;
-      BOSS.pos.set(BOSS.group.position.x, 0, BOSS.group.position.z);
-    }
-  }
-  /* 붉은 눈 코어가 항상 플레이어를 노려본다 */
+  /* ⑤ 붉은 눈 코어가 항상 플레이어를 노려본다 */
   if(BOSS.group){
     const want=Math.atan2(dxp,dzp);
     let diff=((want-BOSS.group.rotation.y+Math.PI*3)%(Math.PI*2))-Math.PI;
-    BOSS.group.rotation.y += diff*Math.min(1, dt*1.1);
+    BOSS.group.rotation.y += diff*Math.min(1, dt*(BOSS.motion==='dash'?3.0:1.1));
   }
 
-  /* ⑤ 몸체 접촉 — 하트는 깎지 않고 부드럽게 바깥으로만 밀어낸다 (피해는 붉은 가시탄/3초 폭탄 폭발만!) */
+  /* ⑥ 몸체 접촉 — 하트는 깎지 않고 부드럽게 바깥으로만 밀어낸다 (피해는 붉은 가시탄/3초 폭탄 폭발만!) */
   if(BOSS.groggy<=0 && dp < R*0.9 + BOSS.R*0.62 && BOSS.hitCd<=0){
     BOSS.hitCd=1.2;
     bossRing(BOSS.pos.x,BOSS.pos.z,0xff2b46, 18, 0.65);
@@ -10785,7 +11359,7 @@ function updateBoss(dt){
     }
   }
 
-  /* ⑥ 🟡 흡수 폭탄 + 🔴 붉은 가시탄 */
+  /* ⑦ 🟡 흡수 폭탄 + 🔴 붉은 가시탄 */
   if(BOSS.groggy<=0){
     BOSS.fireT-=dt;
     if(BOSS.fireT<=0 && dp<95){
@@ -10793,7 +11367,7 @@ function updateBoss(dt){
       bossFireVolley();
     }
   }
-  /* ⑦ 가끔 테마 고유 바닥 패턴 (압박용) */
+  /* ⑧ 가끔 테마 고유 바닥 패턴 (압박용) */
   if(BOSS.groggy<=0 && dp<72){
     BOSS.atkTimer-=dt;
     if(BOSS.atkTimer<=0){
@@ -10802,7 +11376,9 @@ function updateBoss(dt){
     }
   }
   BOSS.lastCheck={d:+dp.toFixed(1), R:+R.toFixed(1), inv:BOSS.inv, groggy:+BOSS.groggy.toFixed(1),
-    bites:BOSS.bites, carried:!!state.bomb, mode:state.mode};
+    bites:BOSS.bites, carried:!!state.bomb, mode:state.mode,
+    motion:BOSS.motion, spd:+Math.hypot(BOSS.velX||0,BOSS.velZ||0).toFixed(2),
+    x:+BOSS.pos.x.toFixed(2), z:+BOSS.pos.z.toFixed(2), walk:+(BOSS.walkPhase||0).toFixed(2)};
 }
 function startBossEat(){
   if(state.bossEat>0 || !BOSS.revealed) return;
@@ -11649,6 +12225,44 @@ function activateSkinSkill(force){
   updateSkillBar();
 }
 
+/* ── v3.1 디버그 훅 — 괴수 외형/활보 AI 상태 (테스트·검증용) ── */
+var BOSS_CAM=null;   /* 테스트용 카메라 고정(updateCamera 가 이 값을 우선) */
+window.__BOSSAI = {
+  cam(px,py,pz,tx,ty,tz){ BOSS_CAM={px:px,py:py,pz:pz,tx:tx,ty:ty,tz:tz}; return BOSS_CAM; },
+  camOff(){ BOSS_CAM=null; return true; },
+  orbitCam(dist,pitchDeg,yawDeg,ty){
+    const d=dist||120, pit=(pitchDeg===undefined?28:pitchDeg)*Math.PI/180, yaw=(yawDeg===undefined?26:yawDeg)*Math.PI/180;
+    const b=BOSS.pos, t=ty===undefined?16:ty;
+    BOSS_CAM={px:b.x+Math.sin(yaw)*Math.cos(pit)*d, py:Math.sin(pit)*d+1.2, pz:b.z+Math.cos(yaw)*Math.cos(pit)*d,
+      tx:b.x, ty:t, tz:b.z};
+    return {cam:BOSS_CAM, boss:{x:+b.x.toFixed(1), z:+b.z.toFixed(1)}};
+  },
+  info(){
+    const r=BOSS.rig, b=bossArenaBounds();
+    return {
+      kit:BOSS.kit&&BOSS.kit.name, mini:!!BOSS.mini,
+      rig:r?{arms:r.arms.length, legs:r.legs.length, tail:r.tail.length,
+        spines:r.spikes.length, eyes:r.eyes.length, head:!!r.head, torso:!!r.torso}:null,
+      motion:BOSS.motion, motionT:+(BOSS.motionT||0).toFixed(2),
+      walk:+(BOSS.walkPhase||0).toFixed(2),
+      vel:{x:+(BOSS.velX||0).toFixed(2), z:+(BOSS.velZ||0).toFixed(2)},
+      speed:+Math.hypot(BOSS.velX||0,BOSS.velZ||0).toFixed(2),
+      pos:{x:+BOSS.pos.x.toFixed(2), z:+BOSS.pos.z.toFixed(2)},
+      crouch:+(BOSS.crouch||0).toFixed(2), lean:+(BOSS.lean||0).toFixed(2),
+      jumpY:+(BOSS.jumpY||0).toFixed(2), dashTele:!!BOSS.dashTele,
+      inv:BOSS.inv, groggy:+BOSS.groggy.toFixed(2), defeated:!!BOSS.defeated,
+      rigRootY:r&&r.root?+r.root.position.y.toFixed(2):null,
+      armL:r?+r.arms[0].g.rotation.x.toFixed(2):null,
+      armR:r&&r.arms[1]?+r.arms[1].g.rotation.x.toFixed(2):null,
+      armRootY:r&&r.arms[0]?+r.arms[0].g.position.y.toFixed(2):null,
+      tail0:r&&r.tail[0]?+r.tail[0].rotation.y.toFixed(2):null,
+      legL:r&&r.legs[0]?+r.legs[0].g.rotation.x.toFixed(2):null,
+      bounds:b, distFromBoundCenter:+Math.hypot(BOSS.pos.x-b.x,BOSS.pos.z-b.z).toFixed(2)
+    };
+  },
+  pillarWorld(){ return (BOSS.pillars||[]).map(p=>({i:p.idx, bx:+p.bx.toFixed(1), bz:+p.bz.toFixed(1), out:!!p.out})); }
+};
+
 /* ==== bh_v2_p5b_raid.js ==== */
 /* ═══════════════════════════════════════════════════════════
    v3.0 BOSS RAID — 3단 기믹 공략 풀 패키지
@@ -11722,7 +12336,7 @@ function buildBossPillars(n){
     p.position.set(bx, 0, bz);
     root.add(p);
     BOSS.pillars.push({group:p, core:core, glow:glow, ring:ring, prog:prog, beam:beam, bands:bands,
-      bx:BOSS.pos.x+bx, bz:BOSS.pos.z+bz, pull:0, out:false, t:0, sparkT:0, idx:i});
+      lx:bx, lz:bz, bx:BOSS.pos.x+bx, bz:BOSS.pos.z+bz, pull:0, out:false, t:0, sparkT:0, idx:i});
   }
   BOSS.inv=n;
 }
@@ -11732,19 +12346,30 @@ function updateBossPillars(dt){
   const t=performance.now()*0.001;
   const R=state.R;
   const root=BOSS.pillarGroup;
+  /* 기둥은 보스 몸을 중심으로 따라다닌다 — 보스가 활보하면 기둥도 같이 움직인다 */
+  if(root){ root.position.x=BOSS.pos.x; root.position.z=BOSS.pos.z; }
+  let ringF=1;
+  if(typeof ARENA!=='undefined' && ARENA.on){
+    const br=Math.hypot(BOSS.pos.x-ARENA.cx, BOSS.pos.z-ARENA.cz);
+    ringF=clamp((ARENA.r-4.5-br)/30, 0.45, 1);
+  }
   for(let i=0;i<BOSS.pillars.length;i++){
     const p=BOSS.pillars[i];
+    const lx=(p.lx===undefined?0:p.lx)*ringF, lz=(p.lz===undefined?0:p.lz)*ringF;
+    p.bx=BOSS.pos.x+lx; p.bz=BOSS.pos.z+lz;
     if(p.out){
       p.t+=dt;
       const k=Math.min(1, p.t/0.75), e=k*k;
-      p.group.position.x = p.bx - BOSS.pos.x + (player.pos.x-(p.bx))*e;
-      p.group.position.z = p.bz - BOSS.pos.z + (player.pos.z-(p.bz))*e;
+      /* 로컬(보스 중심) 좌표 → 플레이어 쪽으로 날아간다 */
+      p.group.position.x = lx + ((player.pos.x-BOSS.pos.x)-lx)*e;
+      p.group.position.z = lz + ((player.pos.z-BOSS.pos.z)-lz)*e;
       p.group.position.y = Math.sin(k*Math.PI)*4.0;
       p.group.scale.setScalar(Math.max(0.02, 1-k*0.98));
       p.group.rotation.y += dt*7;
       if(k>=1) p.group.visible=false;
       continue;
     }
+    p.group.position.x=lx; p.group.position.z=lz;
     const d=Math.hypot(player.pos.x-p.bx, player.pos.z-p.bz);
     /* 블랙홀 크기와 무관 — 밑동에 다가가 1초 머물면 뽑힌다 (삼키면 더 빠르게) */
     const near = d < 9.2;

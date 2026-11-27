@@ -8710,19 +8710,19 @@ function updateCamera(dt, immediate, intro){
   /* 화면 비율과 무관하게 '세로 구도'를 고정 — 폴드(정사각형에 가까운 비율)에서도
      카메라가 가까워져 건물에 시야가 막히지 않도록 기준 비율(0.46)로 거리를 계산한다. */
   let d=clamp(span/(2*tanV*0.46), 44, 380);
-  /* 시네마틱 오프닝 — 클로즈업에서 부드럽게 빠지며 원래 시점으로 */
+  /* GTA5식 시네마틱 오프닝 — 높은 하늘에서 도시 전경을 쫘악 보여주다 빌딩 사이로 쑥 내려와 착지 */
   let pitchUse=PITCH, yawUse=YAW, dUse=d;
   if(state.camIntroT>0){
     state.camIntroT=Math.max(0,state.camIntroT-dt);
     const k=1-(state.camIntroT/CAM_INTRO_DUR);        /* 0 → 1 */
     const e=1-Math.pow(1-Math.min(1,k),3);            /* easeOutCubic */
-    dUse=d*(0.34+0.66*e);
-    pitchUse=PITCH*(0.58+0.42*e);
-    yawUse=YAW+(1-e)*0.40;
+    dUse=d*(2.65-1.65*e);
+    pitchUse=PITCH+(1-e)*0.22;
+    yawUse=YAW+(1-e)*0.55;
   }
   if(scene && scene.fog){
-    scene.fog.near = Math.max(190, d + 120);
-    scene.fog.far  = Math.max(640, d + 480);
+    scene.fog.near = Math.max(190, dUse + 120);
+    scene.fog.far  = Math.max(640, dUse + 480);
   }
   const tx=player.pos.x + state.input.x*Math.min(3.2,R*0.3);
   const tz=player.pos.z + state.input.z*Math.min(3.2,R*0.3) - 6.5;
@@ -10436,9 +10436,9 @@ function updateDefense(dt){
     let sp=d.speed, rx=0, rz=0;
     /* 가까이 오면 지그재그로 도망 — 후반에 커지고 빨라져도 쉽게 안 잡히게 */
     if(dist < 30){
-      sp=Math.max(d.speed, pSpd*0.90);
+      sp=Math.min(Math.max(7.2, d.speed*0.85), pSpd*0.74);
       const ux=-dx/dist, uz=-dz/dist;
-      const jig=Math.sin(performance.now()*0.0045 + d.phase)*0.55;
+      const jig=Math.sin(performance.now()*0.0045 + d.phase)*0.40;
       rx=ux - uz*jig; rz=uz + ux*jig;
     } else {
       /* 순회 — 맵 아무 데나 누비며 배회 */

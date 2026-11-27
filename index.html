@@ -3490,6 +3490,7 @@ function shockwave(lv){
 function updateSkillTimers(dt){
   for(const k in state.skillCd) state.skillCd[k]=Math.max(0,(state.skillCd[k]||0)-dt);
   for(const k in state.skillDur) state.skillDur[k]=Math.max(0,(state.skillDur[k]||0)-dt);
+  if(state.skinCd>0) state.skinCd=Math.max(0, state.skinCd-dt);
   // mega suction
   if(state.skillDur.mega>0){
     const lv=Wallet.skills.mega||1;
@@ -8111,7 +8112,13 @@ function updatePlaying(dt){
       }
     }
   }
-  // gravity pulse
+  // gravity pulse (+ 기본 보스 실드 중력 침식: 증강 없어도 보스 근처에 가면 실드가 깎임)
+  if(typeof BOSS!=='undefined' && BOSS.alive && BOSS.revealed && BOSS.shield>0 && BOSS.stagger<=0){
+    const bd=Math.hypot(BOSS.pos.x-player.pos.x, BOSS.pos.z-player.pos.z);
+    if(bd < state.R + BOSS.R + 9.0){
+      damageBossShield(BOSS.shieldMax * 0.28 * dt, 'dot');
+    }
+  }
   if(state.aug.pulse>0){
     state.pulseTimer -= dt;
     if(state.pulseTimer<=0){

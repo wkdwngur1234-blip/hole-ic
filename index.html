@@ -1530,6 +1530,32 @@ body.tap-locked #tabBar,body.tap-locked #title{opacity:0 !important;pointer-even
 .stPicker .stCenter{text-align:center;flex:1;min-width:0}
 .stPicker .stLabel{font-size:10.5px;color:#8fd9ff;font-weight:700;letter-spacing:.8px}
 .stPicker .stVal{font-family:"Black Han Sans",sans-serif;font-size:17px;color:#fff;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* v4.0.9 — 모험 지도(World Map) 스테이지 선택 UI */
+#stageMapModal{position:fixed;inset:0;z-index:92;background:rgba(4,8,18,.82);display:flex;align-items:center;justify-content:center;padding:18px}
+#stageMapModal.hidden{display:none !important}
+.smSheet{width:100%;max-width:440px;max-height:82vh;display:flex;flex-direction:column;border-radius:22px;padding:18px;
+  background:radial-gradient(120% 100% at 50% 0%,#182d5a,#0b1328 70%);border:2px solid rgba(114,232,255,.45);box-shadow:0 20px 50px rgba(0,0,0,.75)}
+.smHead{display:flex;justify-content:space-between;align-items:center}
+.smTitle{font-family:"Black Han Sans",sans-serif;font-size:22px;color:#fff;text-shadow:0 2px 10px rgba(87,230,255,.4)}
+#smClose{width:36px;height:36px;border-radius:10px;border:1px solid rgba(255,255,255,.22);background:rgba(255,255,255,.08);color:#fff;font-size:16px;cursor:pointer}
+.smSub{font-size:12px;color:#9fd3f5;margin:4px 0 14px}
+.smPath{position:relative;overflow-y:auto;display:flex;flex-direction:column;gap:14px;padding:10px 8px;
+  background:radial-gradient(circle at 50% 50%,rgba(45,105,80,.28),rgba(12,24,48,.55));border-radius:16px;border:1px solid rgba(255,255,255,.1)}
+.smNode{position:relative;display:flex;align-items:center;gap:12px;width:78%;padding:11px 14px;border-radius:16px;cursor:pointer;text-align:left;
+  background:linear-gradient(180deg,rgba(24,42,84,.95),rgba(14,24,50,.96));border:1.5px solid rgba(114,232,255,.32);color:#fff;box-shadow:0 6px 16px rgba(0,0,0,.4)}
+.smNode.right{align-self:flex-end}
+.smNode.left{align-self:flex-start}
+.smNode.sel{border-color:#ffd34d;background:linear-gradient(180deg,rgba(64,48,16,.96),rgba(34,24,8,.98));box-shadow:0 0 22px rgba(255,211,77,.45)}
+.smNode .snIcon{width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;background:rgba(255,255,255,.08);flex-shrink:0}
+.smNode .snInfo{flex:1;min-width:0}
+.smNode .snStage{font-size:11px;color:#72e8ff;font-weight:800}
+.smNode.sel .snStage{color:#ffd34d}
+.smNode .snName{font-family:"Black Han Sans",sans-serif;font-size:16px;margin-top:2px}
+.smNode .snTag{font-size:11px;padding:3px 8px;border-radius:999px;background:rgba(255,211,77,.18);color:#ffd34d;font-weight:800}
+
+.smNode.locked{opacity:.48;filter:grayscale(.65);cursor:not-allowed}
+.smNode .snTag.lock{background:rgba(150,170,200,.15);color:#9fb6d4}
 </style>
 </head>
 <body>
@@ -1594,6 +1620,17 @@ body.tap-locked #tabBar,body.tap-locked #title{opacity:0 !important;pointer-even
   <div id="bossGuide" class="hidden">⚡ 공격을 피하며 바닥의 노란 잔해를 삼키세요!</div>
 <div id="toast"></div>
 
+  <!-- v4.0.9 모험 지도 스테이지 선택 모달 -->
+  <div id="stageMapModal" class="hidden">
+    <div class="smSheet">
+      <div class="smHead">
+        <div class="smTitle">🗺️ 모험 월드맵</div>
+        <button id="smClose" type="button">✕</button>
+      </div>
+      <div class="smSub">원하는 지역을 터치해 도전할 스테이지를 고르세요</div>
+      <div class="smPath" id="smNodes"></div>
+    </div>
+  </div>
   <!-- TAP TO START GATE (첫 화면) -->
   <div id="tapGate">
     <div class="tgTop">3D BLACK HOLE ACTION</div>
@@ -1612,7 +1649,7 @@ body.tap-locked #tabBar,body.tap-locked #title{opacity:0 !important;pointer-even
       <div id="stagePicker" class="stPicker">
         <button id="stPrev" type="button" aria-label="이전 스테이지">◀</button>
         <div class="stCenter">
-          <div class="stLabel">도전 스테이지 선택</div>
+          <div class="stLabel">🗺️ 터치해서 모험 지도 열기</div>
           <div class="stVal" id="stPickLabel">STAGE 1 · ☀️ 맑은 도심</div>
         </div>
         <button id="stNext" type="button" aria-label="다음 스테이지">▶</button>
@@ -8797,7 +8834,7 @@ function scoreEat(obj){
   const prev=state.R;
   recalcR();
   if(state.R>prev*1.04) spawnRipple(0x9bf24b, state.R, false);
-  gainXP(xp * 2.2);
+  gainXP(xp * 0.72);
   if(t>=3) state.bestLabel = obj.name;
   const col = t>=5?'#ffd34d': t>=4?'#ffb0d8': t>=3?'#9bf24b': t>=2?'#57e6ff':'#ffffff';
   popupAt(obj.group.position, '+'+fmt(sc), col);
@@ -13483,7 +13520,7 @@ function finishBossEat(){
   state.bossKills=(state.bossKills||0)+1;
   if(BOSS.mini){
     /* v3.5 — 미니보스 격파 = 스테이지 종료가 아니라 '계속 성장' */
-    state.miniDone=true; state.phase='farm2'; state.hasBoss=false; state.bossKind='none';
+    state.miniDone=true; state.phase='farm2'; state.hasBoss=false; state.bossKind='none'; try{ const _tg=Math.max(1, state.progressMass||stageMassTarget()); state.mass=Math.min(state.mass, _tg*0.56); recalcR(); updateHoleVisual(player); }catch(e){}
     state.finalHold=1.6;
     clearBossForNormal();
     state.pendingAug=(state.pendingAug||0)+1;
@@ -18061,11 +18098,54 @@ function initProfile(){
     syncPickLabel();
   });
   if(next) next.addEventListener('click', ()=>{
-    window.__selectedStage = Math.min(20, (window.__selectedStage||1) + 1);
+    const _maxU = Math.max(1, (typeof Wallet!=="undefined"&&Wallet.stage)||1); window.__selectedStage = Math.min(_maxU, (window.__selectedStage||1) + 1);
     syncPickLabel();
   });
   window.__syncStagePickLabel = syncPickLabel;
   setTimeout(syncPickLabel, 250);
+})();
+
+
+/* v4.0.9 — 모험 월드맵 노드 렌더링 & 선택 */
+(function initStageWorldMap(){
+  const modal = document.getElementById('stageMapModal');
+  const nodesEl = document.getElementById('smNodes');
+  const closeBtn = document.getElementById('smClose');
+  const center = document.querySelector('#stagePicker .stCenter');
+  function renderMap(){
+    if(!nodesEl) return;
+    nodesEl.innerHTML='';
+    const cur = window.__selectedStage || 1;
+    const maxU = Math.max(1, (typeof Wallet!=='undefined'&&Wallet.stage)||1);
+    if(cur > maxU) window.__selectedStage = maxU;
+    for(let i=1;i<=10;i++){
+      const locked = i > maxU;
+      let th = {emoji:'🌍', name:'스테이지 '+i};
+      try{ if(typeof themeForStage==='function') th = themeForStage(i); }catch(_){}
+      const b = document.createElement('button');
+      b.type='button';
+      b.className = 'smNode ' + (i%2===1?'left':'right') + (i===cur?' sel':'') + (locked?' locked':'');
+      b.innerHTML = '<div class="snIcon">'+(locked?'🔒':(th.emoji||'🌍'))+'</div>'
+        + '<div class="snInfo"><div class="snStage">STAGE '+i+'</div><div class="snName">'+(th.name||'')+'</div></div>'
+        + (locked ? '<span class="snTag lock">미해금</span>' : (i===cur ? '<span class="snTag">선택됨</span>' : ''));
+      b.addEventListener('click', ()=>{
+        if(locked){
+          try{ if(typeof showToast==='function') showToast('🔒 아직 잠겨 있어요', 'STAGE '+(i-1)+' 클리어 후 열립니다', '#9fb6d4'); }catch(_){}
+          return;
+        }
+        window.__selectedStage = i;
+        if(typeof window.__syncStagePickLabel==='function') window.__syncStagePickLabel();
+        modal.classList.add('hidden');
+      });
+      nodesEl.appendChild(b);
+    }
+  }
+  if(center && modal){
+    center.style.cursor='pointer';
+    center.addEventListener('click', ()=>{ renderMap(); modal.classList.remove('hidden'); });
+  }
+  if(closeBtn && modal) closeBtn.addEventListener('click', ()=> modal.classList.add('hidden'));
+  if(modal) modal.addEventListener('click', (e)=>{ if(e.target===modal) modal.classList.add('hidden'); });
 })();
 
 /* ==== bh_v2_p9_boot.js ==== */

@@ -8321,11 +8321,11 @@ function suctionMul(){
   return (1+sp) + 0.15*augLv('golden') + augSum('suction') + 0.22*augLv('vortex') + idle + augSum('titan');
 }
 function recalcR(){
-  const maxR = (typeof ARENA!=='undefined' && ARENA.active) ? 11.5 : 24.0;
+  const maxR = (typeof ARENA!=='undefined' && ARENA.active) ? 11.5 : 36.0;
   const sizeA=1+augSum('size');
   state.R = Math.min(maxR, (CFG.START_R*state.startBonus + Math.pow(Math.max(0,state.mass), 0.42) * 0.44) * state.sizeMul * sizeA);
 }
-function xpNeededFor(lv){ const base = lv < LEVELS.length ? LEVELS[lv] : LEVELS[LEVELS.length-1] + (lv-LEVELS.length+1)*520; return Math.max(15, Math.round(base * 0.55)); }
+function xpNeededFor(lv){ return lv < LEVELS.length ? LEVELS[lv] : LEVELS[LEVELS.length-1] + (lv-LEVELS.length+1)*520; }
 function gainXP(amount){
   state.xp += amount * (1+augSum('xp'));
   let lv=state.level;
@@ -9366,7 +9366,7 @@ function stageGoal(n){
    · 진행도는 '구멍의 성장(반경)'으로만 오른다 (증강 크기 배율에 영향받지 않음)
    · 45% = 미니보스 강림 / 100% = 최종 대보스 결투장
    ═══════════════════════════════════════════════════════════ */
-function stageRT(){ return Math.round((CFG.BOSS_NEED_R + 8.5 + stageInfo(state.stage).cycle*1.5)*100)/100; }
+function stageRT(){ return Math.round((CFG.BOSS_NEED_R + 16.0 + stageInfo(state.stage).cycle*2.0)*100)/100; }
 function stageR0(){ return CFG.START_R*state.startBonus; }
 function baseRNow(){ return CFG.START_R*state.startBonus + Math.pow(Math.max(0,state.mass),0.42)*0.44; }
 function stageProgress(){

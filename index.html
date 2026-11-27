@@ -1092,6 +1092,14 @@ const CFG = {
   BOSS_EAT_R: 9.0,
   TIME_BONUS_GOLD: 26 // 남은 1초당 보너스 골드
 };
+/* ───────── 한정 맵 ─────────
+   v2.3: 무한 청크 스트리밍을 걷어내고 5×5 블록(135×135) 도시 한 판으로 고정.
+   경계(±HALF) 밖은 어두운 바다/보이드 + 네온 펜스로 마감한다. */
+const MAP_CELLS = 5;                       // 5×5 셀 (중앙 셀 = 보스 광장)
+const MAP_R = (MAP_CELLS - 1) / 2;         // 중심에서 셀 반경 2
+const HALF = CFG.PITCH * (MAP_CELLS / 2);  // 67.5  (= PITCH * 2.5)
+const MAP_LIMIT = 3.2;                     // 플레이어가 벽에 닿지 않도록 남기는 여유
+
 const TIER = {
   1:{xp:2,  score:8,  label:'소품'},
   2:{xp:6,  score:24, label:'차량'},
@@ -1588,7 +1596,7 @@ function vibrate(p){ if(navigator.vibrate){ try{ navigator.vibrate(p); }catch(e)
 /* ───────── three setup ───────── */
 let scene, camera, renderer, clock;
 let hemi, sun, fillLight;
-let groundMesh, basePlane, objectsGroup, fxGroup, hazardGroup, sceneryGroup;
+let groundMesh, basePlane, objectsGroup, fxGroup, hazardGroup, sceneryGroup, borderGroup;
 const objects = [];       // eatable static/moving objects
 const cameraBlockers = []; // tall objects the camera must not sit behind
 const cars = [];          // moving cars
@@ -1742,8 +1750,9 @@ function buildClouds(){
 const ROAD_POS = [];
 for(let i=-40;i<=40;i++) ROAD_POS.push((i + 0.5) * CFG.PITCH);
 const ROAD_W = 5.8;
-const GROUND_TILES = 120;                  // 120×120 타일 = 3,240 유닛 (사방 무한처럼 보임)
+const GROUND_TILES = MAP_CELLS;            // 5×5 타일 = 135 유닛 — 맵 전체를 딱 덮는다
 const GROUND_SIZE = CFG.PITCH * GROUND_TILES;
+const VOID_COLOR = 0x05090f;               // 맵 밖 보이드(짙은 바다)
 
 /* 한 칸(27×27)을 이어붙일 수 있는 타일 텍스처로 굽고, 거대한 평면에 반복 */
 function buildGround(){
@@ -1849,25 +1858,79 @@ function buildGround(){
   if(groundMesh){ scene.remove(groundMesh); groundMesh.geometry.dispose(); groundMesh.material.map.dispose(); groundMesh.material.dispose(); }
   groundMesh = new THREE.Mesh(new THREE.PlaneGeometry(GROUND_SIZE, GROUND_SIZE, 1, 1), new THREE.MeshLambertMaterial({map:tex}));
   groundMesh.rotation.x = -Math.PI/2;
+  groundMesh.position.set(0,0,0);          // 한정 맵 — 원점 고정
   groundMesh.receiveShadow = true;
   scene.add(groundMesh);
 
+  /* 맵 밖: 초록 바닥 대신 짙은 바다/보이드 */
   if(basePlane){ scene.remove(basePlane); basePlane.geometry.dispose(); basePlane.material.dispose(); }
-  basePlane = new THREE.Mesh(new THREE.PlaneGeometry(9000,9000),
-    new THREE.MeshLambertMaterial({color:C(theme.ground.base)}));
-  basePlane.rotation.x=-Math.PI/2; basePlane.position.y=-0.08;
+  basePlane = new THREE.Mesh(new THREE.PlaneGeometry(6000,6000),
+    new THREE.MeshLambertMaterial({color:C(VOID_COLOR)}));
+  basePlane.rotation.x=-Math.PI/2; basePlane.position.set(0,-0.30,0);
   basePlane.renderOrder=-1;
   scene.add(basePlane);
-  syncGroundToPlayer();
+
+  /* 맵 테두리: 어두운 방파벽 + 네온 라인 (경계 밖으로 새는 인상 방지) */
+  buildBorder();
 }
 
-/* 바닥 타일을 플레이어 발밑에 셀 단위로 정렬(무한 지형 느낌) */
-function syncGroundToPlayer(){
-  if(!groundMesh) return;
-  const step = CFG.PITCH*10;   // 10칸 단위로 스냅 (타일 정렬 유지)
-  groundMesh.position.x = Math.round(player.pos.x/step)*step;
-  groundMesh.position.z = Math.round(player.pos.z/step)*step;
-  if(basePlane){ basePlane.position.x=groundMesh.position.x; basePlane.position.z=groundMesh.position.z; }
+/* 무한 맵 시절의 바닥 추적 함수 — 이제는 아무 일도 하지 않는다(한정 맵) */
+function syncGroundToPlayer(){ /* no-op */ }
+
+function buildBorder(){
+  if(borderGroup){ scene.remove(borderGroup); disposeTree(borderGroup); }
+  const g=new THREE.Group(); g.name='border';
+  borderGroup=g;
+  const accent = theme.id==='neon'||theme.id==='space' ? 0x57e6ff
+    : theme.id==='volcano' ? 0xff7a3a
+    : theme.id==='sakura' ? 0xffa8d8
+    : theme.id==='desert'||theme.id==='autumn' ? 0xffd34d
+    : 0x6ad8ff;
+  const wallMat = new THREE.MeshLambertMaterial({color:C(0x111a28)});
+  const trimMat = new THREE.MeshLambertMaterial({color:C(0x1d2b42)});
+  const neonMat = new THREE.MeshBasicMaterial({color:C(accent)});
+  const H = 3.0, T = 1.4;
+  const L = HALF*2;
+  // 네 벽 (모서리는 기둥으로 덮음)
+  [[0,-HALF,0],[0,HALF,0],[-HALF,0,1],[HALF,0,1]].forEach(p=>{
+    const horiz = p[2]===0;
+    const w = horiz ? L+2*T : T;
+    const d = horiz ? T : L+2*T;
+    const wall=box(w,H,d,wallMat); wall.position.set(p[0],H/2,p[1]); g.add(wall);
+    const cap=box(horiz?w:T*1.25, 0.30, horiz?T*1.25:d, trimMat);
+    cap.position.set(p[0],H+0.15,p[1]); g.add(cap);
+    const neon=box(horiz?w:T*0.42, 0.14, horiz?T*0.42:d, neonMat);
+    neon.position.set(p[0],H+0.36,p[1]); g.add(neon);
+  });
+  // 모서리 기둥 + 네온 캡
+  [[-HALF,-HALF],[-HALF,HALF],[HALF,-HALF],[HALF,HALF]].forEach(p=>{
+    const pil=box(2.0,5.2,2.0,trimMat); pil.position.set(p[0],2.6,p[1]); g.add(pil);
+    const cap=box(2.3,0.5,2.3,wallMat); cap.position.set(p[0],5.45,p[1]); g.add(cap);
+    const neon=box(1.3,0.22,1.3,neonMat); neon.position.set(p[0],5.8,p[1]); g.add(neon);
+    const glow=sphereGlow(1.7, accent, 0.42); glow.position.set(p[0],5.9,p[1]); g.add(glow);
+  });
+  // 벽을 따라 서는 네온 기둥
+  const step = CFG.PITCH;
+  for(let v=-HALF+step; v<=HALF-step; v+=step){
+    [[v,-HALF],[v,HALF],[-HALF,v],[HALF,v]].forEach(p=>{
+      const post=box(0.42,3.4,0.42,trimMat); post.position.set(p[0],1.7,p[1]); g.add(post);
+      const lamp=box(0.66,0.20,0.66,neonMat); lamp.position.set(p[0],3.48,p[1]); g.add(lamp);
+      const gl=sphereGlow(0.95, accent, 0.30); gl.position.set(p[0],3.6,p[1]); g.add(gl);
+    });
+  }
+  // 맵 밖은 짙은 바다 — 지면(초록) 대신 어두운 수면이 이어진다
+  const water=new THREE.Mesh(new THREE.PlaneGeometry(4000,4000),
+    new THREE.MeshLambertMaterial({color:C(0x0b1526)}));
+  water.rotation.x=-Math.PI/2; water.position.set(0,-0.07,0);
+  water.receiveShadow=false; g.add(water);
+  // 벽 바깥 얇은 물빛 윤곽
+  const rimMat=new THREE.MeshBasicMaterial({color:C(accent), transparent:true, opacity:0.16, depthWrite:false});
+  [[0,-HALF-3.0,0],[0,HALF+3.0,0],[-HALF-3.0,0,1],[HALF+3.0,0,1]].forEach(p=>{
+    const horiz=p[2]===0;
+    const m=box(horiz?HALF*2+6.0:1.1, 0.05, horiz?1.1:HALF*2+6.0, rimMat);
+    m.position.set(p[0], -0.04, p[1]); g.add(m);
+  });
+  scene.add(g);
 }
 
 function roundRect(g,x,y,w,h,r){
@@ -3858,6 +3921,142 @@ function makeHeli(){
   return g;
 }
 
+/* ═══════════════════════════════════════════════════════════
+   황금 약탈차 — 매드맥스풍 약탈자 트럭 (v2.3)
+   앞 범퍼 가드/불바 · 거대 오프로드 타이어 · 장갑판 ·
+   짐칸의 황금 금괴·보물상자 · 배기구 화염
+   ═══════════════════════════════════════════════════════════ */
+function makeRaiderTruck(kind){
+  kind = kind || 'truck';
+  const heavy = kind==='tank';
+  const light = kind==='police';
+  const g=new THREE.Group();
+  const rust   = mat(0x4a3a30);
+  const plate  = mat(0x6b5546);
+  const plate2 = mat(0x564238);
+  const steel  = mat(0x8d99a6);
+  const dark   = mat(0x1b1f26);
+  const gold   = mat(0xffc83a);
+  const goldD  = mat(0xd99b1c);
+  const tire   = mat(0x15171b);
+  const hub    = mat(0x9aa3ad);
+
+  const W = heavy?3.9:light?3.1:3.5;      // 차폭
+  const L = heavy?8.6:light?6.8:7.6;      // 차장
+  const tireR = heavy?1.16:light?0.86:1.0;
+
+  /* 차체 */
+  const chassis=box(W,0.55,L, dark); chassis.position.y=0.95; g.add(chassis);
+  const body=box(W*0.94,0.95,L*0.70, rust); body.position.set(0,1.55,-L*0.10); g.add(body);
+  /* 옆 장갑판 + 리벳 */
+  [-1,1].forEach(s=>{
+    const ap=box(0.22,1.0,L*0.62, plate); ap.position.set(s*(W*0.48),1.62,-L*0.08); g.add(ap);
+    const ap2=box(0.16,0.55,L*0.34, plate2); ap2.position.set(s*(W*0.50),1.10,-L*0.30); g.add(ap2);
+    for(let i=0;i<4;i++){
+      const rivet=cyl(0.09,0.09,0.12,6,steel);
+      rivet.rotation.z=Math.PI/2;
+      rivet.position.set(s*(W*0.50+0.06), 1.62, -L*0.30 + i*(L*0.14)); g.add(rivet);
+    }
+    /* 배기 스택 */
+    const pip=cyl(0.20,0.24,2.3,8, steel);
+    pip.position.set(s*(W*0.40), 2.65, L*0.02); g.add(pip);
+    const pipTop=cyl(0.26,0.26,0.22,8, dark); pipTop.position.set(s*(W*0.40),3.85,L*0.02); g.add(pipTop);
+    const flame=sphereGlow(0.42, 0xff7a1e, 0.0); flame.position.set(s*(W*0.40),4.05,L*0.02); g.add(flame);
+    g.userData['flame'+(s>0?'R':'L')]=flame;
+  });
+
+  /* 운전석(장갑 캡) */
+  const cab=box(W*0.90,1.85,L*0.30, plate);
+  cab.position.set(0,2.45, L*0.24); g.add(cab);
+  const cabTop=box(W*0.94,0.22,L*0.32, plate2); cabTop.position.set(0,3.42,L*0.24); g.add(cabTop);
+  /* 방탄 슬랫 */
+  for(let i=0;i<3;i++){
+    const slat=box(W*0.80,0.22,0.14, dark);
+    slat.position.set(0,2.05+i*0.45, L*0.24+L*0.15); slat.rotation.x=0.16; g.add(slat);
+  }
+  /* 앞 유리 슬릿 */
+  const slit=box(W*0.62,0.26,0.12, basicMat(0x9fe0ff)); slit.userData.noFade=true;
+  slit.position.set(0,2.92,L*0.24+L*0.15); g.add(slit);
+  /* 지붕 롤케이지 */
+  [-1,1].forEach(s=>{
+    const bar=box(0.12,0.5,L*0.28, steel); bar.position.set(s*W*0.40,3.72,L*0.24); g.add(bar);
+  });
+
+  /* 짐칸 + 황금 보물 */
+  const bedL=L*0.36, bedZ=-L*0.26;
+  const bedFloor=box(W*0.90,0.18,bedL, plate2); bedFloor.position.set(0,2.05,bedZ); g.add(bedFloor);
+  [-1,1].forEach(s=>{
+    const wall=box(0.18,0.86,bedL, plate); wall.position.set(s*W*0.45,2.45,bedZ); g.add(wall);
+  });
+  const tail=box(W*0.92,0.9,0.18, plate); tail.position.set(0,2.45,bedZ-bedL/2); g.add(tail);
+  /* 금괴 더미 */
+  for(let i=0;i<5;i++){
+    const ing=box(0.72,0.34,0.44, i%2?gold:goldD);
+    ing.position.set((i%3-1)*0.78, 2.30+Math.floor(i/3)*0.35, bedZ+ (i%2?0.34:-0.22));
+    ing.rotation.y=(i%2?0.3:-0.2); g.add(ing);
+  }
+  /* 보물상자 */
+  const chest=box(1.05,0.72,0.78, mat(0x6b4a28)); chest.position.set(0,2.55,bedZ+0.72); g.add(chest);
+  const chestLid=box(1.12,0.24,0.84, mat(0x8a5f30)); chestLid.position.set(0,2.99,bedZ+0.72); g.add(chestLid);
+  const band=box(1.09,0.80,0.12, goldD); band.position.set(0,2.55,bedZ+0.72+0.34); g.add(band);
+  const lock=box(0.20,0.24,0.10, gold); lock.position.set(0,2.58,bedZ+0.72+0.42); g.add(lock);
+  const treasureGlow=sphereGlow(0.85, 0xffc83a, 0.16); treasureGlow.position.set(0,3.15,bedZ+0.6); g.add(treasureGlow);
+  g.userData.treasureGlow=treasureGlow;
+
+  /* 앞 범퍼 가드 / 불바 — 뾰족한 스파이크 */
+  const bar=box(W*1.06,0.42,0.34, steel); bar.position.set(0,1.05,L*0.50); g.add(bar);
+  const bar2=box(W*0.96,0.30,0.30, steel); bar2.position.set(0,1.72,L*0.47); g.add(bar2);
+  [-1,1].forEach(s=>{
+    const post=box(0.22,1.1,0.24, steel); post.position.set(s*W*0.42,1.45,L*0.48); g.add(post);
+  });
+  const spikes = light?3:5;
+  for(let i=0;i<spikes;i++){
+    const t=(spikes===1)?0:(i/(spikes-1)-0.5);
+    const sp=cone(0.19,0.95,6, steel);
+    sp.rotation.x=Math.PI/2;
+    sp.position.set(t*W*0.82, 1.05, L*0.52+0.42); g.add(sp);
+  }
+  /* 범퍼 스파이크 발광(약탈자 표식) */
+  const barGlow=sphereGlow(W*0.34,0xff8a2a,0.10); barGlow.position.set(0,1.05,L*0.52); g.add(barGlow);
+
+  /* 전조등 */
+  [-1,1].forEach(s=>{
+    const hl=box(0.44,0.20,0.10, basicMat(0xfff0b0)); hl.userData.noFade=true;
+    hl.position.set(s*W*0.30,1.55,L*0.50); g.add(hl);
+  });
+
+  /* 거대 오프로드 타이어 (트레드 블록) */
+  const axleZ = heavy?[L*0.30, -L*0.10, -L*0.36] : light?[L*0.32, -L*0.34] : [L*0.32, -L*0.12, -L*0.38];
+  const halfW = W*0.50 + tireR*0.22;
+  axleZ.forEach(z=>{
+    [-1,1].forEach(s=>{
+      const tireM=cyl(tireR,tireR,tireR*0.72,14, tire);
+      tireM.rotation.z=Math.PI/2; tireM.position.set(s*halfW, tireR, z); g.add(tireM);
+      const rim=cyl(tireR*0.48,tireR*0.48,tireR*0.76,10, hub);
+      rim.rotation.z=Math.PI/2; rim.position.set(s*halfW, tireR, z); g.add(rim);
+      /* 트레드 */
+      for(let k=0;k<6;k++){
+        const a=k/6*Math.PI*2;
+        const tr=box(tireR*0.30, tireR*0.20, tireR*0.80, dark);
+        tr.position.set(s*halfW, tireR+Math.sin(a)*tireR*0.92, z+Math.cos(a)*tireR*0.92);
+        tr.rotation.x=-a; g.add(tr);
+      }
+      /* 서스펜션 */
+      const sus=cyl(0.10,0.10,0.5,6, steel); sus.rotation.z=Math.PI/2;
+      sus.position.set(s*(W*0.40), tireR*0.85, z); g.add(sus);
+    });
+  });
+  /* 뒤 범퍼 */
+  const rearBar=box(W*0.92,0.3,0.28, dark); rearBar.position.set(0,0.95,-L*0.52); g.add(rearBar);
+  /* 금색 스커트 라인 */
+  [-1,1].forEach(s=>{
+    const skirt=box(0.10,0.16,L*0.72, goldD); skirt.position.set(s*W*0.49,1.16,-L*0.05); g.add(skirt);
+  });
+
+  g.userData.raider=kind;
+  return g;
+}
+
 /* ==== bh_v2_p3.js ==== */
 /* ═══════════════════════════════════════════════════════════
    BUILDINGS
@@ -4261,6 +4460,7 @@ function clearWorld(){
   objects.length=0; cars.length=0; sucking.length=0;
   mines.length=0; zones.length=0; bolts.length=0;
   cameraBlockers.length=0;
+  resetRespawn(true);          // 리스폰 대기열에 남은 그룹까지 정리
   cells.clear(); pendingCells.length=0; cellPos.init=false;
   clearGroup(objectsGroup); clearGroup(fxGroup); clearGroup(hazardGroup); clearGroup(sceneryGroup);
   ripples.length=0; poofs.length=0;
@@ -4270,6 +4470,7 @@ function buildStageWorld(){
   clearTextureCaches();
   buildGround();
   buildScenery();
+  buildStageGiants();
   buildStars();
   buildClouds();
   buildWeather();
@@ -4285,8 +4486,9 @@ function clearTextureCaches(){
 }
 
 /* ═══════════════════════════════════════════════════════════
-   INFINITE CHUNK STREAMING — 벽 없이 사방으로 이어지는 도시
-   셀 = 27×27 유닛 블록 하나. 플레이어 주변 5×5 셀만 유지.
+   FIXED CITY — 한정된 5×5 블록 도시 (v2.3)
+   셀 = 27×27 유닛 블록 하나. 맵 전체(±HALF)를 처음에 한 번만 깔고,
+   스트리밍/드롭 없이 그대로 유지한다. 뚫린 구역은 리스폰이 메운다.
    ═══════════════════════════════════════════════════════════ */
 const cells = new Map();
 const pendingCells = [];
@@ -4332,39 +4534,12 @@ function dropCell(cell){
   cells.delete(cell.key);
 }
 function setupCells(){
-  const pi=Math.round(player.pos.x/CFG.PITCH), pj=Math.round(player.pos.z/CFG.PITCH);
-  cellPos.i=pi; cellPos.j=pj; cellPos.init=true;
-  const R=2;
-  for(let dj=-R;dj<=R;dj++) for(let di=-R;di<=R;di++) buildCell(pi+di, pj+dj);
+  cells.clear(); pendingCells.length=0;
+  cellPos.i=0; cellPos.j=0; cellPos.init=true;
+  for(let dj=-MAP_R;dj<=MAP_R;dj++) for(let di=-MAP_R;di<=MAP_R;di++) buildCell(di, dj);
+  /* 셀별 오브젝트 목록은 고정 맵이라 더 이상 쓰지 않는다(디버그용으로만 유지) */
 }
-function updateCells(){
-  if(!cellPos.init) return;
-  const pi=Math.round(player.pos.x/CFG.PITCH), pj=Math.round(player.pos.z/CFG.PITCH);
-  if(pi!==cellPos.i || pj!==cellPos.j){
-    const jump=Math.abs(pi-cellPos.i)+Math.abs(pj-cellPos.j);
-    cellPos.iPrev=cellPos.i; cellPos.jPrev=cellPos.j;
-    cellPos.i=pi; cellPos.j=pj;
-    const R=2, drop=[];
-    cells.forEach(c=>{ if(Math.abs(c.i-pi)>R || Math.abs(c.j-pj)>R) drop.push(c); });
-    drop.forEach(dropCell);
-    const want=[];
-    for(let dj=-R;dj<=R;dj++) for(let di=-R;di<=R;di++){
-      const k=cellKey(pi+di,pj+dj);
-      if(!cells.has(k) && !pendingCells.some(p=>p[0]===pi+di&&p[1]===pj+dj)) want.push([pi+di,pj+dj,di*di+dj*dj]);
-    }
-    want.sort((a,b)=>a[2]-b[2]);
-    want.forEach(w=>pendingCells.push([w[0],w[1]]));
-    if(jump>3){
-      while(pendingCells.length){ const c=pendingCells.shift(); if(!cells.has(cellKey(c[0],c[1]))) buildCell(c[0],c[1]); }
-    }
-  }
-  let n=0;
-  while(pendingCells.length && n<3){
-    const c=pendingCells.shift();
-    if(!cells.has(cellKey(c[0],c[1]))) buildCell(c[0],c[1]);
-    n++;
-  }
-}
+function updateCells(){ /* 한정 맵 — 추가 스트리밍 없음 */ }
 function buildCellProps(i,j){
   const cx=i*CFG.PITCH, cz=j*CFG.PITCH;
   const off = CFG.BLOCK/2 + 1.15;
@@ -4874,21 +5049,38 @@ function updateWeather(dt){
 
 /* ───────── cars ───────── */
 /* ───────── roaming traffic (플레이어 주변에 계속 생성) ───────── */
+/* 한정 맵의 도로 중심선 — 타일 왼쪽/위 모서리에 도로가 깔린다.
+   벽에 붙는 ±HALF 도로는 차량이 벽을 파고들지 않도록 제외. */
+const CAR_ROADS = (()=>{
+  const out=[];
+  for(let i=-MAP_R;i<=MAP_R;i++){
+    const p=(i-0.5)*CFG.PITCH;                 // -67.5, -40.5, -13.5, 13.5, 40.5
+    if(Math.abs(p) < HALF-12) out.push(p);
+  }
+  return out;
+})();
 function buildCars(){
   cars.length=0;
-  for(let i=0;i<9;i++) spawnRoamingCar();
+  for(let i=0;i<10;i++) spawnRoamingCar(true);
 }
-function spawnRoamingCar(){
+function spawnRoamingCar(anywhere){
   const vertical=RNG()<0.5;
   const px=player.pos.x, pz=player.pos.z;
-  const line=Math.round((vertical?px:pz)/CFG.PITCH)*CFG.PITCH;
-  const lane=line + (RNG()<0.5?2.05:-2.05);
-  const along=(vertical?pz:px) + rnd(-75,75);
-  if(Math.abs(along-(vertical?pz:px))<20) return;
+  let placed=null;
+  for(let tries=0;tries<14;tries++){
+    const line=CAR_ROADS[Math.floor(RNG()*CAR_ROADS.length)];
+    const lane=line + (RNG()<0.5?2.05:-2.05);
+    const along=rnd(-HALF+9, HALF-9);
+    const x=vertical?lane:along, z=vertical?along:lane;
+    const d=Math.hypot(x-px, z-pz);
+    if(!anywhere && d < 26) continue;          // 플레이어眼皮에서 튀어나오지 않게
+    placed={x:x,z:z,line:line};
+    break;
+  }
+  if(!placed) return null;
   const isTaxi=RNG()<0.25, isBus=RNG()<0.09;
-  const x=vertical?lane:along, z=vertical?along:lane;
-  const car=makeCar(x,z,vertical?0:Math.PI/2,isTaxi,isBus);
-  car.roam={vertical:vertical, dir:RNG()<0.5?1:-1, speed:isBus?4.4:rnd(6.5,9.5)};
+  const car=makeCar(placed.x, placed.z, vertical?0:Math.PI/2, isTaxi, isBus);
+  car.roam={vertical:vertical, dir:RNG()<0.5?1:-1, speed:isBus?4.4:rnd(6.5,9.5), line:placed.line};
   cars.push(car);
   return car;
 }
@@ -4901,6 +5093,7 @@ function recycleCar(c){
   spawnRoamingCar();
 }
 function updateCars(dt){
+  const edge = HALF - 3.5;
   for(let i=cars.length-1;i>=0;i--){
     const c=cars[i];
     if(!c || !c.alive){ cars.splice(i,1); continue; }
@@ -4909,9 +5102,239 @@ function updateCars(dt){
     if(c.roam.vertical) g.position.z += c.roam.dir*c.roam.speed*dt;
     else g.position.x += c.roam.dir*c.roam.speed*dt;
     g.rotation.y = c.roam.vertical ? (c.roam.dir>0?0:Math.PI) : (c.roam.dir>0?Math.PI/2:-Math.PI/2);
-    if(Math.hypot(g.position.x-player.pos.x, g.position.z-player.pos.z)>115) recycleCar(c);
+    const along = c.roam.vertical ? g.position.z : g.position.x;
+    if(along > edge || along < -edge){          // 맵 밖으로 나가면 교체
+      recycleCar(c); continue;
+    }
+    if(Math.hypot(g.position.x-player.pos.x, g.position.z-player.pos.z) > HALF*1.6) recycleCar(c);
   }
-  if(cars.length<9) spawnRoamingCar();
+  if(cars.length<10) spawnRoamingCar();
+}
+
+/* ═══════════════════════════════════════════════════════════
+   MEGA TARGETS — 블랙홀이 커졌을 때 다시 나타나는 초대형 목표물
+   (Tier 5~6 · eatR 5.2 ~ 10.6) 리스폰 업그레이드 + 주기적 추가 스폰
+   ═══════════════════════════════════════════════════════════ */
+const GIANT_KINDS = {
+  megatower:{eatR:5.2,  tier:5, rad:9.4,  minR:3.6, name:'초고층 마천루',    emoji:'🏙️'},
+  dome:     {eatR:6.6,  tier:5, rad:11.2, minR:4.8, name:'거대 돔 스타디움', emoji:'🏟️'},
+  rocket:   {eatR:8.2,  tier:6, rad:10.6, minR:6.2, name:'우주 발사타워',    emoji:'🚀'},
+  arcology: {eatR:10.6, tier:6, rad:13.6, minR:7.8, name:'메가 아르콜로지',  emoji:'🏛️'}
+};
+const GIANT_ORDER = ['megatower','dome','rocket','arcology'];
+const giantList = [];
+
+function makeMegaTower(x,z,seed){
+  const g=new THREE.Group(); g.position.set(x,0,z);
+  const bands=[0x57e6ff,0xff5fa2,0xffd34d,0x9bf24b];
+  let y=0, cw=9.4;
+  for(let i=0;i<5;i++){
+    const h=12.5-i*0.9;
+    const body=box(cw,h,cw, wallMaterial(i,cw,h,1+(i%3)));
+    body.position.y=y+h/2; g.add(body);
+    const trim=box(cw*1.07,0.55,cw*1.07, mat(i%2?0xf7f4ea:0xd8e2ee)); trim.position.y=y+h; g.add(trim);
+    const neon=box(0.26,h*0.82,0.26, basicMat(bands[i%4]));
+    neon.userData.noFade=true; neon.position.set(cw*0.5+0.02, y+h/2, cw*0.22); g.add(neon);
+    const neon2=neon.clone(); neon2.position.set(-cw*0.5-0.02, y+h/2, -cw*0.22); g.add(neon2);
+    y+=h; cw*=0.78;
+  }
+  const crown=new THREE.Mesh(new THREE.TorusGeometry(cw*1.15,0.3,6,22), basicMat(0x57e6ff));
+  crown.rotation.x=Math.PI/2; crown.position.y=y-2.0; crown.userData.noFade=true; g.add(crown);
+  const spire=cyl(0.3,1.5,15,8,mat(0xdfe6ee)); spire.position.y=y+7.5; g.add(spire);
+  const beacon=sphereGlow(1.7,0xff4040,0.9); beacon.position.y=y+15.4; g.add(beacon);
+  const k=GIANT_KINDS.megatower;
+  const o=addObj(g, k.eatR, k.tier, k.name, k.emoji);
+  o.isGiant=true; o.giantKind='megatower';
+  return o;
+}
+
+function makeMegaDome(x,z,seed){
+  const g=new THREE.Group(); g.position.set(x,0,z);
+  const R0=10.6;
+  const base=cyl(R0,R0*1.05,3.4,30,mat(0xc8d2dc)); base.position.y=1.7; g.add(base);
+  const band=cyl(R0*1.015,R0*1.015,0.55,30,basicMat(0x57e6ff));
+  band.position.y=3.3; band.userData.noFade=true; g.add(band);
+  const dome=new THREE.Mesh(new THREE.SphereGeometry(R0*0.96,28,12,0,Math.PI*2,0,Math.PI/2), mat(0xe4eef7));
+  dome.position.y=3.4; dome.scale.y=0.56; dome.castShadow=true; dome.receiveShadow=true; g.add(dome);
+  for(let i=0;i<8;i++){
+    const a=i/8*Math.PI*2;
+    const rib=box(0.34,0.34, R0*1.9, mat(0xb8c4d0));
+    rib.position.set(Math.cos(a)*R0*0.48, 3.4+R0*0.30, Math.sin(a)*R0*0.48);
+    rib.rotation.y=-a; rib.rotation.x=0.42; rib.scale.z=0.62; g.add(rib);
+  }
+  const cap=cyl(2.2,2.6,1.2,16,mat(0xa8b4c0)); cap.position.y=3.4+R0*0.56; g.add(cap);
+  const capGlow=sphereGlow(1.4,0xffd34d,0.7); capGlow.position.y=3.4+R0*0.56+1.0; g.add(capGlow);
+  [[-1,-1],[1,-1],[-1,1],[1,1]].forEach(p=>{
+    const t=box(0.6,11,0.6,mat(0x8a949e)); t.position.set(p[0]*R0*1.18,5.5,p[1]*R0*1.18); g.add(t);
+    const bulb=box(2.6,1.1,0.5,basicMat(0xfff3c0)); bulb.userData.noFade=true;
+    bulb.position.set(p[0]*R0*1.18,11.4,p[1]*R0*1.18); bulb.rotation.y=Math.atan2(-p[0],-p[1]); g.add(bulb);
+  });
+  const k=GIANT_KINDS.dome;
+  const o=addObj(g, k.eatR, k.tier, k.name, k.emoji);
+  o.isGiant=true; o.giantKind='dome';
+  return o;
+}
+
+function makeMegaRocket(x,z,seed){
+  const g=new THREE.Group(); g.position.set(x,0,z);
+  const pad=cyl(11.4,12.0,1.6,28,mat(0x8a929a)); pad.position.y=0.8; g.add(pad);
+  const padGlow=new THREE.Mesh(new THREE.RingGeometry(6.0,7.4,28), basicMat(0xffa040,{transparent:true,opacity:0.55}));
+  padGlow.rotation.x=-Math.PI/2; padGlow.position.y=1.66; padGlow.userData.noFade=true; g.add(padGlow);
+  const body=cyl(2.5,2.9,26,18,mat(0xf2f5f8)); body.position.y=1.6+13; g.add(body);
+  for(let i=0;i<4;i++){
+    const ring=cyl(2.62,2.62,0.44,18,basicMat([0x57e6ff,0xff5fa2,0xffd34d,0x9bf24b][i]));
+    ring.position.y=5.5+i*5.6; ring.userData.noFade=true; g.add(ring);
+  }
+  const nose=cone(2.9,7.0,18,mat(0xff5a4a)); nose.position.y=1.6+26+3.4; g.add(nose);
+  [-1,1].forEach(s=>{
+    const bo=cyl(1.05,1.15,15,14,mat(0xe8eef4)); bo.position.set(s*3.4,1.6+7.8,0); g.add(bo);
+    const bn=cone(1.15,3.2,14,mat(0xff5a4a)); bn.position.set(s*3.4,1.6+16.6,0); g.add(bn);
+    const fl=cone(1.0,3.6,12,basicMat(0xffa040,{transparent:true,opacity:0.75}));
+    fl.rotation.x=Math.PI; fl.position.set(s*3.4,2.0,0); fl.userData.noFade=true; g.add(fl);
+  });
+  // 발사대 타워
+  const tw=box(3.2,34,3.2,mat(0x7a828a)); tw.position.set(-6.2,17,0); g.add(tw);
+  for(let i=0;i<7;i++){
+    const arm=box(5.6,0.36,0.36,mat(0x9aa4ae)); arm.position.set(-3.4,5+i*4.4,0); g.add(arm);
+  }
+  const crane=box(0.4,8,0.4,mat(0x9aa4ae)); crane.position.set(-6.2,38,0); g.add(crane);
+  const warn=sphereGlow(0.85,0xff3a3a,0.9); warn.position.set(-6.2,42.4,0); g.add(warn);
+  const k=GIANT_KINDS.rocket;
+  const o=addObj(g, k.eatR, k.tier, k.name, k.emoji);
+  o.isGiant=true; o.giantKind='rocket';
+  return o;
+}
+
+function makeMegaArcology(x,z,seed){
+  const g=new THREE.Group(); g.position.set(x,0,z);
+  const bands=[0x57e6ff,0xff5fa2,0xffd34d];
+  let y=0, cw=27.0;
+  for(let i=0;i<6;i++){
+    const h=8.4-i*0.5;
+    const body=box(cw,h,cw, wallMaterial(i+2,cw,h,i%4));
+    body.position.y=y+h/2; g.add(body);
+    const edge=box(cw*1.04,0.5,cw*1.04, basicMat(bands[i%3]));
+    edge.userData.noFade=true; edge.position.y=y+h; g.add(edge);
+    // 테라스 난간
+    const rail=box(cw*0.99,0.55,cw*0.99, mat(0xe8eef4)); rail.position.y=y+h-1.0; g.add(rail);
+    y+=h; cw*=0.79;
+  }
+  // 코어 첨탑
+  const core=cyl(2.4,3.4,20,12,mat(0xdfe6ee)); core.position.y=y+10; g.add(core);
+  const halo=new THREE.Mesh(new THREE.TorusGeometry(5.2,0.34,6,26), basicMat(0x57e6ff));
+  halo.rotation.x=Math.PI/2; halo.position.y=y+13; halo.userData.noFade=true; g.add(halo);
+  const halo2=new THREE.Mesh(new THREE.TorusGeometry(3.6,0.26,6,24), basicMat(0xff5fa2));
+  halo2.rotation.x=Math.PI/2; halo2.position.y=y+17; halo2.userData.noFade=true; g.add(halo2);
+  const beacon=sphereGlow(2.2,0xffd34d,0.95); beacon.position.y=y+21; g.add(beacon);
+  // 스카이 브리지
+  [[-1,0],[1,0],[0,-1],[0,1]].forEach(p=>{
+    const br=box(9.0,1.1,2.4,mat(0x9aa4ae));
+    br.position.set(p[0]*13.0, y*0.42, p[1]*13.0);
+    br.rotation.y=p[0]?0:Math.PI/2; g.add(br);
+  });
+  const k=GIANT_KINDS.arcology;
+  const o=addObj(g, k.eatR, k.tier, k.name, k.emoji);
+  o.isGiant=true; o.giantKind='arcology';
+  return o;
+}
+
+const GIANT_BUILDERS={megatower:makeMegaTower, dome:makeMegaDome, rocket:makeMegaRocket, arcology:makeMegaArcology};
+
+function pickGiantKind(){
+  const R=state.R||2;
+  const pool=GIANT_ORDER.filter(id=>GIANT_KINDS[id].minR<=R);
+  if(!pool.length) return null;
+  // 커질수록 한 단계 위 목표물이 자주 나오게
+  const w=pool.map((id,i)=>Math.pow(1.65,i));
+  let tot=0; w.forEach(v=>tot+=v);
+  let r=RNG()*tot;
+  for(let i=0;i<pool.length;i++){ r-=w[i]; if(r<=0) return pool[i]; }
+  return pool[pool.length-1];
+}
+function clearGiantFootprint(x,z,rad){
+  for(let i=objects.length-1;i>=0;i--){
+    const o=objects[i];
+    if(!o.alive || o.isGiant || o.tier>=5) continue;
+    const d=Math.hypot(o.group.position.x-x, o.group.position.z-z);
+    if(d>rad*0.96) continue;
+    o.alive=false; objects.splice(i,1);
+    const ci=cars.indexOf(o); if(ci>=0) cars.splice(ci,1);
+    const bi=cameraBlockers.indexOf(o); if(bi>=0) cameraBlockers.splice(bi,1);
+    if(o.group.parent) o.group.parent.remove(o.group);
+    disposeTree(o.group);
+  }
+}
+function giantSpotFor(kind){
+  const k=GIANT_KINDS[kind];
+  const cands=[];
+  for(let j=-MAP_R;j<=MAP_R;j++) for(let i=-MAP_R;i<=MAP_R;i++){
+    if(i===0 && j===0) continue;                                  // 보스 광장
+    const x=i*CFG.PITCH, z=j*CFG.PITCH;
+    if(Math.abs(x)+k.rad*1.05 > HALF-2.0) continue;
+    if(Math.abs(z)+k.rad*1.05 > HALF-2.0) continue;
+    if(Math.hypot(x-player.pos.x, z-player.pos.z) < k.rad+26) continue;
+    let ok=true;
+    for(let gi=0;gi<giantList.length;gi++){
+      const g=giantList[gi];
+      if(!g.alive || !g.group) continue;
+      if(Math.hypot(g.group.position.x-x, g.group.position.z-z) < k.rad*2.2){ ok=false; break; }
+    }
+    if(!ok) continue;
+    cands.push({x:x,z:z});
+  }
+  if(!cands.length) return null;
+  return cands[Math.floor(RNG()*cands.length)];
+}
+function spawnGiant(kind, spot){
+  kind = kind || pickGiantKind();
+  if(!kind) return null;
+  const k=GIANT_KINDS[kind];
+  const p = spot && isFinite(spot.x) ? spot : giantSpotFor(kind);
+  if(!p) return null;
+  clearGiantFootprint(p.x, p.z, k.rad);
+  const obj = GIANT_BUILDERS[kind](p.x, p.z, Math.floor(RNG()*99999)+7);
+  obj.pop=0.001; obj.popBig=true;
+  obj.giant=k;
+  giantList.push(obj);
+  spawnRipple(0xffffff, k.rad*1.25, true);
+  spawnPoof(p.x, p.z, 0xd8e2ee, 12);
+  try{ Sound.boom(); }catch(e){}
+  /** 기둥이 솟아오르는 먼지 */
+  for(let i=0;i<10;i++){
+    const a=RNG()*6.28, rr=k.rad*(0.5+RNG()*0.6);
+    spawnPoof(p.x+Math.cos(a)*rr, p.z+Math.sin(a)*rr, 0xbfc9d6, 3);
+  }
+  return obj;
+}
+function buildStageGiants(){
+  giantList.forEach(g=>{ if(g && g.group){ if(g.group.parent) g.group.parent.remove(g.group); disposeTree(g.group); } });
+  giantList.length=0;
+  giantTimer = 11;
+  giantPulse = 0;
+}
+/* 판이 진행되며 블랙홀 크기에 맞춰 초대형 목표물을 계속 공급 */
+let giantTimer = 11, giantPulse = 0;
+function updateGiants(dt){
+  giantTimer -= dt;
+  if(giantTimer>0) return;
+  const R=state.R||2;
+  if(R < GIANT_KINDS.megatower.minR){ giantTimer=4; return; }
+  const cap = R>=7.6 ? 4 : R>=6.2 ? 3 : R>=4.8 ? 2 : 1;
+  const aliveNow = giantList.filter(g=>g && g.alive && !g.sucking).length;
+  giantTimer = rnd(9,14);
+  if(aliveNow >= cap) return;
+  const u=spawnGiant();
+  if(u){
+    giantPulse = 1.0;
+    showToast('🏙️ 거대 목표물 출현!', u.name+' · '+u.eatR.toFixed(1)+'m 이상이면 삼킬 수 있어요', '#9fe8ff');
+    /* 미니맵에 잠깐 강조 */
+  }
+}
+/* 리스폰 큐에서 초대형으로 '업그레이드'될 확률 */
+function giantUpgradeChance(){
+  const R=state.R||2;
+  if(R < GIANT_KINDS.megatower.minR) return 0;
+  return clamp((R-2.6)/9.5, 0, 0.55);
 }
 
 /* ==== bh_v2_p4.js ==== */
@@ -5418,16 +5841,17 @@ function updateBolts(dt){
    HAZARDS — mines + danger zones (stage 2+)
    ═══════════════════════════════════════════════════════════ */
 function roadSpot(minDist){
-  for(let tries=0;tries<50;tries++){
-    const along=rnd(-62,62);
-    const road=ROAD_POS[Math.floor(RNG()*ROAD_POS.length)]+rnd(-1.6,1.6);
+  const lim=HALF-8;
+  for(let tries=0;tries<60;tries++){
+    const along=rnd(-lim,lim);
+    const road=CAR_ROADS[Math.floor(RNG()*CAR_ROADS.length)]+rnd(-1.6,1.6);
     const vertical=RNG()<0.5;
     const x=vertical?road:along;
     const z=vertical?along:road;
     if(Math.hypot(x-player.pos.x, z-player.pos.z)<minDist) continue;
     return {x:x,z:z};
   }
-  return {x:rnd(-50,50), z:rnd(-50,50)};
+  return {x:rnd(-lim,lim), z:rnd(-lim,lim)};
 }
 function buildStageHazards(){
   if(state.stage<2) return;
@@ -5591,7 +6015,7 @@ const AUGMENTS = [
   {id:'magnet', emoji:'🧲', name:'중력 자석', color:'#57e6ff', max:6,
    desc:lv=>'흡입 범위가 넓어지고 먹이를 끌어당겨요 ('+(4.5+3.2*lv).toFixed(1)+'m)'},
   {id:'turbo', emoji:'⚡', name:'터보 이동', color:'#ffd34d', max:6,
-   desc:lv=>'이동 속도 +'+(30*lv)+'% (체감 대폭 상승!)'},
+   desc:lv=>'이동 속도 +'+(22*lv)+'% (민첩하게 이동)'},
   {id:'growth', emoji:'🌀', name:'급성장', color:'#b78bff', max:6,
    desc:lv=>'구멍 크기가 즉시 '+(13*lv)+'% 커져요'},
   {id:'pulse', emoji:'💥', name:'중력 파동', color:'#ff9f5c', max:6,
@@ -5808,8 +6232,12 @@ function startSuck(obj, byPlayer){
   if(obj.sucking) return;
   obj.alive=false;
   obj.sucking=true;
+  /* 리스폰용 원본 트랜스폼(흡입 애니메이션이 망가뜨리기 전에) */
+  obj._base={sx:obj.group.scale.x, sy:obj.group.scale.y, sz:obj.group.scale.z,
+    rx:obj.group.rotation.x, ry:obj.group.rotation.y, rz:obj.group.rotation.z, y:obj.group.position.y};
   const idx=objects.indexOf(obj); if(idx>=0) objects.splice(idx,1);
   const cidx=cars.indexOf(obj); if(cidx>=0) cars.splice(cidx,1);
+  const bidx=cameraBlockers.indexOf(obj); if(bidx>=0) cameraBlockers.splice(bidx,1);
   const p=obj.group.position.clone();
   const a0=Math.atan2(p.z-player.pos.z, p.x-player.pos.x);
   const d0=Math.hypot(p.x-player.pos.x, p.z-player.pos.z);
@@ -5817,6 +6245,123 @@ function startSuck(obj, byPlayer){
     d0:d0, spin:(RNG()<0.5?-1:1)*rnd(7,13), tiltX:rnd(-0.8,0.8), tiltZ:rnd(-0.8,0.8),
     byPlayer:byPlayer, rang:false, sparkT:0, seed:RNG()*6.28});
 }
+/* ═══════════════════════════════════════════════════════════
+   RESPAWN — 삼킨 건물·오브젝트·차량이 12~16초 뒤 톡! 하고 돌아온다
+   · 그룹을 버리지 않고 대기시켰다가, 자리가 비면 팝업 애니메이션으로 복원
+   · 블랙홀이 커졌으면 일부는 한 단계 더 거대한 목표물(Tier 5~6)로 업그레이드
+   ═══════════════════════════════════════════════════════════ */
+const respawnQueue = [];   // 대기 중: {group, meta, x, z, y, rotY, base, t}
+const respawnLive  = [];   // 방금 복원되어 팝업 애니메이션 중
+const RESPAWN_MAX  = 240;
+
+function holdForRespawn(obj){
+  if(!obj || !obj.group) return false;
+  if(obj._held) return false;
+  if(obj.isGiant || obj.debris || obj.hazard) return false;
+  if((obj.tier||1) >= 6) return false;             // 보스는 리스폰하지 않는다
+  obj._held=true;
+  const g=obj.group;
+  const p=g.position.clone();
+  const base=obj._base || {sx:g.scale.x, sy:g.scale.y, sz:g.scale.z,
+    rx:g.rotation.x, ry:g.rotation.y, rz:g.rotation.z, y:p.y};
+  if(g.parent) g.parent.remove(g);
+  respawnQueue.push({
+    group:g, base:base, x:p.x, z:p.z, rotY:base.ry,
+    t:rnd(12,16), pop:0,
+    meta:{eatR:obj.eatR, tier:obj.tier, name:obj.name, emoji:obj.emoji, kind:obj.kind,
+      mats:obj.mats, top:obj.top||0, blockR:obj.blockR||0, roam:obj.roam||null}
+  });
+  /* 너무 많이 쌓이면 오래된 것부터 정리(메모리 안전) */
+  if(respawnQueue.length > RESPAWN_MAX){
+    const drop=respawnQueue.shift();
+    if(drop && drop.group) disposeTree(drop.group);
+  }
+  return true;
+}
+
+function resetRespawn(dispose){
+  if(dispose){
+    respawnQueue.forEach(e=>{ if(e.group) disposeTree(e.group); });
+  }
+  respawnQueue.length=0;
+  respawnLive.length=0;
+}
+
+function reviveEntry(e){
+  const g=e.group, m=e.meta, b=e.base;
+  g.position.set(e.x, b.y||0, e.z);
+  g.rotation.set(b.rx||0, b.ry||0, b.rz||0);
+  g.scale.set(b.sx||1, b.sy||1, b.sz||1);
+  (m.mats||[]).forEach(mm=>{
+    mm.m.opacity=mm.op;
+    mm.m.transparent=mm.op<0.985;
+    mm.m.depthWrite=mm.op>0.9;
+    mm.m.needsUpdate=true;
+  });
+  g.traverse(n=>{ if(n.isMesh){
+    n.castShadow = n.userData.noShadow ? false : (m.eatR>=3.0 || m.kind==='car');
+    n.visible = true;
+  }});
+  objectsGroup.add(g);
+  const obj={group:g, eatR:m.eatR, tier:m.tier, name:m.name, emoji:m.emoji, alive:true, op:1,
+    mats:m.mats||[], kind:m.kind, hazard:false, top:m.top||0, blockR:m.blockR||0, roam:m.roam||null};
+  g.userData.obj=obj;
+  objects.push(obj);
+  if(obj.kind==='car' && obj.roam){
+    /* 도로 라인에 다시 맞춰 달리게 */
+    if(obj.roam.vertical) g.position.x = obj.roam.line + (g.position.x>=obj.roam.line?2.05:-2.05);
+    else g.position.z = obj.roam.line + (g.position.z>=obj.roam.line?2.05:-2.05);
+    cars.push(obj);
+  }
+  if((obj.top||0)>=18) cameraBlockers.push(obj);
+  e.obj=obj; e.pop=0.001;
+  respawnLive.push(e);
+  spawnRipple(0x9fe8ff, Math.max(1.2, m.eatR*0.85), m.eatR>=4.0);
+  const n=m.eatR>=3.0?6:3;
+  for(let i=0;i<n;i++) spawnPoof(e.x+rnd(-1.2,1.2), e.z+rnd(-1.2,1.2), 0xd8f4ff, 2);
+  Sound.tone(540,0.10,'triangle',0.05,200);
+  state.respawns=(state.respawns||0)+1;
+  return obj;
+}
+
+function updateRespawns(dt){
+  const R=state.R;
+  /* 대기열 → 복원 */
+  for(let i=respawnQueue.length-1;i>=0;i--){
+    const e=respawnQueue[i];
+    e.t-=dt;
+    if(e.t>0) continue;
+    const d=Math.hypot(e.x-player.pos.x, e.z-player.pos.z);
+    if(d < R*1.15 + e.meta.eatR + 6.5){ e.t=0.6; continue; }   // 플레이어 바로 위면 미룸
+    respawnQueue.splice(i,1);
+    /* 커진 블랙홀에 맞춰 초대형 목표물로 업그레이드 */
+    if(e.meta.tier>=3 && Math.random() < giantUpgradeChance()){
+      const aliveGiants=giantList.filter(g=>g && g.alive && !g.sucking).length;
+      if(aliveGiants<4){
+        const u=spawnGiant();
+        if(u){ disposeTree(e.group); continue; }
+      }
+    }
+    reviveEntry(e);
+  }
+  /* 팝업 애니메이션 */
+  for(let i=respawnLive.length-1;i>=0;i--){
+    const e=respawnLive[i];
+    const o=e.obj;
+    if(!o || !o.alive || o.sucking || !o.group){ respawnLive.splice(i,1); continue; }
+    e.pop=Math.min(1, e.pop + dt/0.36);
+    const t=e.pop;
+    const over = 1 + 0.26*Math.sin(Math.PI*Math.min(1,t)) * (1-t) * 3.2;  // 살짝 튀어오르는 팝
+    const s = Math.max(0.02, (0.06 + 0.94*t) * over);
+    o.group.scale.set((e.base.sx||1)*s, (e.base.sy||1)*s, (e.base.sz||1)*s);
+    if(t>=1){
+      o.group.scale.set(e.base.sx||1, e.base.sy||1, e.base.sz||1);
+      o.pop=0;
+      respawnLive.splice(i,1);
+    }
+  }
+}
+
 /* 오브젝트 그룹을 씬에서 완전히 제거 */
 function purgeSuckGroup(obj){
   if(!obj) return;
@@ -5881,6 +6426,8 @@ function updateSucking(dt){
       const px=g.position.x, pz=g.position.z;
       try{ scoreEat(obj); }catch(e){ /* 점수 처리 실패해도 메시는 반드시 제거 */ }
       spawnPoof(px, pz, obj.tier>=4?0xffd166:0xffffff, obj.tier>=4?10:4);
+      /* ★ 여기서 바로 버리지 않고 리스폰 대기열로 보낸다 */
+      holdForRespawn(obj);
       if(obj.eatR>=2.6){
         spawnRipple(0xfff0c0, Math.max(1.4,state.R*0.75), obj.eatR>=4.5);
         Sound.tone(120,0.16,'sine',0.07,60);
@@ -5975,17 +6522,24 @@ function updateFade(dt){
   }
 }
 
+/* 맵 밖으로 못 나가게 부드럽게 막는다(벽 앞에서 멈칫) */
+function clampPlayerToMap(){
+  const lim = HALF - (MAP_LIMIT + state.R*0.34);
+  let bumped=false;
+  if(player.pos.x >  lim){ player.pos.x = lim;  if(state.velocity.x>0) state.velocity.x=0; bumped=true; }
+  if(player.pos.x < -lim){ player.pos.x = -lim; if(state.velocity.x<0) state.velocity.x=0; bumped=true; }
+  if(player.pos.z >  lim){ player.pos.z = lim;  if(state.velocity.y>0) state.velocity.y=0; bumped=true; }
+  if(player.pos.z < -lim){ player.pos.z = -lim; if(state.velocity.y<0) state.velocity.y=0; bumped=true; }
+  if(bumped) state.edgeT = 0.5;
+  return bumped;
+}
+
 /* ═══════════════════════════════════════════════════════════
    MAIN SIMULATION
    ═══════════════════════════════════════════════════════════ */
 function updatePlaying(dt){
   state.elapsed += dt;
 
-  // 바닥 타일 평면을 플레이어 위치(1칸 단위)에 맞춰 영원히 따라오게 스냅 — 맵 끝 초록 깨짐 방지
-  if(groundMesh){
-    groundMesh.position.x = Math.round(player.pos.x / CFG.PITCH) * CFG.PITCH;
-    groundMesh.position.z = Math.round(player.pos.z / CFG.PITCH) * CFG.PITCH;
-  }
 
   /* ── 광폭 오토칩: 10초 자동 추적 + 강력 자석 ── */
   if(state.autoChip){
@@ -6023,7 +6577,7 @@ function updatePlaying(dt){
   const mov=state.input;
   updateSkillTimers(dt);
   const dashOn = state.skillDur.dash>0;
-  const spd = 22.0 * (1+0.30*state.aug.turbo) * (1+Math.min(0.95, state.R*0.06)) * (state.hazardSlow||1)
+  const spd = 15.5 * (1+0.22*state.aug.turbo) * (1+Math.min(0.95, state.R*0.06)) * (state.hazardSlow||1)
     * (state.defSlow||1) * speedUpMul() * (dashOn ? 1.85 : 1);
   const hasInput = (Math.abs(mov.x)>0.004 || Math.abs(mov.z)>0.004);
   if(hasInput){
@@ -6035,9 +6589,9 @@ function updatePlaying(dt){
   player.pos.x += state.velocity.x*dt;
   player.pos.z += state.velocity.y*dt;
   if(hasInput) player.look.set(player.pos.x+mov.x, 0, player.pos.z+mov.z);
+  clampPlayerToMap();
   updateHoleVisual(player);
   updateCells();
-  syncGroundToPlayer();
 
   // fever state
   if(state.aug.fever>0){
@@ -6177,6 +6731,8 @@ function updatePlaying(dt){
   updateHazards(dt);
   updateCars(dt);
   updateSucking(dt);
+  updateRespawns(dt);
+  updateGiants(dt);
   updateRipples(dt);
   updatePoofs(dt);
   updateBolts(dt);
@@ -6447,46 +7003,93 @@ function updateHUD(force){
     drawMinimap();
   }
 }
+/* 미니맵 — 한정 맵(-HALF~+HALF) 전체를 그대로 매핑한다.
+   내 위치가 중앙 고정이 아니라 맵 안 실제 좌표로 움직이고,
+   보스(B)·황금 약탈차·초대형 목표물도 실제 좌표에 찍힌다. */
 function drawMinimap(){
   const cv=document.getElementById('minimap');
   if(!cv) return;
   const ctx=cv.getContext('2d');
-  const W=cv.width, H=cv.height, cx=W/2, cy=H/2, maxR=W/2-6;
+  const W=cv.width, H=cv.height;
+  const pad=W*0.085;
+  const boxX=pad, boxY=pad, boxW=W-pad*2, boxH=H-pad*2;
+  const k=boxW/(HALF*2);                            // world → canvas
+  const mx=wx=>boxX+boxW/2 + wx*k;
+  const my=wz=>boxY+boxH/2 + wz*k;
   ctx.clearRect(0,0,W,H);
-  // 레이더 동심원 & 십자선
-  ctx.strokeStyle='rgba(120,190,255,.18)'; ctx.lineWidth=1;
-  ctx.beginPath(); ctx.arc(cx,cy,maxR*0.5,0,Math.PI*2); ctx.stroke();
-  ctx.beginPath(); ctx.arc(cx,cy,maxR,0,Math.PI*2); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(cx,4); ctx.lineTo(cx,H-4); ctx.moveTo(4,cy); ctx.lineTo(W-4,cy); ctx.stroke();
-  const scale=0.52;
-  // 보스 위치 (원 밖이면 테두리에 방향 고정)
-  if(typeof BOSS!=='undefined' && BOSS.alive){
-    let dx=(BOSS.pos.x-player.pos.x)*scale, dz=(BOSS.pos.z-player.pos.z)*scale;
-    const d=Math.hypot(dx,dz);
-    if(d>maxR-2){ dx=dx/d*(maxR-2); dz=dz/d*(maxR-2); }
-    ctx.fillStyle='#ff4d5a';
-    ctx.beginPath(); ctx.arc(cx+dx, cy+dz, 5.2, 0, Math.PI*2); ctx.fill();
-    ctx.strokeStyle='#ffd34d'; ctx.lineWidth=1.5; ctx.stroke();
-    ctx.fillStyle='#fff'; ctx.font='bold 7px sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
-    ctx.fillText('B', cx+dx, cy+dz+0.5);
+
+  /* 지도 바탕 */
+  ctx.fillStyle='rgba(8,14,26,.88)';
+  ctx.beginPath();
+  if(ctx.roundRect) ctx.roundRect(boxX,boxY,boxW,boxH,W*0.10); else ctx.rect(boxX,boxY,boxW,boxH);
+  ctx.fill();
+
+  /* 도로 그리드 */
+  ctx.strokeStyle='rgba(120,170,225,.26)'; ctx.lineWidth=Math.max(1.5,W*0.012);
+  for(let i=-MAP_R;i<=MAP_R;i++){
+    const p=(i-0.5)*CFG.PITCH;
+    if(Math.abs(p)>=HALF-0.5) continue;
+    ctx.beginPath(); ctx.moveTo(mx(p),boxY+2); ctx.lineTo(mx(p),boxY+boxH-2); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(boxX+2,my(p)); ctx.lineTo(boxX+boxW-2,my(p)); ctx.stroke();
   }
-  // 황금 보물 트럭 위치
+  /* 센터/십자선 */
+  ctx.strokeStyle='rgba(120,190,255,.14)';
+  ctx.beginPath(); ctx.moveTo(boxX+boxW/2,boxY); ctx.lineTo(boxX+boxW/2,boxY+boxH);
+  ctx.moveTo(boxX,boxY+boxH/2); ctx.lineTo(boxX+boxW,boxY+boxH/2); ctx.stroke();
+
+  /* 맵 경계 */
+  ctx.strokeStyle='rgba(110,220,255,.85)'; ctx.lineWidth=Math.max(2,W*0.018);
+  ctx.strokeRect(boxX+0.5, boxY+0.5, boxW-1, boxH-1);
+
+  /* 초대형 목표물 */
+  if(typeof giantList!=='undefined'){
+    for(let i=0;i<giantList.length;i++){
+      const g=giantList[i];
+      if(!g || !g.alive || !g.group) continue;
+      const x=mx(g.group.position.x), y=my(g.group.position.z);
+      const s=Math.max(3.4, (g.eatR||6)*k*0.55);
+      ctx.fillStyle='rgba(255,160,80,.85)';
+      ctx.beginPath(); ctx.moveTo(x,y-s); ctx.lineTo(x+s,y); ctx.lineTo(x,y+s); ctx.lineTo(x-s,y); ctx.closePath(); ctx.fill();
+      ctx.strokeStyle='rgba(255,240,200,.9)'; ctx.lineWidth=1; ctx.stroke();
+    }
+  }
+  /* 보스 (B) */
+  if(typeof BOSS!=='undefined' && BOSS.alive){
+    const x=mx(BOSS.pos.x), y=my(BOSS.pos.z);
+    ctx.fillStyle='#ff4d5a';
+    ctx.beginPath(); ctx.arc(x, y, Math.max(4.5,W*0.035), 0, Math.PI*2); ctx.fill();
+    ctx.strokeStyle='#ffd34d'; ctx.lineWidth=1.6; ctx.stroke();
+    ctx.fillStyle='#fff'; ctx.font='bold '+(W*0.072)+'px sans-serif';
+    ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText('B', x, y+0.5);
+  }
+  /* 황금 약탈차 */
   if(typeof defenseList!=='undefined'){
     for(let i=0;i<defenseList.length;i++){
       const u=defenseList[i];
       if(!u.alive) continue;
-      let dx=(u.pos.x-player.pos.x)*scale, dz=(u.pos.z-player.pos.z)*scale;
-      const d=Math.hypot(dx,dz);
-      if(d>maxR-2){ dx=dx/d*(maxR-2); dz=dz/d*(maxR-2); }
+      const x=mx(u.pos.x), y=my(u.pos.z);
       ctx.fillStyle='#ffd34d';
-      ctx.beginPath(); ctx.arc(cx+dx, cy+dz, 3.8, 0, Math.PI*2); ctx.fill();
-      ctx.strokeStyle='#fff'; ctx.lineWidth=1; ctx.stroke();
+      ctx.beginPath(); ctx.arc(x, y, Math.max(3.4,W*0.026), 0, Math.PI*2); ctx.fill();
+      ctx.strokeStyle='#fff'; ctx.lineWidth=1.2; ctx.stroke();
     }
   }
-  // 내 블랙홀 (중앙 시안 점)
-  ctx.fillStyle='#57e6ff';
-  ctx.beginPath(); ctx.arc(cx, cy, 3.8, 0, Math.PI*2); ctx.fill();
-  ctx.strokeStyle='#ffffff'; ctx.lineWidth=1.2; ctx.stroke();
+  /* 내 블랙홀 — 실제 맵 좌표 + 진행 방향 */
+  const px=mx(player.pos.x), py=my(player.pos.z);
+  const vx=state.velocity.x, vz=state.velocity.y;
+  const vl=Math.hypot(vx,vz);
+  if(vl>0.4){
+    const a=Math.atan2(vz,vx);
+    ctx.strokeStyle='rgba(87,230,255,.75)'; ctx.lineWidth=Math.max(1.6,W*0.014);
+    ctx.beginPath(); ctx.moveTo(px,py);
+    ctx.lineTo(px+Math.cos(a)*W*0.11, py+Math.sin(a)*W*0.11); ctx.stroke();
+  }
+  const pr=Math.max(3.4, W*0.030);
+  ctx.beginPath(); ctx.arc(px,py,pr+1.6,0,Math.PI*2);
+  ctx.fillStyle='rgba(87,230,255,.28)'; ctx.fill();
+  ctx.beginPath(); ctx.arc(px,py,pr,0,Math.PI*2);
+  ctx.fillStyle='#57e6ff'; ctx.fill();
+  ctx.strokeStyle='#ffffff'; ctx.lineWidth=1.4; ctx.stroke();
 }
 function updateThreatBoard(){
   if(!ui.threats) return;
@@ -6500,7 +7103,7 @@ function updateThreatBoard(){
     '<div class="rRow"><span class="dot" style="background:#ffd34d;color:#ffd34d"></span>'+
       '<span>👑 보스</span><span class="sz">'+(state.bossUnlocked?'사냥 가능':'R '+ (state.bossNeedR||CFG.BOSS_NEED_R).toFixed(1))+'</span></div>'+
     '<div class="rRow"><span class="dot" style="background:#ff6a6a;color:#ff6a6a"></span>'+
-      '<span>🚚 보물트럭</span><span class="sz">'+units.length+'대</span></div>'+
+      '<span>💰 약탈차</span><span class="sz">'+units.length+'대</span></div>'+
     '<div class="rRow"><span class="dot" style="background:#9bf24b;color:#9bf24b"></span>'+
       '<span>흡수</span><span class="sz">'+state.defKills+'기</span></div>';
 }
@@ -6879,6 +7482,28 @@ window.__BH = {
   tab(){ return state.tab; },
   cellsInfo(){ return {size:cells.size, pending:pendingCells.length, i:cellPos.i, j:cellPos.j, init:cellPos.init,
     obj:objects.length, mode:state.mode, fps:Math.round(1/Math.max(0.001,clock.getDelta?0:0))}; },
+  /* ── v2.3 한정맵/리스폰/약탈차 디버그 훅 ── */
+  mapInfo(){ return {half:HALF, cells:MAP_CELLS, ground:groundMesh?{x:groundMesh.position.x,z:groundMesh.position.z,w:GROUND_SIZE}:null,
+    border:!!borderGroup, limit:HALF-(MAP_LIMIT+state.R*0.34), pos:{x:+player.pos.x.toFixed(2),z:+player.pos.z.toFixed(2)}}; },
+  respawnInfo(){ return {queue:respawnQueue.length, live:respawnLive.length, done:state.respawns||0,
+    next:respawnQueue.length?+Math.min.apply(null,respawnQueue.map(e=>e.t)).toFixed(2):null}; },
+  respawnNow(){ let n=0; for(let i=respawnQueue.length-1;i>=0;i--){ respawnQueue[i].t=0; n++; } return n; },
+  eatNear(n){ let c=0; for(let i=objects.length-1;i>=0 && c<n;i--){ const o=objects[i]; if(!o.alive||o.isGiant) continue; if(Math.hypot(o.group.position.x-player.pos.x,o.group.position.z-player.pos.z)<26){ startSuck(o,true); c++; } } return c; },
+  giantInfo(){ return {list:giantList.filter(g=>g&&g.alive).map(g=>({kind:g.giantKind, x:+g.group.position.x.toFixed(1), z:+g.group.position.z.toFixed(1), eatR:g.eatR, tier:g.tier, op:+(g.op||1).toFixed(2), top:+(g.top||0).toFixed(1), children:g.group?g.group.children.length:0})),
+    timer:+giantTimer.toFixed(1), chance:+giantUpgradeChance().toFixed(2)}; },
+  spawnGiantNow(kind,x,z){ const u=spawnGiant(kind, (x===undefined?null:{x:x,z:z})); return u?{kind:u.giantKind,x:+u.group.position.x.toFixed(1),z:+u.group.position.z.toFixed(1),eatR:u.eatR,tier:u.tier}:null; },
+  raiderAt(kind,x,z){ defenseList.forEach(d=>{ if(d.group){ scene.remove(d.group); disposeTree(d.group); } }); defenseList.length=0;
+    const d=spawnDefenseUnit(kind||'police'); if(!d) return null;
+    d.pos.set(x,0,z); d.group.position.set(x,0,z); return {kind:d.kind,x:x,z:z}; },
+  setCam(){ updateCamera(0.016, true); },
+  minimapPx(){ const cv=document.getElementById('minimap'); if(!cv) return null;
+    const W=cv.width, pad=W*0.085, k=(W-pad*2)/(HALF*2);
+    return {w:W, x:+(pad+(W-pad*2)/2+player.pos.x*k).toFixed(1), y:+(pad+(W-pad*2)/2+player.pos.z*k).toFixed(1), k:+k.toFixed(3)}; },
+  minimapPixel(){ const cv=document.getElementById('minimap'); if(!cv) return null;
+    const ctx=cv.getContext('2d'), W=cv.width, pad=W*0.085, k=(W-pad*2)/(HALF*2);
+    const x=Math.round(pad+(W-pad*2)/2+player.pos.x*k), y=Math.round(pad+(W-pad*2)/2+player.pos.z*k);
+    const d=ctx.getImageData(x,y,1,1).data; return {x:x,y:y,rgba:[d[0],d[1],d[2],d[3]]}; },
+  mapSnapshot(){ const cv=document.getElementById('minimap'); return cv?cv.toDataURL('image/png'):null; },
   worldHtml(){ return (ui.tpBody && ui.tpBody.innerHTML || '').length; },
   bossInfo(){ return {x:BOSS.pos.x, z:BOSS.pos.z, needR:state.bossNeedR, unlocked:state.bossUnlocked, hp:BOSS.hp, maxHp:BOSS.maxHp, alive:BOSS.alive, eatT:BOSS.eatT, check:BOSS.lastCheck||null}; },
   goBoss(){ player.pos.x=BOSS.pos.x; player.pos.z=BOSS.pos.z+9; state.velocity.set(0,0); updateHoleVisual(player); },
@@ -6915,8 +7540,9 @@ window.__BH = {
   autoChip(){ useAutoChip(); },
   chipState(){ return state.autoChip?{t:+state.autoChip.t.toFixed(2), dur:state.autoChip.dur}:null; },
   sweep(st){ return sweepStage(st); },
-  defs(){ return defenseList.filter(d=>d.alive).map(d=>({kind:d.kind, x:+d.pos.x.toFixed(1), z:+d.pos.z.toFixed(1),
-    dist:+Math.hypot(d.pos.x-player.pos.x, d.pos.z-player.pos.z).toFixed(1), scale:d.group?+d.group.scale.x.toFixed(2):0})); },
+  defs(){ return defenseList.filter(d=>d.alive).map(d=>({kind:d.kind, name:DEF_KINDS[d.kind].name, x:+d.pos.x.toFixed(1), z:+d.pos.z.toFixed(1),
+    dist:+Math.hypot(d.pos.x-player.pos.x, d.pos.z-player.pos.z).toFixed(1), scale:d.group?+d.group.scale.x.toFixed(2):0,
+    raider:!!(d.group&&d.group.userData.raider), flames:!!(d.group&&d.group.userData.flameL)})); },
   defState(){ return {slow:state.defSlow, hitT:+(state.defHitT||0).toFixed(2), hitFlash:+(state.hitFlash||0).toFixed(2), R:+state.R.toFixed(2)}; },
   strayCars(){ return strayNearPlayer(); },
   suckCount(){ return sucking.length; },
@@ -6989,10 +7615,10 @@ const telegraphs = [];
 const shots = [];
 const skinFx = [];
 const DEF_KINDS = {
-  police:{size:3.2, hp:260,  speed:9.6,  score:2400, xp:240, gold:380, gem:2, name:'황금 트럭', view:1.55},
-  van:   {size:4.2, hp:520,  speed:9.0,  score:3400, xp:320, gold:550, gem:3, name:'황금 밴',   view:1.62},
-  tank:  {size:5.4, hp:1050, speed:8.4,  score:5500, xp:480, gold:900, gem:5, name:'황금 금고차', view:1.58},
-  heli:  {size:4.0, hp:420,  speed:10.6, score:4200, xp:380, gold:700, gem:4, name:'보물 헬기', view:1.5}
+  police:{size:3.4, hp:280,  speed:8.4,  score:2400, xp:240, gold:380, gem:2, name:'황금 약탈차',   view:1.16},
+  van:   {size:4.4, hp:560,  speed:8.0,  score:3400, xp:320, gold:550, gem:3, name:'약탈 장갑차',   view:1.32},
+  tank:  {size:5.8, hp:1150, speed:7.4,  score:5500, xp:480, gold:900, gem:5, name:'보물 폭주트럭', view:1.46},
+  heli:  {size:4.0, hp:420,  speed:10.2, score:4200, xp:380, gold:700, gem:4, name:'보물 헬기',     view:1.5}
 };
 /* 보물 마커 — 멀리서도 황금 보물 트럭이 눈에 띄게 */
 let DEF_MARK_TEX=null;
@@ -7211,37 +7837,22 @@ function spawnDefenseUnit(kind){
   if(defenseList.filter(d=>d.alive).length >= defCap()+2) return null;
   kind = kind || pickDefKind();
   const k=DEF_KINDS[kind];
-  /* 플레이어 주변 시야 안(18~26유닛)에서 출동 — 앞쪽 반원 위주 */
+  /* 황금 약탈차는 도로를 무시한다 — 맵 안 아무 곳(블록·골목·잔디)에서 등장 */
+  const lim = HALF - 7.5;
   let ang = -Math.PI/2 + rnd(-1.15,1.15);      // -z 가 화면 앞쪽
   if(RNG()<0.22) ang = rnd(-Math.PI, Math.PI);
   const rad = rnd(18,26);
-  let x=player.pos.x+Math.cos(ang)*rad;
-  let z=player.pos.z+Math.sin(ang)*rad;
-  if(RNG()<0.55){
-    // 도로 위에 자연스럽게 배치 (거리는 유지)
-    if(RNG()<0.5){ const sx=Math.round(x/CFG.PITCH)*CFG.PITCH+(RNG()<0.5?2.05:-2.05);
-      if(Math.abs(sx-player.pos.x)>8) x=sx; }
-    else { const sz=Math.round(z/CFG.PITCH)*CFG.PITCH+(RNG()<0.5?2.05:-2.05);
-      if(Math.abs(sz-player.pos.z)>8) z=sz; }
-    const dd=Math.hypot(x-player.pos.x, z-player.pos.z);
-    if(dd<17 || dd>27){ x=player.pos.x+Math.cos(ang)*rad; z=player.pos.z+Math.sin(ang)*rad; }
+  let x=clamp(player.pos.x+Math.cos(ang)*rad, -lim, lim);
+  let z=clamp(player.pos.z+Math.sin(ang)*rad, -lim, lim);
+  if(Math.hypot(x-player.pos.x, z-player.pos.z) < 12){
+    x=clamp(player.pos.x+rnd(-24,24), -lim, lim);
+    z=clamp(player.pos.z+rnd(-24,24), -lim, lim);
   }
   let group;
-  if(kind==='police') group=makePoliceCar();
-  else if(kind==='van') group=makeArmoredVan();
-  else if(kind==='tank') group=makeTank();
-  else group=makeHeli();
-  // 황금 보물 트럭 메탈 코팅
-  group.traverse(ch=>{
-    if(ch.isMesh && ch.material && ch.material.color){
-      const c=ch.material.clone();
-      c.color.setHex(kind==='tank'?0xffae00:0xffd34d);
-      if(c.emissive) c.emissive.setHex(0x553800);
-      ch.material=c;
-    }
-  });
-  group.scale.setScalar(k.view||1.5);
-  group.position.set(x, kind==='heli'?4.2:0, z);
+  if(kind==='heli') group=makeHeli();
+  else group=makeRaiderTruck(kind);
+  group.scale.setScalar(k.view||1.2);
+  group.position.set(x, kind==='heli'?4.6:0, z);
   if(kind!=='heli') group.rotation.y=Math.atan2(-(x-player.pos.x), -(z-player.pos.z));
   /* 상단 경고 마커 */
   const spr=new THREE.Sprite(new THREE.SpriteMaterial({map:defenseMarkerTex(), transparent:true, depthTest:false}));
@@ -7251,7 +7862,8 @@ function spawnDefenseUnit(kind){
   scene.add(group);
   const d={kind:kind, size:k.size, hp:k.hp, maxHp:k.hp, speed:k.speed,
     pos:new THREE.Vector3(x,0,z), group:group, alive:true, eatT:0,
-    attackCd:1.1, phase:RNG()*6.28, rot:0, marker:spr, lungeT:0};
+    attackCd:1.1, phase:RNG()*6.28, rot:0, marker:spr, lungeT:0,
+    offroad:true, dirX:Math.cos(ang), dirZ:Math.sin(ang), bounceT:0};
   defenseList.push(d);
   return d;
 }
@@ -7269,7 +7881,28 @@ function animateDefense(dt){
     }
     if(d.group.userData.rotor) d.group.userData.rotor.rotation.y += dt*26;
     if(d.group.userData.trotor) d.group.userData.trotor.rotation.x += dt*30;
-    if(d.kind==='heli') d.group.position.y=4.2+Math.sin(t*2+d.phase)*0.45;
+    if(d.kind==='heli') d.group.position.y=4.6+Math.sin(t*2+d.phase)*0.45;
+    /* 약탈차 배기구 화염 + 보물 발광 */
+    if(d.group.userData.flameL){
+      const fl=d.group.userData.flameL, fr=d.group.userData.flameR;
+      [fl,fr].forEach((f,fi)=>{
+        if(!f) return;
+        const ph=t*17+d.phase*3+fi*2.1;
+        const k=Math.max(0,Math.sin(ph))*0.85+0.15;
+        f.material.opacity=0.55*k;
+        f.scale.setScalar(0.75+0.55*k);
+      });
+      const tg=d.group.userData.treasureGlow;
+      if(tg) tg.material.opacity=0.22+0.20*Math.abs(Math.sin(t*2.6+d.phase));
+      /* 배기 연기 */
+      d.smokeT=(d.smokeT||0)-dt;
+      if(d.smokeT<=0){
+        d.smokeT=0.19;
+        const ry=d.group.rotation.y, sn=Math.sin(ry), cs=Math.cos(ry);
+        const bx=d.group.position.x - sn*1.8, bz=d.group.position.z - cs*1.8;
+        spawnPoof(bx, bz, 0x9a9a9a, 1, 0.5);
+      }
+    }
     if(d.marker){
       d.marker.position.y=(d.kind==='heli'?5.4:4.4)+Math.sin(t*3+d.phase)*0.16;
       const s=2.6+0.22*Math.sin(t*5+d.phase);
@@ -7359,36 +7992,66 @@ function updateDefense(dt){
     alive++;
     const dx=player.pos.x-d.pos.x, dz=player.pos.z-d.pos.z;
     const dist=Math.hypot(dx,dz)||0.001;
-    let sp=d.speed;
+    let sp=d.speed, rx=0, rz=0;
     // 플레이어에게 가까이 오면 지그재그로 빠르게 도망 (잡기 어렵게!)
-    if(dist < 32){
+    if(dist < 30){
       const ux=-dx/dist, uz=-dz/dist;
-      const jig=Math.sin(performance.now()*0.0045 + d.phase)*0.45;
-      const rx=ux - uz*jig, rz=uz + ux*jig;
-      const rl=Math.hypot(rx,rz)||1;
-      d.pos.x += rx/rl*sp*dt;
-      d.pos.z += rz/rl*sp*dt;
-      if(d.group) d.group.rotation.y=Math.atan2(rx,rz);
+      const jig=Math.sin(performance.now()*0.0045 + d.phase)*0.55;
+      rx=ux - uz*jig; rz=uz + ux*jig;
     } else {
-      // 순회
+      // 순회 — 맵 아무 데나 누비며 배회
       d.phase += dt*0.7;
-      d.pos.x += Math.cos(d.phase)*sp*0.45*dt;
-      d.pos.z += Math.sin(d.phase)*sp*0.45*dt;
-      if(d.group) d.group.rotation.y=Math.atan2(Math.cos(d.phase), Math.sin(d.phase));
+      rx=Math.cos(d.phase); rz=Math.sin(d.phase);
+      sp*=0.55;
     }
+    /* 큰 건물은 피해서 간다(도로를 따르지는 않지만 벽을 뚫고 지나가지도 않게) */
+    for(let oi=0;oi<objects.length;oi+=2){
+      const o=objects[oi];
+      if(!o.alive || o.tier<3 || o.eatR<3) continue;
+      const ox=o.group.position.x-d.pos.x, oz=o.group.position.z-d.pos.z;
+      const od=Math.hypot(ox,oz);
+      if(od<0.01) continue;
+      const rr=(o.blockR||o.eatR)+d.size*0.55+1.4;
+      if(od<rr){ rx-=ox/od*(rr-od)*1.5; rz-=oz/od*(rr-od)*1.5; }
+    }
+    /* 맵 경계(±(HALF-4)) 안에서 튕기며 도주 */
+    const wall=HALF-4.0;
+    let pushX=0, pushZ=0;
+    if(d.pos.x >  wall) pushX -= (d.pos.x-wall);
+    if(d.pos.x < -wall) pushX += (-wall-d.pos.x);
+    if(d.pos.z >  wall) pushZ -= (d.pos.z-wall);
+    if(d.pos.z < -wall) pushZ += (-wall-d.pos.z);
+    if(pushX||pushZ){
+      const pl=Math.hypot(pushX,pushZ)||1;
+      rx += pushX/pl*2.0; rz += pushZ/pl*2.0;
+      d.bounceT=0.4;
+    }
+    d.bounceT=Math.max(0,(d.bounceT||0)-dt);
+    const rl=Math.hypot(rx,rz)||1;
+    d.pos.x += rx/rl*sp*dt;
+    d.pos.z += rz/rl*sp*dt;
+    d.pos.x = clamp(d.pos.x, -wall, wall);
+    d.pos.z = clamp(d.pos.z, -wall, wall);
     if(dom>0 && dist<14+4*dom){
-      d.pos.x += dx/dist*7*dt; d.pos.z += dz/dist*7*dt;
+      d.pos.x = clamp(d.pos.x + dx/dist*7*dt, -wall, wall);
+      d.pos.z = clamp(d.pos.z + dz/dist*7*dt, -wall, wall);
     }
     d.group.position.x=d.pos.x; d.group.position.z=d.pos.z;
+    if(d.group){
+      const want=Math.atan2(rx,rz);
+      let diff=((want-d.group.rotation.y+Math.PI*3)%(Math.PI*2))-Math.PI;
+      d.group.rotation.y += diff*Math.min(1, dt*6.0);
+    }
     // 닿으면 대박 보상 흡수!
     if(dist < R*1.02 + d.size*0.42){
       devourDefense(d);
       continue;
     }
-    if(dist>95){ // 너무 멀면 플레이어 앞쪽으로 재배치
-      const a=-Math.PI/2+rnd(-1.1,1.1), r=rnd(20,28);
-      d.pos.set(player.pos.x+Math.cos(a)*r, 0, player.pos.z+Math.sin(a)*r);
-      d.group.position.set(d.pos.x, d.kind==='heli'?4.2:0, d.pos.z);
+    if(dist>78){ // 너무 멀면 맵 안 플레이어 앞쪽으로 재배치
+      const a=-Math.PI/2+rnd(-1.1,1.1), r=rnd(22,30);
+      d.pos.set(clamp(player.pos.x+Math.cos(a)*r, -(HALF-8), HALF-8), 0,
+        clamp(player.pos.z+Math.sin(a)*r, -(HALF-8), HALF-8));
+      d.group.position.set(d.pos.x, d.kind==='heli'?4.6:0, d.pos.z);
     }
   }
   // 황금 보물 트럭 증원 (희귀 빈도: 19~24초)
@@ -7398,7 +8061,7 @@ function updateDefense(dt){
     state.defTimer=20;
     state.defNextR=R*1.45;
     const u=spawnDefenseUnit();
-    if(u){ Sound.coin(); showToast('🚚 희귀 황금 트럭 출현!', '잡으면 대박 골드·다이아! (좌측 미니맵 확인)', '#ffd34d'); }
+    if(u){ Sound.coin(); showToast('💰 희귀 '+DEF_KINDS[u.kind].name+' 출현!', '잡으면 대박 골드·다이아! (좌측 미니맵 확인)', '#ffd34d'); }
   }
 }
 function devourDefense(d){
@@ -7477,7 +8140,7 @@ function shatterObject(o){
   const ci=cars.indexOf(o); if(ci>=0) cars.splice(ci,1);
   const bi=cameraBlockers.indexOf(o); if(bi>=0) cameraBlockers.splice(bi,1);
   if(o.group.parent) o.group.parent.remove(o.group);
-  disposeTree(o.group);
+  if(!holdForRespawn(o) && o.group) disposeTree(o.group);   // 파괴된 것도 일정 시간 뒤 리스폰
   spawnPoof(p.x,p.z,col, Math.min(12, 4+tier*2));
   spawnRipple(col, Math.max(2.2,o.eatR*0.8), false);
   Sound.boom();

@@ -1754,19 +1754,21 @@ function initThree(){
   camera = new THREE.PerspectiveCamera(CFG.CAM_FOV, window.innerWidth/window.innerHeight, 0.5, 900);
   camera.position.set(0, 50, 70);
 
-  renderer = new THREE.WebGLRenderer({canvas:canvas, antialias:true, powerPreference:'high-performance'});
-  renderer.setPixelRatio(qualityPixelRatio());
+  renderer = new THREE.WebGLRenderer({canvas:canvas, antialias:false, powerPreference:'high-performance'});
+  renderer.setPixelRatio(Math.min(qualityPixelRatio(), 1.35));
   renderer.setSize(window.innerWidth, window.innerHeight, false);
   renderer.outputEncoding = THREE.sRGBEncoding;
   renderer.shadowMap.enabled = true;
-  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  renderer.shadowMap.type = THREE.BasicShadowMap;
+  canvas.addEventListener('webglcontextlost', e=>{ e.preventDefault(); }, false);
+  canvas.addEventListener('webglcontextrestored', ()=>{ if(renderer) renderer.setSize(window.innerWidth, window.innerHeight, false); }, false);
 
   hemi = new THREE.HemisphereLight(theme.light.hs, theme.light.hg, theme.light.hi);
   scene.add(hemi);
   sun = new THREE.DirectionalLight(theme.light.sun, theme.light.si);
   sun.position.set(46, 88, 30);
   sun.castShadow = true;
-  sun.shadow.mapSize.width = 1024; sun.shadow.mapSize.height = 1024;
+  sun.shadow.mapSize.width = 512; sun.shadow.mapSize.height = 512;
   sun.shadow.camera.left=-60; sun.shadow.camera.right=60;
   sun.shadow.camera.top=60; sun.shadow.camera.bottom=-60;
   sun.shadow.camera.near=1; sun.shadow.camera.far=280;
@@ -6661,13 +6663,20 @@ function scoreEat(obj){
 }
 function updateFade(dt){
   const R=state.R, bonus=eatBonus();
+  const cullR = 88 + R*4.8;
   for(let i=0;i<objects.length;i++){
     const o=objects[i];
-    if(!o.alive) continue;
-    let target=1;
+    if(!o.alive || !o.group) continue;
     const ox=o.group.position.x, oz=o.group.position.z;
     const dx=ox-player.pos.x, dz=oz-player.pos.z;
     const dist=Math.hypot(dx,dz);
+    // 시야 밖(cullR 이상) 오브젝트는 렌더링에서 제외해 모바일 GPU 렉·흰화면 방지
+    if(dist > cullR && !o.isGiant){
+      if(o.group.visible) o.group.visible=false;
+      continue;
+    }
+    if(!o.group.visible) o.group.visible=true;
+    let target=1;
     /* 거대 목표물은 카메라를 바로 가리는 근거리에서만 반투명 —
        멀리서는 웅장하게 불투명하게 보이도록 페이드 대상에서 제외한다. */
     const nearGiant = o.isGiant ? (dist < 22) : true;

@@ -13439,6 +13439,15 @@ function updateBoss(dt){
         BOSS.group.position.z += (_dz/_d)*_sp;
         BOSS.group.rotation.y = Math.atan2(_dx, _dz);
       }
+      // 1안: 보스 공격 직후(빈틈) 또는 보스 몸통 근처로 파고들면 직접 갉아먹기 폭딜!
+      const _biteR = (BOSS.eatR||5.0)*0.85 + state.R*1.05;
+      if(_d < _biteR){
+        const _exhaust = (BOSS.dashing===false && (BOSS.recoverT||0)>0) ? 2.4 : 1.0;
+        const _biteDps = (BOSS.mini?24:18) * _exhaust * dt * (1+(typeof augSum==='function'?augSum('bossDmg'):0));
+        BOSS.hp = Math.max(0, (BOSS.hp||100) - _biteDps);
+        if(Math.random()<0.28 && typeof spawnBolt==='function') spawnBolt(_bx,_bz);
+        if(BOSS.hp<=0 && typeof defeatBossNow==='function') defeatBossNow();
+      }
     }
   }catch(_){}
   if(!state.hasBoss || !BOSS.alive) return;

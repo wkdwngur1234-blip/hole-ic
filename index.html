@@ -7123,7 +7123,7 @@ function spawnRoamingCar(anywhere){
   const isTaxi=RNG()<0.25, isBus=RNG()<0.09;
   const car=makeCar(placed.x, placed.z, vertical?0:Math.PI/2, isTaxi, isBus);
   car.roam={vertical:vertical, dir:RNG()<0.5?1:-1, speed:isBus?4.4:rnd(6.5,9.5), line:placed.line};
-  cars.push(car);
+  cars.push(car); try{ if(typeof applyMonsterSkin==="function") applyMonsterSkin(car); }catch(e){}
   return car;
 }
 function recycleCar(c){
@@ -16811,12 +16811,20 @@ let _monPass=0;
 function monsterPass(dt){
   _monPass-=dt;
   if(_monPass>0) return;
-  _monPass=0.15;
+  _monPass=0;
   for(let i=0;i<objects.length;i++){
     const o=objects[i];
     if(!o || !o.alive || o.monstered===true || !o.group) continue;
     o.monstered=false;
     applyMonsterSkin(o);
+  }
+  if(typeof cars!=='undefined'){
+    for(let i=0;i<cars.length;i++){
+      const c=cars[i];
+      if(!c || !c.alive || c.monstered===true || !c.group) continue;
+      c.monstered=false;
+      applyMonsterSkin(c);
+    }
   }
 }
 function animateMonsters(dt){

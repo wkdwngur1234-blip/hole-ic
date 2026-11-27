@@ -13433,11 +13433,28 @@ function updateBoss(dt){
       const _bx=BOSS.group.position.x, _bz=BOSS.group.position.z;
       const _dx=player.pos.x-_bx, _dz=player.pos.z-_bz;
       const _d=Math.hypot(_dx,_dz);
+      // 부드러운 각도 보간 + 묵직한 보행 바운스 & 스웨이 + 돌진 전방 기울기
+      const _wantYaw = Math.atan2(_dx, _dz);
+      let _dy = _wantYaw - BOSS.group.rotation.y;
+      while(_dy > Math.PI) _dy -= Math.PI*2;
+      while(_dy < -Math.PI) _dy += Math.PI*2;
+      BOSS.group.rotation.y += _dy * Math.min(1, dt * (BOSS.dashing?9.0:4.8));
+      const _bt = performance.now()*0.001;
       if(_d > 4.0 && !BOSS.dashing && BOSS.phase!=='groggy'){
         const _sp = (BOSS.mini?5.0:6.2) * dt;
         BOSS.group.position.x += (_dx/_d)*_sp;
         BOSS.group.position.z += (_dz/_d)*_sp;
-        BOSS.group.rotation.y = Math.atan2(_dx, _dz);
+        BOSS.group.position.y = Math.abs(Math.sin(_bt*5.2))*0.42;
+        BOSS.group.rotation.z = Math.sin(_bt*5.2)*0.065;
+        BOSS.group.rotation.x = 0.08;
+      } else if(BOSS.dashing){
+        BOSS.group.position.y = 0.15;
+        BOSS.group.rotation.x = 0.24;
+        BOSS.group.rotation.z = 0;
+      } else {
+        BOSS.group.position.y = Math.sin(_bt*2.4)*0.12;
+        BOSS.group.rotation.x *= Math.max(0, 1 - dt*6);
+        BOSS.group.rotation.z *= Math.max(0, 1 - dt*6);
       }
       // 1안: 보스 공격 직후(빈틈) 또는 보스 몸통 근처로 파고들면 직접 갉아먹기 폭딜!
       const _biteR = (BOSS.eatR||5.0)*0.85 + state.R*1.05;

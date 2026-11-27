@@ -953,7 +953,6 @@ canvas#cv{position:fixed;inset:0;width:100%;height:100%;display:block;touch-acti
       <div id="chestMsg" class="chestMsg"></div>
       <button id="chestAdBtn" class="hidden">🎬 광고 보고 1개 더 뽑기 (데모)</button>
       <button id="chestDone" class="hidden">결과 확인 ▶</button>
-      <div class="chestTip">상자를 여는 순간의 확률로 보상이 결정돼요</div>
     </div>
   </div>
 
@@ -5751,7 +5750,7 @@ function onLevelUp(lv, from){
   Sound.level();
   vibrate([18,30,45]);
   const picks=[];
-  for(let l=from+1;l<=lv;l++) if(AUG_AT[l]) picks.push(l);
+  for(let l=from+1;l<=lv;l++) if(l>=2 && l<=15) picks.push(l);
   if(picks.length){
     state.pendingAug=(state.pendingAug||0)+picks.length;
     if(state.simMode) maybeOpenAugment();
@@ -6184,15 +6183,9 @@ function checkGoal(){
   if(state.goalDone||state.mode!=='playing') return;
   if(state.score - state.stageStartScore >= state.goal){
     state.goalDone=true;
-    state.endReason='goal';
-    showToast('🎯 목표 달성!', '스테이지 클리어!', '#ffd34d');
+    showToast('🔥 목표 달성 · 보스 격파 준비!', '중앙 보스 타워를 삼키거나 부수면 클리어!', '#ffd34d');
     Sound.level();
     spawnRipple(0xffd34d, state.R*1.6, true);
-    state.pendingGoalEnd=1.4;
-  }
-  if(state.pendingGoalEnd>0){
-    state.pendingGoalEnd-=1/60;
-    if(state.pendingGoalEnd<=0) endStage('goal');
   }
 }
 
@@ -8267,13 +8260,13 @@ function sweepStage(stage){
 }
 
 /* ═══════════════════════════════════════════════════════════
-   INTRO — 첫 프레임 렌더 후 2.6초 스플래시 (탭하면 즉시 스킵)
+   INTRO — 첫 프레임 렌더 후 3.0초 스플래시 (1초 후 탭 시 스킵)
    ═══════════════════════════════════════════════════════════ */
 let introDone=false;
 function initIntro(){
   const el=document.getElementById('intro');
   if(!el){ introDone=true; return; }
-  let tPop=null, tEnd=null;
+  let tPop=null, tEnd=null, shownAt=0;
   const finish=()=>{
     if(introDone) return;
     introDone=true;
@@ -8281,20 +8274,21 @@ function initIntro(){
     el.style.display='none';
   };
   const startTimers=()=>{
-    tPop=setTimeout(()=>el.classList.add('pop'), 550);
-    tEnd=setTimeout(finish, 2600);
+    shownAt=performance.now();
+    tPop=setTimeout(()=>el.classList.add('pop'), 650);
+    tEnd=setTimeout(finish, 3000);
   };
   requestAnimationFrame(()=>requestAnimationFrame(startTimers));
   const skip=()=>{
     if(introDone) return;
+    if(!shownAt || performance.now()-shownAt < 950) return;
     if(tPop) clearTimeout(tPop);
     if(tEnd) clearTimeout(tEnd);
     el.classList.add('pop');
-    setTimeout(finish, 120);
+    setTimeout(finish, 140);
   };
   el.addEventListener('pointerdown', skip);
   el.addEventListener('click', skip);
-  window.addEventListener('keydown', skip, {once:true});
 }
 
 /* ==== bh_v2_p9_boot.js ==== */

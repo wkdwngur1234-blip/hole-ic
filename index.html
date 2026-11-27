@@ -7050,10 +7050,10 @@ function updateCars(dt){
    (Tier 5~6 · eatR 5.2 ~ 10.6) 리스폰 업그레이드 + 주기적 추가 스폰
    ═══════════════════════════════════════════════════════════ */
 const GIANT_KINDS = {
-  megatower:{eatR:5.2,  tier:5, rad:9.4,  minR:3.6, name:'초고층 마천루',    emoji:'🏙️'},
-  dome:     {eatR:6.6,  tier:5, rad:11.2, minR:4.8, name:'거대 돔 스타디움', emoji:'🏟️'},
-  rocket:   {eatR:8.2,  tier:6, rad:10.6, minR:6.2, name:'우주 발사타워',    emoji:'🚀'},
-  arcology: {eatR:10.6, tier:6, rad:13.6, minR:7.8, name:'메가 아르콜로지',  emoji:'🏛️'}
+  megatower:{eatR:3.9,  tier:5, rad:6.8,  minR:2.8, name:'고대 석조 거신',    emoji:'🗿'},
+  dome:     {eatR:4.3,  tier:5, rad:7.6,  minR:3.4, name:'심연 수정 골렘',    emoji:'💎'},
+  rocket:   {eatR:4.7,  tier:6, rad:8.2,  minR:3.8, name:'화염 마수 드래곤',  emoji:'🐉'},
+  arcology: {eatR:5.1,  tier:6, rad:9.0,  minR:4.2, name:'타락한 왕좌 거수',  emoji:'👹'}
 };
 const GIANT_ORDER = ['megatower','dome','rocket','arcology'];
 const giantList = [];
@@ -7306,8 +7306,9 @@ function updateGiants(dt){
   if(aliveNow >= cap) return;
   const u=spawnGiant();
   if(u){
+    try{ if(typeof applyMonsterSkin==='function') applyMonsterSkin(u); }catch(e){}
     giantPulse = 1.0;
-    showToast('🏙️ 거대 목표물 출현!', u.name+' · '+u.eatR.toFixed(1)+'m 이상이면 삼킬 수 있어요', '#9fe8ff');
+    showToast('👹 정예 거대 몬스터 출현!', u.name+' · '+u.eatR.toFixed(1)+'m 이상이면 삼킬 수 있어요', '#9fe8ff');
     /* 미니맵에 잠깐 강조 */
   }
 }

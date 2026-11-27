@@ -11748,10 +11748,10 @@ function updateBossPillars(dt){
     }
     const d=Math.hypot(player.pos.x-p.bx, player.pos.z-p.bz);
     /* 블랙홀 크기와 무관 — 밑동에 다가가 1초 머물면 뽑힌다 (삼키면 더 빠르게) */
-    const near = d < 7.6;
-    const swallow = d < Math.max(7.6, R*0.95+2.2);
+    const near = d < 9.2;
+    const swallow = d < Math.max(9.2, R*1.05+2.6);
     if(near || swallow){
-      p.pull += dt*(swallow && d<R*0.95+2.2 ? 2.6 : 1.0);
+      p.pull += dt*(swallow && d<R*1.05+2.6 ? 3.0 : 1.35);
       p.sparkT-=dt;
       if(p.sparkT<=0){
         p.sparkT=0.13;
@@ -12059,7 +12059,7 @@ function openBossWeak(){
   scene.add(g);
   const a=Math.atan2(BOSS.pos.z-player.pos.z, BOSS.pos.x-player.pos.x);
   BOSS.weak={group:g, core:core, inner:inner, glow:glow, ring:ring, ring2:ring2,
-    a:a, r:(BOSS.mini?11:15), y:(BOSS.mini?8.5:11)};
+    a:a, r:(BOSS.mini?9.5:13.0), y:2.6};
   spawnPoof(BOSS.pos.x, BOSS.pos.z, 0xff9ed2, 10);
 }
 
@@ -12086,13 +12086,13 @@ function updateBossWeak(dt){
   w.glow.material.opacity=0.55+0.30*Math.abs(Math.sin(t*6.2));
   w.core.scale.setScalar(1+0.10*Math.sin(t*8));
   const d=Math.hypot(player.pos.x-x, player.pos.z-z);
-  if(d < Math.max(5.8, state.R*0.95+2.8) && BOSS.biteCd<=0) bossBite();
+  if(d < Math.max(8.5, state.R*1.15+3.8) && BOSS.biteCd<=0) bossBite();
 }
 
 function bossBite(){
   if(BOSS.defeated) return;
   BOSS.bites++;
-  BOSS.biteCd=0.92;
+  BOSS.biteCd=0.55;
   BOSS.scaleMul=Math.max(0.34, 1 - BOSS.bites*0.165);
   state.score += Math.round(2600*scoreMul());
   state.mass += 8; recalcR();
@@ -12114,7 +12114,7 @@ function bossBite(){
   bossRing(px, pz, 0xff9ed2, 12, 0.6);
   popupAt(new THREE.Vector3(px, py+2, pz), '🦷 갉아먹기 '+BOSS.bites+'/'+BOSS.bitesNeed, '#ff9ed2');
   if(BOSS.bites>=BOSS.bitesNeed){ bossDefeat(); return; }
-  if(BOSS.weak) BOSS.weak.a += 1.15;
+  if(BOSS.weak) BOSS.weak.a += 0.65;
   showToast('🦷 약점을 뜯어냈다!', '보스 덩치가 줄었다 · '+BOSS.bites+'/'+BOSS.bitesNeed, '#ffb3d6');
   BOSS.groggy=Math.max(BOSS.groggy, 1.2);
 }

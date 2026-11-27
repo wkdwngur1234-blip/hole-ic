@@ -1751,15 +1751,14 @@ function initThree(){
   scene.background = sky;
   scene.fog = new THREE.Fog(theme.fog.color, theme.fog.near, theme.fog.far);
 
-  camera = new THREE.PerspectiveCamera(CFG.CAM_FOV, window.innerWidth/window.innerHeight, 0.5, 900);
+  camera = new THREE.PerspectiveCamera(CFG.CAM_FOV, window.innerWidth/window.innerHeight, 3.0, 900);
   camera.position.set(0, 50, 70);
 
   renderer = new THREE.WebGLRenderer({canvas:canvas, antialias:false, powerPreference:'high-performance'});
-  renderer.setPixelRatio(Math.min(qualityPixelRatio(), 1.35));
+  renderer.setPixelRatio(Math.min(qualityPixelRatio(), 1.5));
   renderer.setSize(window.innerWidth, window.innerHeight, false);
   renderer.outputEncoding = THREE.sRGBEncoding;
-  renderer.shadowMap.enabled = true;
-  renderer.shadowMap.type = THREE.BasicShadowMap;
+  renderer.shadowMap.enabled = false;
   canvas.addEventListener('webglcontextlost', e=>{ e.preventDefault(); }, false);
   canvas.addEventListener('webglcontextrestored', ()=>{ if(renderer) renderer.setSize(window.innerWidth, window.innerHeight, false); }, false);
 
@@ -1767,8 +1766,7 @@ function initThree(){
   scene.add(hemi);
   sun = new THREE.DirectionalLight(theme.light.sun, theme.light.si);
   sun.position.set(46, 88, 30);
-  sun.castShadow = true;
-  sun.shadow.mapSize.width = 512; sun.shadow.mapSize.height = 512;
+  sun.castShadow = false;
   sun.shadow.camera.left=-60; sun.shadow.camera.right=60;
   sun.shadow.camera.top=60; sun.shadow.camera.bottom=-60;
   sun.shadow.camera.near=1; sun.shadow.camera.far=280;
@@ -6663,15 +6661,15 @@ function scoreEat(obj){
 }
 function updateFade(dt){
   const R=state.R, bonus=eatBonus();
-  const cullR = 88 + R*4.8;
+  const cullR = Math.min(104, 66 + R*2.4);
   for(let i=0;i<objects.length;i++){
     const o=objects[i];
     if(!o.alive || !o.group) continue;
     const ox=o.group.position.x, oz=o.group.position.z;
     const dx=ox-player.pos.x, dz=oz-player.pos.z;
     const dist=Math.hypot(dx,dz);
-    // 시야 밖(cullR 이상) 오브젝트는 렌더링에서 제외해 모바일 GPU 렉·흰화면 방지
-    if(dist > cullR && !o.isGiant){
+    // 시야 밖(cullR 초과) 및 카메라 뒤쪽(dz > 44) 오브젝트는 끄기 — 커져도 drawCall 폭발 방지
+    if(!o.isGiant && (dist > cullR || dz > 44 + R*1.2)){
       if(o.group.visible) o.group.visible=false;
       continue;
     }
@@ -6833,7 +6831,7 @@ function updatePlaying(dt){
     const strength=6.5+2.2*state.aug.magnet;
     for(let i=0;i<objects.length;i++){
       const o=objects[i];
-      if(!o.alive || o.eatR>R*bonus) continue;
+      if(!o.alive || !o.group.visible || o.eatR>R*bonus) continue;
       const dx=player.pos.x-o.group.position.x, dz=player.pos.z-o.group.position.z;
       const d=Math.hypot(dx,dz);
       if(d<range && d>0.2){
@@ -6849,7 +6847,7 @@ function updatePlaying(dt){
     const strength=5.5+2.0*state.aug.tornado;
     for(let i=0;i<objects.length;i++){
       const o=objects[i];
-      if(!o.alive) continue;
+      if(!o.alive || !o.group.visible) continue;
       const dx=player.pos.x-o.group.position.x, dz=player.pos.z-o.group.position.z;
       const d=Math.hypot(dx,dz);
       if(d<range && d>0.2){
@@ -6876,6 +6874,7 @@ function updatePlaying(dt){
     }
     for(let i=0;i<objects.length;i++){
       const o=objects[i];
+      if(!o.alive || !o.group.visible) continue;
       if(o.pulsePull>0){
         o.pulsePull-=dt;
         const dx=player.pos.x-o.group.position.x, dz=player.pos.z-o.group.position.z;

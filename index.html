@@ -7211,7 +7211,7 @@ function updateDefense(dt){
   let alive=0;
   /* 충돌 페널티(이속 저하) 지속 시간 */
   state.defHitT=Math.max(0,(state.defHitT||0)-dt);
-  if(state.defHitT>0) state.defSlow=Math.min(state.defSlow,0.56);
+  if(state.defHitT>0) state.defSlow=Math.min(state.defSlow,0.76);
   state.defToastCd=Math.max(0,(state.defToastCd||0)-dt);
   for(let i=0;i<defenseList.length;i++){
     const d=defenseList[i];
@@ -7243,28 +7243,30 @@ function updateDefense(dt){
       continue;
     }
     if(!canEat && dist < d.size*0.72 + R*0.62){
-      d.attackCd-=dt;
-      state.defSlow=Math.min(state.defSlow, 0.68);
-      if(d.attackCd<=0){
-        d.attackCd=1.5;
-        const shielded = state.aug.shield>0 || state.skillDur.dash>0;
-        const cut = shielded?0.35:1;
-        state.mass *= (1 - 0.045*cut);
-        state.sizeMul *= (1 - 0.016*cut);
-        recalcR();
-        state.score = Math.max(state.stageStartScore, state.score-80);
-        state.defHitT = shielded?0.8:2.1;
-        state.shake=Math.max(state.shake,0.6);
-        state.flash=Math.max(state.flash,0.22);
-        state.hitFlash=1.0;
-        Sound.siren(); Sound.hurt(); vibrate([70,40,110]);
-        spawnRipple(0xff2b3a, Math.max(2.2, R*0.9), false);
-        popupAt(new THREE.Vector3(d.pos.x,1.8,d.pos.z), '🚨 충돌! -크기', '#ff3b3b');
-        if(state.defToastCd<=0){
-          state.defToastCd=1.8;
-          showToast('🚨 방어군 충돌!', '이동속도 저하 · 구멍/보스 게이지 감소', '#ff3b3b');
-        }
+      const shielded = state.aug.shield>0 || state.skillDur.dash>0;
+      const cut = shielded?0.35:1;
+      state.mass *= (1 - 0.045*cut);
+      state.sizeMul *= (1 - 0.016*cut);
+      recalcR();
+      state.score = Math.max(state.stageStartScore, state.score-80);
+      state.defHitT = shielded?0.45:0.95;
+      state.shake=Math.max(state.shake,0.6);
+      state.flash=Math.max(state.flash,0.22);
+      state.hitFlash=1.0;
+      Sound.siren(); Sound.hurt(); vibrate([70,40,110]);
+      spawnRipple(0xff2b3a, Math.max(2.2, R*0.9), false);
+      popupAt(new THREE.Vector3(d.pos.x,1.8,d.pos.z), '🚨 충돌! -크기', '#ff3b3b');
+      if(state.defToastCd<=0){
+        state.defToastCd=1.8;
+        showToast('🚨 방어군 충돌!', '충격파! 이동속도 잠시 저하', '#ff3b3b');
       }
+      // 충돌한 방어군은 펑! 터지면서 즉시 제거 (블랙홀에 박혀 끼는 현상 방지)
+      try{
+        if(typeof spawnBurst==='function') spawnBurst(d.pos.x, 1.0, d.pos.z, 0xff4d5a, 14);
+      }catch(_e){}
+      d.alive=false;
+      if(d.group){ scene.remove(d.group); d.group=null; }
+      continue;
     }
     if(dist>110){ // 너무 멀면 플레이어 앞쪽으로 재배치
       const a=-Math.PI/2+rnd(-1.1,1.1), r=rnd(19,26);
@@ -8223,23 +8225,28 @@ function sweepStage(stage){
 }
 
 /* ═══════════════════════════════════════════════════════════
-   INTRO — 최초 로드 1.8초 스플래시 (탭하면 즉시 스킵)
+   INTRO — 첫 프레임 렌더 후 2.6초 스플래시 (탭하면 즉시 스킵)
    ═══════════════════════════════════════════════════════════ */
 let introDone=false;
 function initIntro(){
   const el=document.getElementById('intro');
   if(!el){ introDone=true; return; }
+  let tPop=null, tEnd=null;
   const finish=()=>{
     if(introDone) return;
     introDone=true;
     el.classList.add('gone');
     el.style.display='none';
   };
-  const tPop=setTimeout(()=>el.classList.add('pop'), 700);
-  const tEnd=setTimeout(finish, 1900);
+  const startTimers=()=>{
+    tPop=setTimeout(()=>el.classList.add('pop'), 550);
+    tEnd=setTimeout(finish, 2600);
+  };
+  requestAnimationFrame(()=>requestAnimationFrame(startTimers));
   const skip=()=>{
     if(introDone) return;
-    clearTimeout(tPop); clearTimeout(tEnd);
+    if(tPop) clearTimeout(tPop);
+    if(tEnd) clearTimeout(tEnd);
     el.classList.add('pop');
     setTimeout(finish, 120);
   };

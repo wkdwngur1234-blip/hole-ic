@@ -5964,8 +5964,12 @@ function updateFade(dt){
    ═══════════════════════════════════════════════════════════ */
 function updatePlaying(dt){
   state.elapsed += dt;
-  state.timeLeft -= dt;
-  if(state.timeLeft<=0){ state.timeLeft=0; endStage('time'); return; }
+
+  // 바닥 타일 평면을 플레이어 위치(1칸 단위)에 맞춰 영원히 따라오게 스냅 — 맵 끝 초록 깨짐 방지
+  if(groundMesh){
+    groundMesh.position.x = Math.round(player.pos.x / CFG.PITCH) * CFG.PITCH;
+    groundMesh.position.z = Math.round(player.pos.z / CFG.PITCH) * CFG.PITCH;
+  }
 
   /* ── 광폭 오토칩: 10초 자동 추적 + 강력 자석 ── */
   if(state.autoChip){
@@ -6003,7 +6007,7 @@ function updatePlaying(dt){
   const mov=state.input;
   updateSkillTimers(dt);
   const dashOn = state.skillDur.dash>0;
-  const spd = 7.6 * (1+0.12*state.aug.turbo) * (1+Math.min(0.55, state.R*0.032)) * (state.hazardSlow||1)
+  const spd = 12.2 * (1+0.12*state.aug.turbo) * (1+Math.min(0.55, state.R*0.032)) * (state.hazardSlow||1)
     * (state.defSlow||1) * speedUpMul() * (dashOn ? 1.85 : 1);
   const hasInput = (Math.abs(mov.x)>0.004 || Math.abs(mov.z)>0.004);
   if(hasInput){
@@ -6320,15 +6324,13 @@ function endStage(reason){
   ui.resStage.textContent='STAGE '+theme.code+' · '+theme.emoji+' '+theme.label;
   ui.resRank.textContent=grade;
   ui.resScore.textContent=fmt(stageScore);
-  state.timeBonus = (reason==='boss'||reason==='goal') ? Math.round(state.timeLeft*CFG.TIME_BONUS_GOLD) : 0;
+  state.timeBonus = Math.max(0, Math.round((60 - state.elapsed)*20));
   ui.resStats.innerHTML =
-    (reason==='boss'?'<b style="color:#ffd34d">👑 중앙 보스 랜드마크를 삼켰어요!</b><br>'
-      : reason==='goal'?'<b style="color:#ffd34d">🎯 스테이지 목표 달성!</b><br>'
-      : '⏱️ 시간 종료<br>')+
+    '<b style="color:#ffd34d">👑 중앙 보스 랜드마크 격파! ('+state.elapsed.toFixed(1)+'초)</b><br>'+
     '먹은 것 <b>'+state.eaten+'개</b> · 최대 크기 <b>'+state.R.toFixed(1)+'</b><br>'+
-    '방어군 <b>'+state.defKills+'기</b> 흡수 · 레벨 <b>'+state.level+'</b><br>'+
+    '보물트럭 <b>'+state.defKills+'대</b> · 레벨 <b>'+state.level+'</b><br>'+
     '증강 <b>'+state.augTotal+'개</b>'+(state.highTotal?' <span style="color:#ffd34d">(고티어 '+state.highTotal+')</span>':'')+
-    (state.timeBonus?'<br><b style="color:#ffe28a">⏱️ 남은 시간 보너스 +'+fmt(state.timeBonus)+' 골드</b>':'');
+    (state.timeBonus?'<br><b style="color:#ffe28a">⚡ 스피드 클리어 보너스 +'+fmt(state.timeBonus)+' 골드</b>':'');
   const coinMul = (1 + (state.aug.golden||0)) * coinUpMul();
   state.stageCoins=Math.max(1, Math.round(stageScore/40*coinMul)) + state.timeBonus;
   if(!state.coinGiven){ Wallet.addCoins(state.stageCoins); state.coinGiven=true; }
@@ -6364,8 +6366,21 @@ function endStage(reason){
   }catch(e){}
   renderBest();
   updateHUD(true);
-  /* 모든 스테이지 클리어마다 보상 상자 — 테마 최종(5번째)은 대형 상자 */
-  openChests({big: !!theme.isThemeFinal});
+  /* 스테이지 클리어 배너 1.5초 연출 후 보상 상자 오픈 */
+  showClearBanner('STAGE '+theme.code+' CLEAR!', theme.isThemeFinal ? '🏆 테마 클리어! 대형 보상 상자!' : '👑 보스 격파 · '+state.elapsed.toFixed(1)+'초 컷', ()=>{
+    openChests({big: !!theme.isThemeFinal});
+  });
+}
+function showClearBanner(title, sub, onDone){
+  const el=document.createElement('div');
+  el.style.cssText='position:fixed;inset:0;z-index:55;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(4,9,18,.58);backdrop-filter:blur(5px);pointer-events:auto;animation:fadeIn .2s ease;';
+  el.innerHTML='<div style="font-family:\'Black Han Sans\',sans-serif;font-size:44px;letter-spacing:2px;background:linear-gradient(180deg,#fff6c2,#ffd34d 55%,#ff9f1c);-webkit-background-clip:text;-webkit-text-fill-color:transparent;filter:drop-shadow(0 6px 20px rgba(255,211,77,.6));text-align:center;">'+title+'</div>'+
+    '<div style="margin-top:8px;padding:6px 16px;border-radius:999px;background:rgba(255,211,77,.16);border:1px solid rgba(255,211,77,.5);color:#fff;font-weight:800;font-size:14px;">'+sub+'</div>';
+  document.body.appendChild(el);
+  setTimeout(()=>{
+    if(el.parentNode) el.parentNode.removeChild(el);
+    if(onDone) onDone();
+  }, 1450);
 }
 function showResultCard(){
   ui.resTotal.textContent=fmt(Wallet.coins);
@@ -6385,8 +6400,8 @@ const hudCache={};
 function setText(el,v){ if(!el) return; if(hudCache[el.id]!==v){ el.textContent=v; hudCache[el.id]=v; } }
 function updateHUD(force){
   setText(ui.scoreNum, fmt(state.score));
-  setText(ui.timerNum, String(Math.ceil(state.timeLeft)));
-  ui.timerPill.classList.toggle('urgent', state.timeLeft<=10 && state.timeLeft>0);
+  setText(ui.timerNum, Math.floor(state.elapsed)+'s');
+  ui.timerPill.classList.remove('urgent');
   setText(ui.lvlBadge, 'Lv.'+state.level);
   const prev=xpNeededFor(state.level-1), next=xpNeededFor(state.level);
   const pct=clamp((state.xp-prev)/Math.max(1,next-prev),0,1)*100;

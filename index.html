@@ -8087,11 +8087,11 @@ _A('regen','❤️','심연의 재생','legend',2,{heal:1},lv=>'보스전 하트
 /* ── 전투/공격형 신규 기믹 ── */
 _A('twin','🪞','분신 쌍둥이','legend',2,{twin:1},lv=>'반대편에서 따라다니는 두 번째 블랙홀 ('+lv+'기)');
 _A('satellite','🛰️','위성 블랙홀','epic',3,{satellite:1},lv=>'주위를 도는 미니 블랙홀 '+lv+'기');
-_A('lava','🌋','용암 궤적','epic',3,{lava:1},lv=>'지나간 자리에 불길을 남겨 건물을 녹인다 (Lv.'+lv+')');
+_A('lava','🌋','용암 궤적','epic',3,{lava:1},lv=>'지나간 자리에 불길을 남겨 몬스터를 녹인다 (Lv.'+lv+')');
 _A('spark','⚡','전기 궤적','epic',3,{spark:1},lv=>'이동 자리에 감전 장판 (Lv.'+lv+')');
-_A('beam','🔆','분쇄 빔','epic',3,{beam:1},lv=>'못 삼키는 큰 건물에 자동 레이저 (Lv.'+lv+')');
+_A('beam','🔆','분쇄 빔','epic',3,{beam:1},lv=>'못 삼키는 큰 몬스터에 자동 레이저 (Lv.'+lv+')');
 _A('freeze','❄️','빙결 파동','rare',3,{freeze:0.25},lv=>'주변 차량·약탈차·보스 둔화 '+Math.round(25*lv)+'%');
-_A('domino','🁣','도미노 붕괴','legend',2,{domino:1},lv=>'건물을 삼키면 주변 건물이 연쇄로 무너져 빨려온다');
+_A('domino','🁣','도미노 붕괴','legend',2,{domino:1},lv=>'몬스터를 삼키면 주변 몬스터가 연쇄로 쓰러져 빨려온다');
 _A('bulletEat','🛡️','탄환 포식자','legend',2,{bulletEat:1},lv=>'보스 가시탄을 삼켜 질량으로 전환 (Lv.'+lv+')');
 _A('bulletTime','⏳','시공간 감속','legend',2,{bulletTime:1},lv=>'보스·약탈차 근처에서 시간이 느려진다');
 _A('knock','💨','충격 방류','rare',3,{knock:1},lv=>'흡수 시 주변 방어군을 밀쳐낸다 (Lv.'+lv+')');
@@ -8109,7 +8109,7 @@ _A('lucky','🍀','행운의 특이점','rare',4,{luck:0.15},lv=>'모든 확률�
 _A('titan','🗿','타이탄화','legend',2,{titan:0.25},lv=>'크기 +'+(25*lv)+'% · 흡입 +'+(25*lv)+'%');
 _A('swift','🌪️','질풍','rare',5,{speed:0.06,suction:0.05},lv=>'이속 +'+(6*lv)+'% · 흡입 +'+(5*lv)+'%');
 _A('gravityWell','🕳️','중력 우물','epic',4,{suction:0.18,magnet:2},lv=>'흡입 +'+(18*lv)+'% · 자석 +'+(2*lv)+'m');
-_A('shatter','🧨','분쇄 충격','epic',3,{shatter:1},lv=>'큰 건물 흡수 시 주변에 충격파 (Lv.'+lv+')');
+_A('shatter','🧨','분쇄 충격','epic',3,{shatter:1},lv=>'큰 몬스터 흡수 시 주변에 충격파 (Lv.'+lv+')');
 
 const AUG_BY_ID={};
 AUGMENTS.forEach(a=>AUG_BY_ID[a.id]=a);
@@ -9173,7 +9173,7 @@ function updatePlaying(dt){
     if(state.feverTimer<=0 && state.feverActive<=0){
       state.feverActive = 4.5 + 1.2*state.aug.fever;
       state.feverTimer = Math.max(10.5, 17 - 1.2*state.aug.fever);
-      showToast('🔥 피버 폭주!', '흡입력·점수·이속 폭증! 구멍보다 큰 건물은 못 삼켜요', '#ff8a3a');
+      showToast('🔥 피버 폭주!', '흡입력·점수·이속 폭증! 구멍보다 큰 몬스터는 못 삼켜요', '#ff8a3a');
       Sound.bigCard(); vibrate([30,40,60]);
       spawnRipple(0xff8a3a, state.R*1.6, true);
       state.flash=0.3;
@@ -16080,7 +16080,9 @@ function updateCompanions(dt){
       state.satellites=[];
       for(let i=0;i<satN;i++){
         const sg=new THREE.Group();
-        const h=buildHole({pos:{x:0,z:0}},'#140a20','#b78bff','#57e6ff',false);
+        const sObj={pos:{x:0,z:0}};
+        buildHole(sObj,'#140a20','#b78bff','#57e6ff',false);
+        const h=sObj.group || new THREE.Group();
         h.scale.setScalar(0.5); sg.add(h);
         scene.add(sg);
         state.satellites.push({group:sg, hole:h, a:i*6.283/satN});

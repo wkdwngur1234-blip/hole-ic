@@ -7018,6 +7018,8 @@ function buildBoss(){
 }
 function animateBoss(dt){
   if(!BOSS.group || !BOSS.alive) return;
+  BOSS.group.visible = (state.mode==='playing');
+  if(!BOSS.group.visible) return;
   const t=performance.now()*0.001;
   BOSS.rings.forEach((r,i)=>{ r.rotation.z += dt*(0.5+i*0.22); r.material.opacity=0.45+0.28*Math.sin(t*1.6+i); });
   BOSS.spinners.forEach((r,i)=>{ r.rotation.z -= dt*(0.7+i*0.3); });

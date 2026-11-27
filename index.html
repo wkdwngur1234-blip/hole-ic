@@ -8744,7 +8744,7 @@ function scoreEat(obj){
   const prev=state.R;
   recalcR();
   if(state.R>prev*1.04) spawnRipple(0x9bf24b, state.R, false);
-  gainXP(xp);
+  gainXP(xp * 2.2);
   if(t>=3) state.bestLabel = obj.name;
   const col = t>=5?'#ffd34d': t>=4?'#ffb0d8': t>=3?'#9bf24b': t>=2?'#57e6ff':'#ffffff';
   popupAt(obj.group.position, '+'+fmt(sc), col);
@@ -11062,11 +11062,11 @@ document.addEventListener('click', e=>{
   } else if(j==='boss'){
     /* 🔥 대보스 직전 = 미니보스 격파 후 진행도 90% */
     __BH.stageNow(1, true);
-    setTimeout(()=>{ devJumpCleanup(); try{ state.phase='farm2'; state.miniDone=true; state.finalSpawned=false; __BH.setProgress(0.90); }catch(e){} }, 160);
+    setTimeout(()=>{ devJumpCleanup(); try{ state.phase='farm2'; state.mass = Math.min(state.mass, Math.max(1, state.progressMass||stageMassTarget())*0.56); state.miniDone=true; state.finalSpawned=false; __BH.setProgress(0.90); }catch(e){} }, 160);
   } else if(j==='outro'){
     /* 🎬 엔딩 = 대보스 강림 후 처치 */
     __BH.stageNow(1, true);
-    setTimeout(()=>{ try{ devJumpCleanup(); state.phase='farm2'; state.miniDone=true; __BH.setProgress(1.0); }catch(err){}
+    setTimeout(()=>{ try{ devJumpCleanup(); state.phase='farm2'; state.mass = Math.min(state.mass, Math.max(1, state.progressMass||stageMassTarget())*0.56); state.miniDone=true; __BH.setProgress(1.0); }catch(err){}
       setTimeout(()=>{ try{
         if(!(BOSS && BOSS.alive)){ state.bossKind='full'; state.hasBoss=true; ensureBossBuilt(); }
         if(typeof ARENA!=='undefined' && ARENA.active){ ARENA.t=ARENA.dur; endArenaTransition(); }

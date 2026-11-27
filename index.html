@@ -16556,6 +16556,10 @@ function updateConceptSystems(dt){
     for(let i=0;i<objects.length;i++){
       const o=objects[i];
       if(!o || !o.alive || o.sucking || !o.monstered || !o.group) continue;
+      /* v3.6.5 — 내 크기에 비해 너무 작은 몬스터는 숨기고 큰 몬스터만 남겨 프레임 유지 */
+      if((rNow>=6.2 && o.tier<=1) || (rNow>=9.5 && o.tier<=2)){
+        o.group.visible=false; continue;
+      }
       const gx=o.group.position.x, gz=o.group.position.z;
       const dx=gx-px, dz=gz-pz, distSq=dx*dx+dz*dz;
       if(distSq>7500) continue; /* 시야 밖(86m+) 스킵으로 프레임 유지 */

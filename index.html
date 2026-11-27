@@ -1385,6 +1385,12 @@ canvas#cv{position:fixed;inset:0;width:100%;height:100%;display:block;touch-acti
         </div>
       </div>
       <div class="setRow">
+        <div class="setTx"><div class="nm">화면 주사율</div><div class="ds">120Hz = 최대 부드러움 · 60Hz = 안정</div></div>
+        <div class="seg" id="fpsSeg">
+          <button data-f="60">60Hz</button><button data-f="120">120Hz</button>
+        </div>
+      </div>
+      <div class="setRow">
         <div class="setTx"><div class="nm">화면 흔들림</div><div class="ds">폭발·충돌 시 카메라 셰이크</div></div>
         <button class="sw on" id="swShake" aria-label="화면 흔들림"><i></i></button>
       </div>
@@ -9249,8 +9255,13 @@ function adaptQuality(){
 /* ═══════════════════════════════════════════════════════════
    RENDER LOOP
    ═══════════════════════════════════════════════════════════ */
-function animate(){
+let _lastFrameMs=0;
+function animate(nowMs){
   requestAnimationFrame(animate);
+  if(typeof Settings!=='undefined' && Settings.fps===60 && nowMs){
+    if(nowMs - _lastFrameMs < 15.6) return;
+    _lastFrameMs = nowMs;
+  }
   const dt=Math.min(0.05, clock.getDelta());
   if(!window.__BH.lockQuality) adaptQuality();
 
@@ -12876,7 +12887,7 @@ function returnToLobby(){
    SETTINGS — 사운드(BGM/SFX) · 콘텐츠(그래픽 품질 / 화면 흔들림)
    ═══════════════════════════════════════════════════════════ */
 const Settings = {
-  bgm:true, sfx:true, shake:true, quality:'high', dock:'arc',
+  bgm:true, sfx:true, shake:true, quality:'high', dock:'arc', fps:120,
   load(){
     try{
       const d=JSON.parse(localStorage.getItem('bhc_settings')||'{}');
@@ -12885,10 +12896,11 @@ const Settings = {
       if(typeof d.shake==='boolean') this.shake=d.shake;
       if(d.quality==='high'||d.quality==='mid'||d.quality==='low') this.quality=d.quality;
       if(d.dock==='arc'||d.dock==='bottom'||d.dock==='left'||d.dock==='right') this.dock=d.dock;
+      if(d.fps===60||d.fps===120) this.fps=d.fps;
     }catch(e){}
   },
   save(){
-    try{ localStorage.setItem('bhc_settings', JSON.stringify({bgm:this.bgm,sfx:this.sfx,shake:this.shake,quality:this.quality,dock:this.dock})); }catch(e){}
+    try{ localStorage.setItem('bhc_settings', JSON.stringify({bgm:this.bgm,sfx:this.sfx,shake:this.shake,quality:this.quality,dock:this.dock,fps:this.fps})); }catch(e){}
   }
 };
 Settings.load();
@@ -12921,6 +12933,7 @@ function syncSettingsUI(){
   if(swS) swS.classList.toggle('on', !!Settings.sfx);
   if(swK) swK.classList.toggle('on', !!Settings.shake);
   document.querySelectorAll('#qualitySeg button').forEach(b=>b.classList.toggle('on', b.dataset.q===Settings.quality));
+  document.querySelectorAll('#fpsSeg button').forEach(b=>b.classList.toggle('on', Number(b.dataset.f)===(Settings.fps||120)));
   document.querySelectorAll('#dockSeg button').forEach(b=>b.classList.toggle('on', b.dataset.d===(Settings.dock||'arc')));
 }
 function openSettings(){
@@ -12948,6 +12961,9 @@ function initSettings(){
   if(swK) swK.addEventListener('click', ()=>{ Settings.shake=!Settings.shake; Settings.save(); syncSettingsUI(); });
   document.querySelectorAll('#qualitySeg button').forEach(b=>{
     b.addEventListener('click', ()=>{ Settings.quality=b.dataset.q; Settings.save(); applyQuality(); syncSettingsUI(); Sound.card(); });
+  });
+  document.querySelectorAll('#fpsSeg button').forEach(b=>{
+    b.addEventListener('click', ()=>{ Settings.fps=Number(b.dataset.f)||120; Settings.save(); syncSettingsUI(); Sound.card(); });
   });
   document.querySelectorAll('#dockSeg button').forEach(b=>{
     b.addEventListener('click', ()=>{ Settings.dock=b.dataset.d; Settings.save(); applyDockLayout(Settings.dock); syncSettingsUI(); Sound.card(); });

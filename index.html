@@ -1484,6 +1484,14 @@ canvas#cv{position:fixed;inset:0;width:100%;height:100%;display:block;touch-acti
 #goalWrap { display: none !important; }
 
 #devJump{display:none !important}
+
+#bossGuide{position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 86px);transform:translateX(-50%);z-index:45;
+  padding:8px 16px;border-radius:999px;font-family:"Black Han Sans",sans-serif;font-size:13.5px;color:#fff7d6;
+  background:linear-gradient(180deg,rgba(45,14,24,.92),rgba(20,6,12,.94));border:1.8px solid rgba(255,211,77,.75);
+  box-shadow:0 6px 20px rgba(0,0,0,.6),0 0 18px rgba(255,95,120,.35);white-space:nowrap;pointer-events:none;text-align:center}
+#bossGuide.groggy{background:linear-gradient(180deg,rgba(65,45,8,.95),rgba(32,20,4,.96));border-color:#9bf24b;color:#e6ffba;
+  box-shadow:0 6px 22px rgba(0,0,0,.65),0 0 22px rgba(155,242,75,.55)}
+#bossGuide.hidden{display:none !important}
 </style>
 </head>
 <body>
@@ -1545,7 +1553,8 @@ canvas#cv{position:fixed;inset:0;width:100%;height:100%;display:block;touch-acti
 
   <div id="joy"><i></i></div>
   <div id="popups"></div>
-  <div id="toast"></div>
+  <div id="bossGuide" class="hidden">⚡ 공격을 피하며 바닥의 노란 잔해를 삼키세요!</div>
+<div id="toast"></div>
 
   <!-- TITLE -->
   <div id="title" class="overlay">
@@ -9966,6 +9975,19 @@ function updateHUD(force){
       el.classList.toggle('done', done && !on);
     }
   }
+  /* v4.0.2 — 보스 공략 직관 가이드 배너 */
+  const bgEl = document.getElementById('bossGuide');
+  if(bgEl){
+    const showG = (state.mode==='playing' || state.mode==='arena') && state.hasBoss && typeof BOSS!=='undefined' && BOSS.alive && BOSS.revealed;
+    bgEl.classList.toggle('hidden', !showG);
+    if(showG){
+      const isGrog = (BOSS.groggyT||0) > 0 || BOSS.phase==='groggy';
+      bgEl.classList.toggle('groggy', isGrog);
+      bgEl.textContent = isGrog
+        ? '💥 그로기! 지금 보스 몸통으로 돌진해 갉아먹으세요!'
+        : '⚡ 공격을 피하며 바닥의 노란 잔해를 삼키세요! (자동 포격!)';
+    }
+  }
   /* ── ❤️ 하트 (보스전에서만) ── */
   if(ui.hearts){
     ui.hearts.style.display = state.hasBoss ? '' : 'none';
@@ -16562,7 +16584,7 @@ function applyMonsterSkin(o){
   if(!o || !o.group || o.monstered) return;
   if(o.monMesh && o.monMesh.parent===o.group){ o.monstered=1; return; }
   o.monstered=true;
-  if(o.isGiant || o.isArenaDebris) return;
+  if(o.isArenaDebris) return;
   const t=o.tier||1;
   const footprint=Math.max(1.4, (o.eatR||2)*2.0);
   const kind=monsterKindFor(o);

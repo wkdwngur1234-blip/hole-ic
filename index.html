@@ -1492,6 +1492,23 @@ canvas#cv{position:fixed;inset:0;width:100%;height:100%;display:block;touch-acti
 #bossGuide.groggy{background:linear-gradient(180deg,rgba(65,45,8,.95),rgba(32,20,4,.96));border-color:#9bf24b;color:#e6ffba;
   box-shadow:0 6px 22px rgba(0,0,0,.65),0 0 22px rgba(155,242,75,.55)}
 #bossGuide.hidden{display:none !important}
+
+/* v4.0.6 — 꽉 찬 모바일 게임형 메인 로비 리뉴얼 */
+@keyframes pulsePlay{0%,100%{transform:scale(1);box-shadow:0 7px 0 #8a3d00,0 12px 28px rgba(255,159,28,.45)}50%{transform:scale(1.025);box-shadow:0 7px 0 #8a3d00,0 16px 38px rgba(255,210,77,.7)}}
+#title{padding:0 !important;background:radial-gradient(110% 75% at 50% 30%,rgba(22,42,88,.48),rgba(5,9,18,.86) 72%) !important}
+#title .tWrap{display:flex !important;flex-direction:column !important;justify-content:space-between !important;align-items:center !important;width:100% !important;max-width:440px !important;height:100% !important;padding:86px 18px 104px !important;box-sizing:border-box !important;gap:10px !important}
+#title .tKicker{font-size:11px !important;letter-spacing:5px !important;color:#72e8ff !important;background:rgba(14,32,64,.78);padding:5px 14px;border-radius:999px;border:1px solid rgba(114,232,255,.35)}
+#title .brand .a{font-size:74px !important;text-shadow:0 6px 26px rgba(87,230,255,.55),0 0 40px rgba(155,120,255,.35) !important}
+#title .brand .b{font-size:15px !important;letter-spacing:10px !important;margin-top:4px}
+#title .tTag{font-size:13.5px !important;color:#d6ecff !important;font-weight:700;margin-top:2px !important;text-shadow:0 2px 8px rgba(0,0,0,.7)}
+#homeMeta{width:100% !important;display:flex !important;justify-content:space-between !important;align-items:center !important;padding:13px 16px !important;border-radius:18px !important;background:linear-gradient(180deg,rgba(18,32,64,.92),rgba(10,18,38,.95)) !important;border:1.5px solid rgba(90,210,255,.42) !important;box-shadow:0 10px 26px rgba(0,0,0,.5) !important;font-size:15px !important;font-weight:800 !important}
+#homeProg{width:100% !important;margin:0 !important;padding:10px 14px !important;border-radius:14px !important;background:rgba(12,20,40,.82) !important;border:1px solid rgba(255,255,255,.12) !important}
+#homeSynergy{width:100% !important}
+#startBtn{width:100% !important;max-width:410px !important;padding:19px 24px !important;margin-top:6px !important;font-size:25px !important;letter-spacing:1px !important;border-radius:20px !important;background:linear-gradient(180deg,#ffe46b,#ff9f1c 56%,#e06b00) !important;color:#1b0d00 !important;border:2px solid #fff3b0 !important;animation:pulsePlay 2.1s ease-in-out infinite !important;display:flex !important;align-items:center !important;justify-content:center !important;gap:10px !important}
+#startBtn:active{transform:translateY(5px) scale(.99) !important;box-shadow:0 2px 0 #8a3d00 !important}
+#sweepBtn,.titleBtns{width:100% !important;max-width:410px !important}
+.titleBtns{display:grid !important;grid-template-columns:1fr 1fr !important;gap:10px !important}
+.titleBtns button,#sweepBtn{padding:13px 14px !important;font-size:15px !important;border-radius:16px !important;font-weight:800 !important}
 </style>
 </head>
 <body>
@@ -1561,7 +1578,7 @@ canvas#cv{position:fixed;inset:0;width:100%;height:100%;display:block;touch-acti
     <div class="tWrap">
       <div class="tKicker">3D BLACK HOLE ACTION</div>
       <div class="brand" id="gameTitle"><span class="a" id="gameTitleA">홀릭</span><span class="b" id="gameTitleB">HOLE-IC</span></div>
-      <div class="tTag" id="gameTagline">도시를 통째로 삼켜라</div>
+      <div class="tTag" id="gameTagline">몬스터를 삼켜 심연의 제왕이 되어라</div>
       <button id="startBtn"><span class="tri">▶</span> <span id="playBtnTxt">게임 시작</span></button>
       <div id="bestLine">BEST <b id="bestScore">0</b></div>
       <div id="homeMeta"><span id="homeThemeName">☀️ 맑은 도심</span><span id="homeStageCode">STAGE 1-1</span></div>
@@ -1918,14 +1935,14 @@ canvas#cv{position:fixed;inset:0;width:100%;height:100%;display:block;touch-acti
       <div class="ldLogo">홀릭 <b>HOLE-IC</b></div>
       <div class="ldStage" id="ldStage">STAGE 1-1 · 맑은 도심</div>
       <div class="ldBar"><i id="ldFill"></i></div>
-      <div class="ldTip" id="ldTip">도시를 통째로 삼켜라</div>
+      <div class="ldTip" id="ldTip">몬스터를 삼켜 심연의 제왕이 되어라</div>
     </div>
   </div>
 
   <!-- INTRO -->
   <div id="intro">
     <div class="vortex"><div class="ring r1"></div><div class="ring r2"></div><div class="ring r3"></div><div class="core"></div><div class="burst"></div></div>
-    <div class="logo"><div class="l1">홀릭</div><div class="l2">HOLE-IC</div><div class="l3">도시를 통째로 삼켜라</div></div>
+    <div class="logo"><div class="l1">홀릭</div><div class="l2">HOLE-IC</div><div class="l3">몬스터를 삼켜 심연의 제왕이 되어라</div></div>
     <div class="skip">탭하면 바로 시작</div>
   </div>
 
@@ -9495,7 +9512,7 @@ function stageBuildNow(n){
   updateHoleVisual(player);
   buildStageWorld();
   if(typeof dungeonTone==='function') dungeonTone();
-  drainCells(11);                       /* 핵심 셀을 첫 프레임 전에 동기 생성 */
+  drainCells(11); try{ if(typeof applyMonsterSkin==='function'){ for(let i=0;i<objects.length;i++) applyMonsterSkin(objects[i]); } }catch(e){}                       /* 핵심 셀을 첫 프레임 전에 동기 생성 */
   clearBossForNormal();   /* v3.5 — 보스는 진행도 45%/100%에서 강림한다 */
   buildDefenseForce();
   buildStageHazards();

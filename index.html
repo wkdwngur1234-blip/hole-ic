@@ -16830,14 +16830,43 @@ function monsterPass(dt){
 }
 function animateMonsters(dt){
   const t=performance.now()*0.001;
+  const px=player.pos.x, pz=player.pos.z, scareD=Math.max(9, state.R*3.4);
   for(let i=0;i<objects.length;i++){
     const o=objects[i];
-    if(!o || !o.monMesh || !o.alive) continue;
-    if(!o.monMesh.parent) continue;
+    if(!o || !o.monMesh || !o.alive || !o.monMesh.parent) continue;
     const m=o.monMesh;
-    const ph=(o.monPhase||0)+t*2.2;
-    m.position.y=Math.abs(Math.sin(ph))*0.32;
-    if(o.monMesh.children[0]) o.monMesh.rotation.y=Math.sin(ph*0.5)*0.25;
+    const gx=o.group.position.x, gz=o.group.position.z;
+    const dx=gx-px, dz=gz-pz;
+    const dist=Math.hypot(dx,dz);
+    if(dist>75) continue;
+    const scared = !o.sucking && dist < scareD && o.eatR <= state.R*1.15;
+    const spd = scared ? 9.5 : 3.2;
+    const ph = (o.monPhase||0) + t*spd;
+    // 아장아장 좌우 흔들림 + 통통 점프 + 말랑한 스쿼시/스트레치
+    const hop = Math.abs(Math.sin(ph)) * (scared ? 0.55 : 0.24);
+    m.position.y = hop;
+    m.rotation.z = Math.sin(ph) * (scared ? 0.22 : 0.11);
+    const sc0 = o.monBaseScale || (o.monBaseScale = m.scale.x);
+    const sq = 1 + Math.sin(ph*2) * (scared ? 0.14 : 0.07);
+    m.scale.set(sc0*(2-sq), sc0*sq, sc0*(2-sq));
+    // 놀라면 블랙홀 반대쪽으로 종종걸음 도망!
+    if(scared && dist > 0.4){
+      const runSpd = 2.8 * dt;
+      o.group.position.x += (dx/dist)*runSpd;
+      o.group.position.z += (dz/dist)*runSpd;
+      m.rotation.y = Math.atan2(dx, dz);
+    } else if(!o.sucking){
+      // 평소엔 제자리 주변 배회 + 부드러운 방향 전환
+      if(!o.monDirT || o.monDirT<=0){
+        o.monDirT = 1.8 + Math.random()*2.5;
+        o.monYaw = (o.monYaw||0) + (Math.random()-0.5)*2.2;
+      }
+      o.monDirT -= dt;
+      const wSpd = 0.75 * dt;
+      o.group.position.x += Math.sin(o.monYaw||0)*wSpd;
+      o.group.position.z += Math.cos(o.monYaw||0)*wSpd;
+      m.rotation.y = (o.monYaw||0);
+    }
   }
 }
 

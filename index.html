@@ -6023,7 +6023,7 @@ function updatePlaying(dt){
   const mov=state.input;
   updateSkillTimers(dt);
   const dashOn = state.skillDur.dash>0;
-  const spd = 12.2 * (1+0.12*state.aug.turbo) * (1+Math.min(0.55, state.R*0.032)) * (state.hazardSlow||1)
+  const spd = 22.0 * (1+0.12*state.aug.turbo) * (1+Math.min(0.95, state.R*0.06)) * (state.hazardSlow||1)
     * (state.defSlow||1) * speedUpMul() * (dashOn ? 1.85 : 1);
   const hasInput = (Math.abs(mov.x)>0.004 || Math.abs(mov.z)>0.004);
   if(hasInput){
@@ -6610,12 +6610,12 @@ const PITCH=THREE.MathUtils.degToRad(CFG.CAM_PITCH);
 const YAW=THREE.MathUtils.degToRad(CFG.CAM_YAW);
 function updateCamera(dt, immediate, intro){
   const R=state.R;
-  const span = Math.min(74, 23 + R*4.2) * (intro?1.18:1);
+  const span = Math.min(185, 22 + R*7.8) * (intro?1.18:1);
   const halfV=THREE.MathUtils.degToRad(CFG.CAM_FOV/2);
   const tanV=Math.tan(halfV);
   /* 화면 비율과 무관하게 '세로 구도'를 고정 — 폴드(정사각형에 가까운 비율)에서도
      카메라가 가까워져 건물에 시야가 막히지 않도록 기준 비율(0.46)로 거리를 계산한다. */
-  const d=clamp(span/(2*tanV*0.46), 44, 230);
+  const d=clamp(span/(2*tanV*0.46), 44, 380);
   const tx=player.pos.x + state.input.x*Math.min(3.2,R*0.3);
   const tz=player.pos.z + state.input.z*Math.min(3.2,R*0.3) - 6.5;
   camState.target.x=damp(camState.target.x, tx, 5, dt);

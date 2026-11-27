@@ -1571,6 +1571,10 @@ body.tap-locked #tabBar,body.tap-locked #title{opacity:0 !important;pointer-even
   background:rgba(8,14,28,.88);border:1px solid rgba(114,232,255,.45);text-shadow:0 1px 3px #000}
 .smPin.sel .spTag{background:rgba(68,36,4,.94);border-color:#ffd34d;color:#fff3b0}
 .smPin.locked .spTag{background:rgba(15,23,42,.82);border-color:rgba(148,163,184,.35);color:#cbd5e1}
+
+.hpBarBox{position:relative;width:190px;height:20px;border-radius:999px;background:rgba(12,18,32,.9);border:1.5px solid rgba(120,255,160,.55);overflow:hidden;box-shadow:0 3px 10px rgba(0,0,0,.6)}
+.hpBarFill{height:100%;background:linear-gradient(90deg,#22c55e,#84cc16);transition:width .18s ease}
+.hpBarTxt{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:"Black Han Sans",sans-serif;font-size:11.5px;color:#fff;text-shadow:0 1px 3px #000}
 </style>
 </head>
 <body>
@@ -8285,7 +8289,8 @@ function maybeOpenAugment(){
 function pickAugment(a){
   if(state.mode!=='augment') return;
   state.aug[a.id]=(state.aug[a.id]||0)+1;
-  if(a.id==='regen'){ state.heartsMax=(state.heartsMax||4)+1; state.hearts=Math.min(state.heartsMax,(state.hearts|0)+1); }
+  if(a.id==='hpUp'){ state.heartsMax=(state.heartsMax||100)+40; state.hearts=Math.min(state.heartsMax,(state.hearts|0)+40); }
+  if(a.id==='regen'){ state.heartsMax=(state.heartsMax||100)+40; state.hearts=Math.min(state.heartsMax,(state.hearts|0)+40); }
   state.augTotal++;
   if(a.hi) state.highTotal++;
   if(a.id==='growth'){ state.sizeMul*=1.13; recalcR(); spawnRipple(0xb78bff, state.R, true); }
@@ -8329,7 +8334,7 @@ function updateAugChips(){
    ═══════════════════════════════════════════════════════════ */
 function scoreMul(){
   const combo=augLv('combo')?Math.min(0.6, 0.06*augLv('combo')*Math.min(10,(state.comboN||0))):0;
-  const low=(augLv('lowheart')&&state.hearts<=1)?augSum('lowHeart'):0;
+  const low=(augLv('lowheart')&&state.hearts<=25)?augSum('lowHeart'):0;
   return (1 + augLv('golden') + augSum('score') + combo) * (state.feverActive>0?1.5:1) * (1+low*0.5);
 }
 function eatBonus(){
@@ -8405,7 +8410,7 @@ function bossFightBonus(lv, from){
   const bonus=Math.round((620+240*gain)*scoreMul());
   state.score += bonus;
   const heal = gain>=2 && state.hearts < state.heartsMax;
-  if(heal) state.hearts=Math.min(state.heartsMax, state.hearts+1);
+  if(heal) state.hearts=Math.min(state.heartsMax, state.hearts+15);
   showToast('⭐ 레벨 '+lv+'!', '보스전 — 증강 대신 보너스 +'+fmt(bonus)+(heal?' · ❤️ +1':''), '#ffd34d');
   popupAt(new THREE.Vector3(player.pos.x, 2.4, player.pos.z), '⭐ Lv.'+lv+' +'+fmt(bonus), '#ffd34d');
   updateHUD(true);
@@ -9498,7 +9503,7 @@ function startStage(n, opts){
   state.timeLeft = state.stageTime;
   state.cutDone=false;
   /* 보스 스테이지 체력제 — ❤️ 4칸 */
-  state.hearts=4; state.heartsMax=4; state.invuln=0;
+  state.hearts=100; state.heartsMax=100; state.invuln=0;
   if(typeof hudCache!=='undefined') hudCache.hearts='';
   state.xp=0; state.level=1; state.eaten=0; state.bestLabel='';
   state.mass=0; state.sizeMul=1;
@@ -10003,7 +10008,7 @@ function showFailCard(stageScore){
   ui.failStats.innerHTML =
     '먹은 것 <b>'+state.eaten+'개</b> · 최대 크기 <b>'+state.R.toFixed(1)+'</b><br>'+
     '보물트럭 <b>'+state.defKills+'대</b> · 레벨 <b>'+state.level+'</b><br>'+
-    (state.hasBoss?'하트 <b>'+Math.max(0,state.hearts|0)+' / '+(state.heartsMax||4)+'</b><br>':'')+
+    (state.hasBoss?'HP <b>'+Math.max(0,state.hearts|0)+' / '+(state.heartsMax||100)+'</b><br>':'')+
     '기록 <b>'+state.elapsed.toFixed(1)+'초</b>'+
     (state.hasBoss && BOSS.revealed
       ? '<br>동력 기둥 <b>'+Math.max(0,(BOSS.pillarNeed||3)-(BOSS.inv|0))+'/'+(BOSS.pillarNeed||3)+'</b> · 약점 <b>'+BOSS.bites+'/'+BOSS.bitesNeed+'</b> 까지 갉았어요'
@@ -10091,20 +10096,19 @@ function updateHUD(force){
       bgEl.classList.toggle('groggy', isGrog);
       bgEl.textContent = isGrog
         ? '💥 그로기! 지금 보스 몸통으로 돌진해 갉아먹으세요!'
-        : '⚡ 공격을 피하며 바닥의 노란 잔해를 삼키세요! (자동 포격!)';
+        : '⚔️ 보스 공격을 피하세요! 모은 증강들이 보스를 공격합니다';
     }
   }
   /* ── ❤️ 하트 (보스전에서만) ── */
   if(ui.hearts){
     ui.hearts.style.display = state.hasBoss ? '' : 'none';
     if(state.hasBoss){
-      const hMax=state.heartsMax||4, hNow=Math.max(0,state.hearts|0);
+      const hMax=state.heartsMax||100, hNow=Math.max(0,state.hearts|0);
       const tag=hNow+'/'+hMax;
       if(hudCache.hearts!==tag){
         hudCache.hearts=tag;
-        let html='';
-        for(let i=0;i<hMax;i++) html+='<span class="'+(i<hNow?'on':'off')+'">'+(i<hNow?'❤️':'🖤')+'</span>';
-        ui.hearts.innerHTML=html;
+        const hpPct=Math.max(0,Math.min(100,Math.round(hNow/Math.max(1,hMax)*100)));
+        ui.hearts.innerHTML='<div class="hpBarBox"><div class="hpBarFill" style="width:'+hpPct+'%"></div><span class="hpBarTxt">💚 HP '+hNow+' / '+hMax+'</span></div>';
       }
     }
   }
@@ -12315,7 +12319,7 @@ function hurtBossHeart(label){
     return false;
   }
   state.invuln=1.0;
-  state.hearts=Math.max(0,(state.hearts|0)-1);
+  const _red=Math.min(0.6, typeof augSum==="function"?augSum("dmgRed"):0); const _dmg=Math.max(5, Math.round(18*(1-_red))); state.hearts=Math.max(0,(state.hearts|0)-_dmg);
   state.hitFlash=Math.max(state.hitFlash||0,0.9);
   state.shake=Math.max(state.shake,0.85);
   if(ui.hitFlash) ui.hitFlash.style.opacity=0.85;
@@ -13424,6 +13428,19 @@ function animateBossRig(dt,t){
 }
 
 function updateBoss(dt){
+  try{
+    if(BOSS && BOSS.alive && BOSS.revealed && state.mode==='playing'){
+      const _bx=BOSS.group.position.x, _bz=BOSS.group.position.z;
+      const _dx=player.pos.x-_bx, _dz=player.pos.z-_bz;
+      const _d=Math.hypot(_dx,_dz);
+      if(_d > 4.0 && !BOSS.dashing && BOSS.phase!=='groggy'){
+        const _sp = (BOSS.mini?5.0:6.2) * dt;
+        BOSS.group.position.x += (_dx/_d)*_sp;
+        BOSS.group.position.z += (_dz/_d)*_sp;
+        BOSS.group.rotation.y = Math.atan2(_dx, _dz);
+      }
+    }
+  }catch(_){}
   if(!state.hasBoss || !BOSS.alive) return;
   const R=state.R;
   state.bossWarnCd=Math.max(0,(state.bossWarnCd||0)-dt);
@@ -17330,6 +17347,13 @@ function onEatActions(obj){
 
 /* ───────── 매 프레임 ───────── */
 function updateActionAugments(dt){
+  if(typeof BOSS!=='undefined' && BOSS && BOSS.alive && BOSS.revealed && state.mode==='playing'){
+    if(actReady('bossAugHit', 0.55, dt)){
+      let sumLv = 0;
+      if(state.aug){ for(const k in state.aug) sumLv += (state.aug[k]|0); }
+      if(sumLv > 0) actHitBoss(4.5 + sumLv * 2.4, 0xffd34d);
+    }
+  }
   actFxUpdate(dt);
   if(state.mode!=='playing') return;
 
@@ -17368,6 +17392,22 @@ function updateActionAugments(dt){
 
   const riftLv=augLv('voidRift');
   if(riftLv && actReady('rift', 4.5-0.8*riftLv, dt)) fxVoidRift(riftLv);
+}
+
+
+/* v4.1.5 — 모아온 증강들로 보스를 직접 타격! */
+function actHitBoss(dmg, fxCol){
+  if(typeof BOSS==='undefined' || !BOSS || !BOSS.alive || !BOSS.revealed) return;
+  const mul = 1 + (typeof augSum==='function'?augSum('bossDmg'):0);
+  const d = Math.max(1, dmg * mul);
+  BOSS.hp = Math.max(0, (BOSS.hp||100) - d);
+  const bx=BOSS.group.position.x, bz=BOSS.group.position.z;
+  if(Math.random()<0.45 && typeof actBoltLine==='function') actBoltLine(player.pos.x,1.5,player.pos.z, bx,2.5,bz, fxCol||0x57e6ff);
+  if(typeof augLv==='function' && augLv('vampHp')>0){
+    const vh = augLv('vampHp')*1.5;
+    state.hearts = Math.min(state.heartsMax||100, (state.hearts||100) + vh);
+  }
+  if(BOSS.hp<=0 && typeof defeatBossNow==='function') defeatBossNow();
 }
 
 /* ==== bh_v2_p6_lobby.js ==== */

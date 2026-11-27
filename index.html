@@ -10257,22 +10257,33 @@ document.addEventListener('click', e=>{
   const oo=document.getElementById('outroOverlay'); if(oo){ oo.classList.remove('on'); oo.classList.add('hidden'); }
   if(typeof endMiniBossCine==='function') endMiniBossCine();
   if(typeof endCutscene==='function') endCutscene();
+  try{
+    if(ui.title) ui.title.classList.add('hidden');
+    if(ui.tabPage) ui.tabPage.classList.add('hidden');
+    appEl.classList.remove('lobby','cut','augment','blur');
+  }catch(e){}
+  const setNearBoss=(st, lv)=>{
+    __BH.stageNow(st, true);
+    setTimeout(()=>{
+      try{
+        if(ui.title) ui.title.classList.add('hidden');
+        if(ui.tabPage) ui.tabPage.classList.add('hidden');
+        appEl.classList.remove('lobby','cut','augment','blur');
+        state.mode='playing';
+        const targetR = Math.max(2.6, (state.bossRevealR || (st===3?6.5:9.5)) * 0.90);
+        __BH.setR(targetR);
+        state.level = Math.max(state.level, lv);
+        updateHoleVisual(player); updateHUD(true);
+        camState.init=false;
+        if(typeof updateCamera==='function') updateCamera(0, true);
+        showToast('⚡ 보스 등장 직전!', '조금만 더 먹으면 보스가 강림해요', '#ffd34d');
+      }catch(err){}
+    }, 120);
+  };
   if(j==='mini'){
-    __BH.stageNow(3, true);
-    setTimeout(()=>{
-      try{
-        state.mass=24; state.level=4; recalcR(); updateHoleVisual(player); updateHUD(true);
-        __BH.bossWake();
-      }catch(err){}
-    }, 120);
+    setNearBoss(3, 4);
   } else if(j==='boss'){
-    __BH.stageNow(5, true);
-    setTimeout(()=>{
-      try{
-        state.mass=75; state.level=7; recalcR(); updateHoleVisual(player); updateHUD(true);
-        __BH.bossWake();
-      }catch(err){}
-    }, 120);
+    setNearBoss(5, 7);
   } else if(j==='outro'){
     if(typeof BOSS!=='undefined' && BOSS.alive && BOSS.revealed && !BOSS.mini && typeof bossDefeat==='function'){
       bossDefeat();

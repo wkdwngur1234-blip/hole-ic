@@ -18,10 +18,16 @@
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#0a0f1c;color:#fff;
   font-family:"Jua","Apple SD Gothic Neo","Malgun Gothic",system-ui,-apple-system,sans-serif;
-  user-select:none;-webkit-user-select:none;touch-action:none;overscroll-behavior:none;
+  user-select:none;-webkit-user-select:none;touch-action:manipulation;overscroll-behavior:none;
   -webkit-font-smoothing:antialiased}
 canvas#cv{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none}
 #app{position:fixed;inset:0;overflow:hidden}
+/* ══════════ v3.2: 모달 터치 스크롤 보장 (모바일 · Z폴드) ══════════ */
+.overlay{touch-action:pan-y;overscroll-behavior:contain}
+.overlay .shopCard,.overlay .upCard,.overlay .gachaCard,.overlay .armoryCard,
+.overlay .panel,.overlay .card{touch-action:pan-y;overscroll-behavior:contain}
+.armoryCard{max-height:86dvh;overflow-y:auto;-webkit-overflow-scrolling:touch}
+#upgrade .shopCard,#shop .shopCard,#armory .shopCard{max-height:86dvh}
 #vig{position:fixed;inset:0;pointer-events:none;z-index:4;
   box-shadow:inset 0 0 140px rgba(6,10,22,.45)}
 .hidden{display:none !important}
@@ -308,7 +314,8 @@ canvas#cv{position:fixed;inset:0;width:100%;height:100%;display:block;touch-acti
 
 /* ══════════ v2: skin shop ══════════ */
 #shop{z-index:24;background:radial-gradient(120% 80% at 50% 20%,rgba(10,20,40,.92),rgba(3,6,14,.97))}
-.shopCard{width:100%;max-width:368px;max-height:92vh;display:flex;flex-direction:column;
+.shopCard{width:100%;max-width:368px;max-height:92vh;max-height:86dvh;display:flex;flex-direction:column;
+  overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y;overscroll-behavior:contain;
   padding:14px 14px 10px;border-radius:22px;
   background:linear-gradient(160deg,rgba(18,28,50,.99),rgba(6,10,20,.99));
   border:1.5px solid rgba(120,200,255,.26);box-shadow:0 24px 60px rgba(0,0,0,.65),inset 0 1px 0 rgba(255,255,255,.1)}
@@ -332,7 +339,7 @@ canvas#cv{position:fixed;inset:0;width:100%;height:100%;display:block;touch-acti
 .gemAdBar{height:6px;border-radius:4px;background:rgba(255,255,255,.10);margin-top:6px;overflow:hidden}
 .gemAdBar i{display:block;height:100%;width:0%;background:linear-gradient(90deg,#7fe0ff,#c8f4ff);transition:width .1s linear}
 .skinList{overflow-y:auto;-webkit-overflow-scrolling:touch;display:flex;flex-direction:column;gap:8px;margin-top:10px;
-  padding:2px 2px 4px;max-height:42vh}
+  padding:2px 2px 4px;max-height:42vh;touch-action:pan-y;overscroll-behavior:contain}
 .skinCard{pointer-events:auto;display:flex;align-items:center;gap:12px;padding:12px 11px;border-radius:16px;
   text-align:left;color:#fff;cursor:pointer;font-family:inherit;
   background:rgba(255,255,255,.04);border:1.5px solid rgba(255,255,255,.12)}
@@ -376,8 +383,9 @@ canvas#cv{position:fixed;inset:0;width:100%;height:100%;display:block;touch-acti
   font-family:"Black Han Sans",sans-serif;font-size:12.5px;color:#ffe9a8;padding:9px;border-radius:12px;
   background:linear-gradient(120deg,rgba(60,44,12,.7),rgba(20,26,40,.7))}
 .exchangeBtn:active{transform:scale(.99)}
-.upCard{max-height:90vh}
-.upListWrap{overflow-y:auto;-webkit-overflow-scrolling:touch;margin-top:8px;padding-right:2px}
+.upCard{max-height:90vh;max-height:86dvh}
+.upListWrap{overflow-y:auto;-webkit-overflow-scrolling:touch;margin-top:8px;padding-right:2px;
+  touch-action:pan-y;overscroll-behavior:contain;min-height:0}
 .upSec{font-size:12.5px;letter-spacing:2px;color:#8fe9ff;margin:12px 0 7px;font-weight:bold}
 .upRow{display:flex;align-items:center;gap:10px;padding:11px 11px;border-radius:14px;margin-bottom:7px;
   background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.10)}
@@ -518,6 +526,14 @@ canvas#cv{position:fixed;inset:0;width:100%;height:100%;display:block;touch-acti
 /* ══════════ v2.5: 스킨 컨셉 배지 · 뽑기 확률표 ══════════ */
 .skinConceptTag{display:flex;flex-direction:column;gap:2px;margin-top:5px;font-size:10px;color:#9fb6d6;line-height:1.35}
 .skinConceptTag b{font-size:10.5px;color:#cfe9ff;font-family:"Black Han Sans",sans-serif;letter-spacing:.2px}
+.skinUltTag{margin-top:4px;font-size:10px;font-weight:700;letter-spacing:.1px;
+  border-top:1px dashed rgba(159,182,214,.28);padding-top:4px}
+.armUlt{margin-top:4px;font-size:10.5px;font-weight:700;color:#ffd34d;line-height:1.4}
+.buffBar{position:fixed;left:50%;transform:translateX(-50%);bottom:118px;z-index:26;display:flex;gap:6px;
+  pointer-events:none;opacity:0;transition:opacity .2s ease}
+.buffBar.on{opacity:1}
+.buffChip{display:flex;align-items:center;gap:4px;font-size:11px;font-weight:700;padding:4px 9px;
+  border-radius:11px;background:rgba(10,16,26,.78);border:1px solid rgba(159,182,214,.35);color:#e8f2ff}
 .gachaOdds{margin-top:8px;font-size:10px;color:#9fb6d6;line-height:1.6;text-align:center;letter-spacing:.1px}
 .gachaOdds b{color:#cfe9ff;font-weight:400}
 #gachaEquip{margin-top:8px;width:100%;border:none;cursor:pointer;font-family:"Black Han Sans",sans-serif;
@@ -722,7 +738,8 @@ canvas#cv{position:fixed;inset:0;width:100%;height:100%;display:block;touch-acti
 .gachaBtns button#gacha10 small{color:#5a0a34}
 .gachaBtns button:active{transform:translateY(3px);box-shadow:none}
 #gacha{z-index:25;background:radial-gradient(120% 80% at 50% 30%,rgba(26,12,44,.94),rgba(3,4,12,.98))}
-.gachaCard{width:100%;max-width:400px;max-height:90vh;overflow-y:auto;-webkit-overflow-scrolling:touch;
+.gachaCard{width:100%;max-width:400px;max-height:90vh;max-height:86dvh;overflow-y:auto;-webkit-overflow-scrolling:touch;
+  touch-action:pan-y;overscroll-behavior:contain;
   padding:16px 14px 14px;border-radius:24px;text-align:center;
   background:linear-gradient(160deg,rgba(30,22,52,.99),rgba(8,8,20,.99));
   border:1.5px solid rgba(255,211,77,.35);box-shadow:0 24px 60px rgba(0,0,0,.7)}
@@ -832,7 +849,7 @@ canvas#cv{position:fixed;inset:0;width:100%;height:100%;display:block;touch-acti
 .armoryMeta{font-size:12.5px;color:#cfe4ff;margin-top:6px;line-height:1.35}
 .armoryMeta b{color:#ffe28a}
 .armoryGrid{overflow-y:auto;-webkit-overflow-scrolling:touch;display:flex;flex-direction:column;gap:8px;
-  margin-top:9px;padding:2px 2px 4px;max-height:58vh}
+  margin-top:9px;padding:2px 2px 4px;max-height:58vh;touch-action:pan-y;overscroll-behavior:contain}
 .armCard{display:flex;gap:10px;align-items:center;padding:11px 10px;border-radius:15px;
   background:rgba(255,255,255,.04);border:1.5px solid rgba(255,255,255,.12)}
 .armCard.equipped{border-color:#9bf24b;background:rgba(155,242,75,.10);box-shadow:0 0 18px rgba(155,242,75,.2)}
@@ -1010,12 +1027,15 @@ canvas#cv{position:fixed;inset:0;width:100%;height:100%;display:block;touch-acti
 #arenaFx{position:fixed;inset:0;z-index:18;pointer-events:none;display:none;opacity:0;
   transition:opacity .35s ease}
 #arenaFx.on{display:block;opacity:1}
-#arenaFx .aTint{position:absolute;inset:0;mix-blend-mode:screen;opacity:0;animation:aTint .55s ease forwards}
-@keyframes aTint{0%{opacity:0}35%{opacity:.85}100%{opacity:.12}}
-#arenaFx .aSweep{position:absolute;inset:-20%;opacity:.55;
+#arenaFx .aTint{position:absolute;inset:0;mix-blend-mode:screen;opacity:0;
+  -webkit-mask-image:radial-gradient(circle at 50% 56%, transparent 0 38%, #000 88%);
+  mask-image:radial-gradient(circle at 50% 56%, transparent 0 38%, #000 88%);
+  animation:aTint 2.4s ease forwards}
+@keyframes aTint{0%{opacity:0}30%{opacity:.30}70%{opacity:.22}100%{opacity:0}}
+#arenaFx .aSweep{position:absolute;inset:-20%;opacity:.35;
   background:radial-gradient(circle at 50% 55%,rgba(255,255,255,.9),rgba(255,255,255,0) 62%);
-  animation:aSweep 1.9s cubic-bezier(.2,.7,.3,1) forwards}
-@keyframes aSweep{0%{transform:scale(.25);opacity:.9}70%{opacity:.35}100%{transform:scale(2.6);opacity:0}}
+  animation:aSweep 1.7s cubic-bezier(.2,.7,.3,1) forwards}
+@keyframes aSweep{0%{transform:scale(.25);opacity:.55}70%{opacity:.22}100%{transform:scale(2.6);opacity:0}}
 #arenaFx .aCore{position:absolute;left:0;right:0;bottom:24%;display:flex;flex-direction:column;align-items:center;gap:7px;
   opacity:0;animation:aCore 2.2s ease forwards}
 @keyframes aCore{0%{opacity:0;transform:translateY(26px) scale(.86)}22%{opacity:1;transform:none}80%{opacity:1}100%{opacity:0;transform:translateY(-10px)}}
@@ -1108,6 +1128,7 @@ canvas#cv{position:fixed;inset:0;width:100%;height:100%;display:block;touch-acti
     </div>
    </div>
     <div id="augChips"></div>
+    <div id="buffBar" class="buffBar"></div>
     <div id="hint">👆 화면을 드래그해서 블랙홀을 움직여요</div>
   <div id="bossVig"></div>
   </div>
@@ -1761,6 +1782,7 @@ const appEl = $('app'), canvas = $('cv');
 const ui = {
   timerNum:$('timerNum'), timerPill:$('timerPill'), scoreNum:$('scoreNum'),
   lvlBadge:$('lvlBadge'), xpFill:$('xpFill'), threats:$('threats'), augChips:$('augChips'), hint:$('hint'),
+  buffBar:$('buffBar'),
   bossWrap:$('bossWrap'), bossTxt:$('bossTxt'), bossFill:$('bossFill'), bossHint:$('bossHint'),
   popups:$('popups'), joy:$('joy'), title:$('title'), countdown:$('countdown'), cdNum:$('cdNum'),
   augment:$('augment'), augCards:$('augCards'), result:$('result'), resRank:$('resRank'), resScore:$('resScore'),
@@ -2202,7 +2224,10 @@ const state = {
   bossEat:0, bossUnlocked:false, bossReady:false, bossWarnCd:0,
   defKills:0, bossKills:0, timeBonus:0, stageTime:CFG.GAME_TIME,
   pendingGoalEnd:0, tab:'home', lobbyShown:false,
-  autoChip:null, nova:null, hitFlash:0, defSlow:1, defHitT:0
+  autoChip:null, nova:null, hitFlash:0, defSlow:1, defHitT:0,
+  /* v3.2 — 보스전 버프 구을·저스트 회피 카운터·저주 마검 */
+  justDodgeT:0, speedBuffT:0, bossPowT:0, buffShield:0,
+  justDodgeCount:0, curseThrows:0, curseHits:0, buffOrbLast:null
 };
 
 const player = {
@@ -2722,11 +2747,54 @@ const SKIN_PASSIVE={
 };
 function skinPassive(s){ return SKIN_PASSIVE[(s||{}).tier]||SKIN_PASSIVE.common; }
 function curSkinPassive(){ return skinPassive(currentSkin()); }
+
+/* ═══════════════════════════════════════════════════════════
+   v3.2 — 스킨 상시 패시브 4종 (장착만 해도 계속 발동)
+   · 200종 스킨에 등급·인덱스로 배분, plain(기본) 스킨은 없음
+   · mythic 5종 / legend 20종 전원, epic 은 2/3, rare 는 일부
+   ═══════════════════════════════════════════════════════════ */
+const SKIN_ULTS = {
+  blades:{id:'blades', emoji:'⚔️', name:'회전 칼날', color:'#ffd34d',
+    desc:'블랙홀 주위를 3~5개의 3D 칼날이 돌며 소형·중형 건물과 가시탄을 벤다 · 동력 기둥 뽑기 가속',
+    short:'⚔️ 회전 칼날'},
+  minion:{id:'minion', emoji:'🕳️', name:'꼬마 블랙홀', color:'#b78bff',
+    desc:'작은 위성 블랙홀 1~2개가 내 주변을 따라다니며 소형 오브젝트를 대신 흡수한다',
+    short:'🕳️ 꼬마 블랙홀'},
+  grow:{id:'grow', emoji:'🌌', name:'무한 성장', color:'#9bf24b',
+    desc:'1초마다 질량이 조금씩(+0.35/s) 저절로 자란다',
+    short:'🌌 무한 성장'},
+  warp:{id:'warp', emoji:'⚡', name:'약탈자 워프', color:'#57e6ff',
+    desc:'12초마다 이동 방향(또는 가까운 약탈자 트럭·약점)으로 잔상을 남기며 가속 대시',
+    short:'⚡ 약탈자 워프'}
+};
+const SKIN_ULT_ORDER=['blades','minion','grow','warp'];
+/* 대표 스킨 — 손으로 고른 패시브 */
+const SKIN_ULT_PIN={ neon:'warp', magma:'blades', aqua:'minion', galaxy:'grow', prism:'blades' };
+function skinUltId(s){
+  if(!s) return null;
+  if(s.style==='plain' || s.id==='basic') return null;      /* 기본 스킨은 상시 효과 없음 */
+  if(s.ultId!==undefined) return s.ultId;
+  const ti=TIER_INDEX[s.tier]||0;
+  const h=skinHash(s);
+  let id=null;
+  if(SKIN_ULT_PIN[s.id]!==undefined) id=SKIN_ULT_PIN[s.id];
+  else if(ti>=4) id=SKIN_ULT_ORDER[h%4];                    /* 신화 — 4종 중 하나 확정 */
+  else if(ti===3) id=SKIN_ULT_ORDER[(h>>1)%4];              /* 전설 — 전원 */
+  else if(ti===2) id=(h%3===0)?null:SKIN_ULT_ORDER[(h>>2)%4]; /* 영웅 — 2/3 */
+  else if(ti===1) id=(h%4===0)?'grow':((h%7===0)?'warp':null); /* 희귀 — 일부 */
+  s.ultId=id;
+  return id;
+}
+function skinUltPassive(s){ const id=skinUltId(s); return id?SKIN_ULTS[id]:null; }
+function curSkinUlt(){ return skinUltPassive(currentSkin()); }
+function skinUltText(s){ const u=skinUltPassive(s); return u?u.short:''; }
 function skinPassiveText(s){
   const p=skinPassive(s), out=[];
   if(p.suction) out.push('🌀 흡입 +'+Math.round(p.suction*100)+'%');
   if(p.size) out.push('🕳️ 크기 +'+Math.round(p.size*100)+'%');
   if(p.speed) out.push('👟 이속 +'+Math.round(p.speed*100)+'%');
+  const u=skinUltText(s);
+  if(u) out.push(u);
   return out.join(' · ');
 }
 
@@ -3011,6 +3079,7 @@ function equipSkin(id){
   if(!SKIN_BY_ID[id]) return false;
   Wallet.equipped=id; Wallet.save();
   rebuildPlayerHole();
+  if(typeof rebuildSkinUlt==='function') rebuildSkinUlt();
   renderShop(); updateHUD(true); renderSkillBar();
   return true;
 }
@@ -3070,6 +3139,7 @@ function renderShop(){
       '<span class="tier" style="background:'+ti.color+'22;color:'+ti.color+'">'+ti.name+'</span></div>'+
       '<div class="skinDesc">'+s.desc+'</div>'+
       '<div class="skinConceptTag"><b>'+skinConceptMeta(s).icon+' '+skinConceptMeta(s).label+'</b><span>'+skinPassiveText(s)+'</span></div>'+
+      (skinUltPassive(s)?'<div class="skinUltTag" style="color:'+skinUltPassive(s).color+'">∞ 상시 '+skinUltPassive(s).short+'</div>':'')+
       '<div class="skinSkillTag">'+(SKIN_TIER_SKILLS[s.tier]?SKIN_TIER_SKILLS[s.tier].emoji+' '+SKIN_TIER_SKILLS[s.tier].name:'—')+
         (owned&&lv>1?' <b style="color:#ffd34d">+'+(lv-1)*30+'%</b>':'')+'</div>'+
       (owned?'<div class="skinLvLine"><b>'+stars+'</b> Lv.'+lv+' / '+SKIN_MAX_LV+
@@ -3370,11 +3440,11 @@ function renderSkills(){
     const cost=skillCost(s,lv);
     const el=document.createElement('div');
     el.className='upRow skillRow'+(lv?'':' locked');
-    const free = (Wallet.tickets||0)>0;
+    const free = (Wallet.tickets||0)>0 && lv>0;
     el.innerHTML='<div class="ic">'+s.emoji+'</div>'+
       '<div class="tx"><div class="nm">'+s.name+' '+(lv?'<span style="color:#8fe9ff;font-size:11px">Lv.'+lv+'</span>':'<span style="color:#ff9fb0;font-size:10px">잠금</span>')+'</div>'+
       '<div class="ds">'+s.desc+' · 쿨 '+(lv?s.cd(lv)+'초':'—')+'</div>'+levelDots(lv,s.max)+'</div>'+
-      '<button class="buy" '+((max||(!free&&Wallet.coins<cost))?'disabled':'')+'>'+(max?'MAX':(free?'🎫 무료':(lv?'🪙 '+fmt(cost):'🔓 🪙 '+fmt(cost))))+'</button>';
+      '<button class="buy" '+((max||(!free&&Wallet.coins<cost))?'disabled':'')+'>'+(max?'MAX':(free?'🎫 1장':(lv?'🪙 '+fmt(cost):'🔓 🪙 '+fmt(cost))))+'</button>';
     const btn=el.querySelector('button');
     btn.addEventListener('click', ()=>{ lv?upgradeSkill(s.id):unlockSkill(s.id); });
     ui.skillList.appendChild(el);
@@ -3388,7 +3458,7 @@ function buyUpgrade(id){
   if(Wallet.coins<cost){ showToast('🪙 부족','스테이지를 클리어해 코인을 모아 보세요','#ff5fa2'); return; }
   Wallet.coins-=cost; Wallet.up[id]=lv+1; Wallet.save();
   Sound.card(); showToast(u.emoji+' '+u.name+' Lv.'+(lv+1)+'!', u.effect(lv+1), '#9bf24b');
-  renderUpgrades(); syncCurrency(); updateHUD(true);
+  renderUpgrades(); renderUpgradeBalance(); syncCurrency(); updateHUD(true);
 }
 function unlockSkill(id){
   const s=SKILL_BY_ID[id]; if(!s) return;
@@ -3396,7 +3466,7 @@ function unlockSkill(id){
   if(Wallet.coins<s.unlock){ showToast('🪙 부족','골드를 모아 스킬을 해금하세요','#ff5fa2'); return; }
   Wallet.coins-=s.unlock; Wallet.skills[id]=1; Wallet.save();
   Sound.bigCard(); showToast('🔓 '+s.name+' 해금!','인게임 우하단 버튼으로 사용하세요','#ffd34d');
-  renderSkills(); syncCurrency(); updateHUD(true); renderSkillBar();
+  renderSkills(); renderUpgradeBalance(); syncCurrency(); updateHUD(true); renderSkillBar();
 }
 function upgradeSkill(id){
   const s=SKILL_BY_ID[id]; if(!s) return;
@@ -3413,7 +3483,7 @@ function upgradeSkill(id){
     : ('위력·범위 +'+Math.round((skillPow(lv+1)-1)*100)+'%');
   Sound.bigCard(); Sound.skillPop(lv+1);
   showToast('⚡ '+s.name+' Lv.'+(lv+1)+'!', (useTicket?'🎫 강화권 · ':'')+powTxt+' · 쿨 '+(s.cd(lv)-s.cd(lv+1))+'초 단축', '#ffd34d');
-  renderSkills(); syncCurrency(); updateHUD(true); renderSkillBar();
+  renderSkills(); renderUpgradeBalance(); syncCurrency(); updateHUD(true); renderSkillBar();
 }
 /* ── 다이아 → 골드 환전 (직접 입력 · 실시간 미리보기) ──
    💎 1 = 🪙 100 · 최소 10개 · +10 / +100 / MAX 보조 버튼 */
@@ -3651,7 +3721,7 @@ function updateSkillBar(){
       const sk=currentSkinSkill();
       const cd=state.skinCd||0;
       btn.querySelector('.cd').style.height=(cd/sk.cd*100).toFixed(0)+'%';
-      btn.querySelector('.cdTxt').textContent = cd>0.05?Math.ceil(cd):'';
+      btn.querySelector('.cdTxt').textContent = cd>0.05?cd.toFixed(1):'';
       btn.classList.toggle('ready', cd<=0.05);
       return;
     }
@@ -3660,7 +3730,7 @@ function updateSkillBar(){
     const base=lv?SKILL_BY_ID[id].cd(lv):1;
     btn.querySelector('.cd').style.height=(lv? (cd/base*100):0).toFixed(0)+'%';
     const txt=btn.querySelector('.cdTxt');
-    txt.textContent = lv ? (cd>0.05?Math.ceil(cd):'') : '🔒';
+    txt.textContent = lv ? (cd>0.05?cd.toFixed(1):'') : '🔒';
     btn.classList.toggle('ready', !!lv && cd<=0.05);
   });
 }
@@ -6338,6 +6408,8 @@ function buildCars(){
   for(let i=0;i<10;i++) spawnRoamingCar(true);
 }
 function spawnRoamingCar(anywhere){
+  /* v3.2 — 1:1 결투장에서는 일반 차량을 만들지 않는다 */
+  if(typeof ARENA!=='undefined' && (ARENA.on || ARENA.active)) return null;
   const vertical=RNG()<0.5;
   const px=player.pos.x, pz=player.pos.z;
   let placed=null;
@@ -6367,6 +6439,15 @@ function recycleCar(c){
   spawnRoamingCar();
 }
 function updateCars(dt){
+  /* v3.2 — 결투장 동안 차량 업데이트·스폰 전면 중지 (진짜 1:1만 보이게) */
+  if(typeof ARENA!=='undefined' && (ARENA.on || ARENA.active)){
+    for(let i=cars.length-1;i>=0;i--){
+      const c=cars[i];
+      if(c && c.group){ if(c.group.parent) c.group.parent.remove(c.group); disposeTree(c.group); }
+      cars.splice(i,1);
+    }
+    return;
+  }
   for(let i=cars.length-1;i>=0;i--){
     const c=cars[i];
     if(!c || !c.alive){ cars.splice(i,1); continue; }
@@ -7501,6 +7582,7 @@ function buildOffer(){
 }
 function openAugment(){
   if(state.mode!=='playing') return;
+  if(bossFightOn()){ state.pendingAug=0; return; }   /* v3.2 — 보스전 증강 팝업 금지 */
   state.mode='augment';
   state.velocity.set(0,0);
   state.input.x=0; state.input.z=0;
@@ -7591,7 +7673,9 @@ function eatBonus(){
 function playerBaseSpd(){
   const skSp=(typeof curSkinPassive==='function')? curSkinPassive().speed : 0;
   return 15.5 * (1+0.10*state.aug.turbo) * (1+Math.min(0.95, state.R*0.06)) * speedUpMul() * (1+skSp)
-    * (state.bossSlowT>0 ? 0.72 : 1);
+    * (state.bossSlowT>0 ? 0.72 : 1)
+    * ((state.justDodgeT||0)>0 ? 1.35 : 1)      /* ⚡ 저스트 회피 카운터 */
+    * ((state.speedBuffT||0)>0 ? 1.45 : 1)      /* ⚡ 바닥 버프 구을: 5초 광속 */;
 }
 function suctionMul(){
   const sp=(typeof curSkinPassive==='function')? curSkinPassive().suction : 0;
@@ -7612,6 +7696,23 @@ function gainXP(amount){
     onLevelUp(lv, from);
   }
 }
+/* ═══════════════════════════════════════════════════════════
+   v3.2 — 보스전 판정: 결투장 전환·결투장·보스 등장 중
+   ═══════════════════════════════════════════════════════════ */
+function bossFightOn(){
+  if(typeof ARENA!=='undefined' && (ARENA.active || ARENA.on)) return true;
+  return !!(typeof BOSS!=='undefined' && BOSS.revealed && BOSS.alive);
+}
+function bossFightBonus(lv, from){
+  const gain=Math.max(1, lv-from);
+  const bonus=Math.round((620+240*gain)*scoreMul());
+  state.score += bonus;
+  const heal = gain>=2 && state.hearts < state.heartsMax;
+  if(heal) state.hearts=Math.min(state.heartsMax, state.hearts+1);
+  showToast('⭐ 레벨 '+lv+'!', '보스전 — 증강 대신 보너스 +'+fmt(bonus)+(heal?' · ❤️ +1':''), '#ffd34d');
+  popupAt(new THREE.Vector3(player.pos.x, 2.4, player.pos.z), '⭐ Lv.'+lv+' +'+fmt(bonus), '#ffd34d');
+  updateHUD(true);
+}
 function onLevelUp(lv, from){
   updateHUD(true);
   spawnRipple(0x9bf24b, state.R, true);
@@ -7626,6 +7727,12 @@ function onLevelUp(lv, from){
   vibrate([18,30,45]);
   const picks=[];
   for(let l=from+1;l<=lv;l++) if(l>=2 && l<=15) picks.push(l);
+  /* v3.2 — 보스전 중에는 일시정지 증강 팝업 없이 즉발 보상만 (화면이 딈추지 않는다) */
+  if(bossFightOn()){
+    if(picks.length) bossFightBonus(lv, from);
+    else showToast('레벨 '+lv+'!', '보스전 — 구멍이 커졌다', '#ffd34d');
+    return;
+  }
   if(picks.length){
     state.pendingAug=(state.pendingAug||0)+picks.length;
     if(state.simMode) maybeOpenAugment();
@@ -8116,6 +8223,209 @@ function clampPlayerToMap(){
 /* ═══════════════════════════════════════════════════════════
    MAIN SIMULATION
    ═══════════════════════════════════════════════════════════ */
+/* ═══════════════════════════════════════════════════════════
+   v3.2 — 스킨 상시 패시브 런타임
+   ⚔️ 회전 칼날 · 🕳️ 꼬마 블랙홀 · 🌌 무한 성장 · ⚡ 약탈자 워프
+   ═══════════════════════════════════════════════════════════ */
+const SKIN_ULT_FX = {id:null, group:null, parts:[], m:1, t:0, tickT:0, minionT:0, growT:0,
+  pulseT:0, warpT:12, warpDash:null, warpFxT:0, hits:0, eats:0, warps:0, grown:0};
+function skinUltMul(){
+  const s=currentSkin();
+  return ([1,1.15,1.35,1.6,1.9][TIER_INDEX[s.tier]||0]) * (1+0.10*(currentSkinLv()-1));
+}
+function skinUltActive(id){
+  const u=curSkinUlt();
+  return !!(u && u.id===id);
+}
+function skinUltGlowTex(){ return null; }
+function clearSkinUltFx(){
+  if(SKIN_ULT_FX.group){ fxGroup.remove(SKIN_ULT_FX.group); disposeTree(SKIN_ULT_FX.group); }
+  SKIN_ULT_FX.group=null; SKIN_ULT_FX.parts=[]; SKIN_ULT_FX.id=null;
+  SKIN_ULT_FX.warpDash=null;
+}
+function skinUltBuildBlades(g, m){
+  const n=Math.round(clamp(3+Math.floor((m-1)*1.7), 3, 5));
+  for(let i=0;i<n;i++){
+    const holder=new THREE.Group();
+    const blade=new THREE.Mesh(new THREE.ConeGeometry(0.52,4.8,3), basicMat(0xfff0a8));
+    blade.userData.noFade=true; blade.rotation.z=-Math.PI/2; holder.add(blade);
+    const edge=new THREE.Mesh(new THREE.BoxGeometry(4.2,0.16,0.34), basicMat(0xff8a2a));
+    edge.userData.noFade=true; holder.add(edge);
+    const gl=sphereGlow(1.6, 0xffd34d, 0.45); holder.add(gl);
+    g.add(holder);
+    SKIN_ULT_FX.parts.push({type:'blade', holder:holder, phase:i/n, gl:gl});
+  }
+  SKIN_ULT_FX.parts.bladeCount=n;
+}
+function skinUltBuildMinions(g, m){
+  const n = m>=1.5 ? 2 : 1;
+  const s=currentSkin();
+  for(let i=0;i<n;i++){
+    const holder=new THREE.Group();
+    const core=new THREE.Mesh(new THREE.SphereGeometry(1.6,14,12),
+      new THREE.MeshBasicMaterial({color:C(0x05030c)}));
+    core.userData.noFade=true; holder.add(core);
+    const ring=new THREE.Mesh(new THREE.TorusGeometry(2.5,0.18,6,28),
+      new THREE.MeshBasicMaterial({color:C(s.b||0xb78bff), transparent:true, opacity:0.8,
+        blending:THREE.AdditiveBlending, depthWrite:false}));
+    ring.rotation.x=Math.PI/2.4; holder.add(ring);
+    const gl=sphereGlow(3.2, s.b||0xb78bff, 0.5); holder.add(gl);
+    const a=i/n*6.283;
+    holder.position.set(player.pos.x+Math.cos(a)*8, 1.4, player.pos.z+Math.sin(a)*8);
+    g.add(holder);
+    SKIN_ULT_FX.parts.push({type:'minion', holder:holder, ring:ring, gl:gl, a:a, pos:holder.position.clone()});
+  }
+}
+function rebuildSkinUlt(){
+  clearSkinUltFx();
+  const u=curSkinUlt();
+  if(!u) return;
+  const g=new THREE.Group(); g.name='skinUlt'; fxGroup.add(g);
+  SKIN_ULT_FX.group=g; SKIN_ULT_FX.id=u.id; SKIN_ULT_FX.m=skinUltMul(); SKIN_ULT_FX.t=0;
+  SKIN_ULT_FX.warpT=12;
+  if(u.id==='blades') skinUltBuildBlades(g, SKIN_ULT_FX.m);
+  else if(u.id==='minion') skinUltBuildMinions(g, SKIN_ULT_FX.m);
+}
+function skinUltWarpDir(){
+  if(typeof BOSS!=='undefined' && BOSS.weak && BOSS.weak.group){
+    const dx=BOSS.weak.group.position.x-player.pos.x, dz=BOSS.weak.group.position.z-player.pos.z;
+    const d=Math.hypot(dx,dz)||1;
+    return {x:dx/d, z:dz/d, why:'약점' };
+  }
+  if(typeof defenseList!=='undefined'){
+    let best=null, bd=70;
+    defenseList.forEach(d=>{ if(!d.alive || !d.pos) return;
+      const dd=Math.hypot(d.pos.x-player.pos.x, d.pos.z-player.pos.z);
+      if(dd<bd){ bd=dd; best=d; }
+    });
+    if(best) return {x:(best.pos.x-player.pos.x)/(bd||1), z:(best.pos.z-player.pos.z)/(bd||1), why:'약탈차' };
+  }
+  const vx=state.velocity.x, vz=state.velocity.y;
+  if(Math.hypot(vx,vz)>0.5){ const d=Math.hypot(vx,vz); return {x:vx/d, z:vz/d, why:'이동 방향'}; }
+  if(Math.abs(state.input.x)>0.01 || Math.abs(state.input.z)>0.01){
+    const d=Math.hypot(state.input.x,state.input.z)||1;
+    return {x:state.input.x/d, z:state.input.z/d, why:'조작 방향'};
+  }
+  return {x:Math.sin(Math.PI*0.25), z:Math.cos(Math.PI*0.25), why:'전방'};
+}
+function updateSkinUlt(dt){
+  const u=curSkinUlt();
+  const wantId=u?u.id:null;
+  if(SKIN_ULT_FX.id!==wantId) rebuildSkinUlt();
+  if(!wantId) return;
+  const F=SKIN_ULT_FX, m=F.m, t=(F.t+=dt), R=state.R;
+  if(F.warpDash){
+    const d=F.warpDash;
+    d.t-=dt;
+    const step=d.spd*dt;
+    player.pos.x+=d.x*step; player.pos.z+=d.z*step;
+    clampPlayerToMap(); updateHoleVisual(player);
+    F.warpFxT-=dt;
+    if(F.warpFxT<=0){
+      F.warpFxT=0.045;
+      spawnPoof(player.pos.x, player.pos.z, 0x57e6ff, 2, 0.5);
+      spawnSpark(new THREE.Vector3(player.pos.x, 1.4, player.pos.z), 0x9fe8ff, 0.6, 0.32);
+    }
+    if(d.t<=0) F.warpDash=null;
+  }
+  if(wantId==='blades'){
+    const rr=R*1.35 + 3.2 + m*0.9;
+    const parts=F.parts;
+    for(let i=0;i<parts.length;i++){
+      const p=parts[i]; if(!p || p.type!=='blade') continue;
+      const a=t*2.4 + p.phase*6.283;
+      p.holder.position.set(player.pos.x+Math.cos(a)*rr, 1.7+Math.sin(t*3.1+p.phase*6.283)*0.45,
+        player.pos.z+Math.sin(a)*rr);
+      p.holder.rotation.y=-(a+Math.PI/2);
+      p.holder.rotation.x += dt*9.0;
+    }
+    /* 소형·중형 건물과 가시탄을 베어낸다 */
+    F.tickT-=dt;
+    if(F.tickT<=0){
+      F.tickT=0.20;
+      const dmg=(46+R*20)*m;
+      let hits=0;
+      for(let i=objects.length-1;i>=0 && hits<3;i--){
+        const o=objects[i];
+        if(!o || !o.alive || o.debris) continue;
+        if((o.tier||1) > 3) continue;
+        if(Math.hypot(o.group.position.x-player.pos.x, o.group.position.z-player.pos.z) > rr+o.eatR*0.5+2.5) continue;
+        damageObject(o, dmg); hits++; F.hits++;
+      }
+      if(typeof BOSS!=='undefined' && BOSS.barbs){
+        for(let i=BOSS.barbs.length-1;i>=0;i--){
+          const b=BOSS.barbs[i];
+          if(!b || !b.g) continue;
+          if(Math.hypot(b.g.position.x-player.pos.x, b.g.position.z-player.pos.z) > rr+3.5) continue;
+          spawnSpark(new THREE.Vector3(b.g.position.x, b.g.position.y, b.g.position.z), 0xffd34d, 0.7, 0.4);
+          spawnPoof(b.g.position.x, b.g.position.z, 0xff2b46, 6);
+          scene.remove(b.g); disposeTree(b.g);
+          BOSS.barbs.splice(i,1);
+          state.score += Math.round(180*scoreMul());
+          F.hits++;
+        }
+      }
+    }
+  } else if(wantId==='minion'){
+    const parts=F.parts;
+    for(let i=0;i<parts.length;i++){
+      const p=parts[i]; if(!p || p.type!=='minion') continue;
+      p.a += dt*0.55;
+      const orbR=Math.max(9, R*1.6+6);
+      const tx=player.pos.x+Math.cos(p.a)*orbR, tz=player.pos.z+Math.sin(p.a)*orbR;
+      p.pos.x=damp(p.pos.x, tx, 3.2, dt);
+      p.pos.z=damp(p.pos.z, tz, 3.2, dt);
+      p.holder.position.set(p.pos.x, 1.5+Math.sin(t*2.6+i)*0.5, p.pos.z);
+      p.holder.rotation.y += dt*1.8;
+      p.ring.rotation.z += dt*2.4;
+      if(p.gl) p.gl.material.opacity=0.35+0.2*Math.sin(t*3.4+i);
+    }
+    F.minionT-=dt;
+    if(F.minionT<=0){
+      F.minionT=0.24;
+      let eaten=0;
+      for(let i=objects.length-1;i>=0 && eaten<3;i--){
+        const o=objects[i];
+        if(!o || !o.alive || o.debris) continue;
+        if((o.tier||1) > 2) continue;
+        for(let k=0;k<parts.length;k++){
+          const p=parts[k]; if(!p || p.type!=='minion') continue;
+          const d=Math.hypot(o.group.position.x-p.pos.x, o.group.position.z-p.pos.z);
+          if(d < 6.5+m*1.5){
+            spawnSpark(new THREE.Vector3(o.group.position.x, 1.0, o.group.position.z), 0xb78bff, 0.5, 0.3);
+            startSuck(o, true); eaten++; F.eats++;
+            break;
+          }
+        }
+      }
+    }
+  } else if(wantId==='grow'){
+    F.growT+=dt;
+    if(F.growT>=0.5){
+      const add=0.35*F.growT;             /* +0.35 질량/초 */
+      state.mass += add; F.grown+=add;
+      F.growT=0; recalcR(); updateHoleVisual(player);
+    }
+    F.pulseT-=dt;
+    if(F.pulseT<=0){
+      F.pulseT=1.5;
+      spawnRipple(0x9bf24b, state.R*1.1, false);
+    }
+  } else if(wantId==='warp'){
+    F.warpT-=dt;
+    if(F.warpT<=0 && !F.warpDash){
+      F.warpT=12.0;
+      const d=skinUltWarpDir();
+      const dist=Math.round(clamp(16+state.R*1.2, 16, 30));
+      F.warpDash={t:0.26, dur:0.26, x:d.x, z:d.z, spd:dist/0.26};
+      F.warps++; F.warpFxT=0;
+      showToast('⚡ 약탈자 워프!', d.why+' 방향으로 잔상 대시', '#57e6ff');
+      spawnRipple(0x57e6ff, state.R*1.5, true);
+      Sound.zap();
+    }
+  }
+}
+
 function updatePlaying(dt){
   /* 미니 보스 강림 컷(1.5초) — 입력·타이머·월드 진행을 잠깐 멈춘다 */
   if(typeof MINI_CUT!=='undefined' && MINI_CUT.active){
@@ -8125,6 +8435,11 @@ function updatePlaying(dt){
   }
   state.elapsed += dt;
   state.invuln=Math.max(0,(state.invuln||0)-dt);
+  /* v3.2 — 보스전 버프 타이머 (저스트 회피 · 광속 · 폭탄/약점 강화) */
+  if(state.justDodgeT>0) state.justDodgeT=Math.max(0,state.justDodgeT-dt);
+  if(state.speedBuffT>0) state.speedBuffT=Math.max(0,state.speedBuffT-dt);
+  if(state.bossPowT>0) state.bossPowT=Math.max(0,state.bossPowT-dt);
+  state.warpT=(state.warpT===undefined?0:state.warpT);
 
 
   /* ── 광폭 오토칩: 10초 자동 추적 + 강력 자석 ── */
@@ -8336,6 +8651,8 @@ function updatePlaying(dt){
   updatePoofs(dt);
   updateBolts(dt);
   updateSkinFx(dt);
+  updateSkinUlt(dt);
+  updateBuffBar();
   updateTrail(dt);
   updateFade(dt);
   updatePlayerAuras(dt);
@@ -8374,7 +8691,11 @@ function checkGoal(){
    ═══════════════════════════════════════════════════════════ */
 function stageGoal(n){
   const si=stageInfo(n);
-  return Math.round(CFG.GOAL_BASE * (1 + 0.09*(si.sub-1)) * (1 + 0.16*si.cycle) / 50)*50;
+  const base=CFG.GOAL_BASE * (1 + 0.09*(si.sub-1)) * (1 + 0.16*si.cycle);
+  /* v3.2 — 일반 스테이지(1·2·4)는 목표 점수를 1.95배 상향: 파밍·약탈차 사냥 템포 확보
+     (3·5 보스 스테이지는 보스 등장 트리거라 기존 유지) */
+  const bossStage = (si.sub===3 || si.sub===5);
+  return Math.round(base*(bossStage?1:1.95) / 50)*50;
 }
 
 let stageToken=0;
@@ -8405,6 +8726,10 @@ function startStage(n, opts){
   state.skillCd={mega:0,shock:0,dash:0};
   state.skillDur={mega:0,shock:0,dash:0};
   state.skinCd=0;
+  /* v3.2 — 보스전 버프·스킨 상시 패시브 초기화 */
+  state.justDodgeT=0; state.speedBuffT=0; state.bossPowT=0; state.buffShield=0;
+  state.justDodgeCount=0; state.curseThrows=0; state.curseHits=0; state.buffOrbLast=null;
+  if(typeof clearSkinUltFx==='function') clearSkinUltFx();
   if(state.nova && state.nova.group){ scene.remove(state.nova.group); disposeTree(state.nova.group); }
   state.nova=null; state.hitFlash=0;
   if(ui.hitFlash) ui.hitFlash.style.opacity=0;
@@ -8424,6 +8749,34 @@ function startStage(n, opts){
   state.bossEat=0; state.bossUnlocked=false; state.bossReady=false; state.bossWarnCd=0;
   state.bomb=null; state.bombT=0; state.bossSpecialWin=false;
   if(typeof resetArena==='function') resetArena();
+  /* ═══ v3.2 — 스테이지 시작 시 화면 복구 ═══
+     흰색 플래시·블러·이전 스테이지 컷신/아우트로 잔여물을 전부 지운다 (흰색·흐림 덮임 방지) */
+  state.flash=0; state.hitFlash=0; state.shake=0;
+  try{
+    const fl=document.getElementById('flash'); if(fl) fl.style.opacity='0';
+    if(ui.flash) ui.flash.style.opacity='0';
+    if(ui.hitFlash) ui.hitFlash.style.opacity='0';
+    const af=document.getElementById('arenaFx');
+    if(af){ af.classList.remove('on'); af.className=''; af.style.opacity='0'; }
+    const ov=document.getElementById('outro'); if(ov) ov.classList.remove('on');
+    if(ui.outroCap) ui.outroCap.classList.remove('on');
+    if(ui.outroSkip) ui.outroSkip.classList.remove('on');
+    if(ui.cutTaunt){ ui.cutTaunt.classList.remove('on'); ui.cutTaunt.classList.add('hidden'); }
+    if(ui.cutSkip) ui.cutSkip.classList.add('hidden');
+    if(ui.cutBars){ ui.cutBars.classList.remove('on'); ui.cutBars.classList.add('hidden'); }
+    if(ui.novaTone) ui.novaTone.style.opacity='0';
+    appEl.classList.remove('cut','augment');
+    appEl.classList.remove('blur');
+    if(typeof cut!=='undefined'){ cut.active=false; cut.t=0; cut.full=false; }
+    if(typeof MINI_CUT!=='undefined'){ MINI_CUT.active=false; MINI_CUT.t=0; }
+  }catch(e){}
+  /* 포그·카메라도 플레이 시점으로 강제 리셋 — 잔여 컷신 좌표가 남지 않게 */
+  if(typeof scene!=='undefined' && scene && scene.fog){
+    scene.fog.near=Math.max(260, 300);
+    scene.fog.far=Math.max(1300, 1400);
+  }
+  camState.init=false;
+  if(typeof updateCamera==='function'){ try{ updateCamera(0, true); }catch(e){} }
   if(ui.bombHud) ui.bombHud.classList.remove('on','crit');
   state.shotCd=0.6; state.shotQueue=0; state.eatTick=0;
   state.camIntroT=0;
@@ -8509,6 +8862,13 @@ function finishStageEntry(n, fast){
     showToast(theme.emoji+' '+theme.label, 'STAGE '+n+' 시작!', '#8fe9ff');
     return;
   }
+  /* v3.2 — 2·3·4·5 서브스테이지는 스플래시·오프닝 없이 즉시 플레이 */
+  if(stageInfo(n).sub!==1){
+    ui.splash.classList.add('hidden'); ui.splash.classList.remove('on');
+    ui.countdown.classList.add('hidden');
+    beginCutscene(false);
+    return;
+  }
   showSplash();
 }
 /* ═══════════════════════════════════════════════════════════
@@ -8570,21 +8930,39 @@ function cutCamPose(d){
   return mixPose(altar,playPose,k);
 }
 function beginCutscene(full){
+  /* v3.2 — 오프닝 컷신은 새 테마 첫 판(1-1·2-1…) 2.5초만.
+     2·3·4·5 서브스테이지는 오프닝 생략 → 바로 플레이!
+     (3 = 미니보스 강림 1.5초 / 5 = 도시 붕괴·결투장 2.4초 + 처치 5초 엔딩) */
+  const sub=stageInfo(state.stage).sub;
+  if(sub!==1){
+    cut.active=false; cut.full=false; cut.skip=false; cut.taunt=false; cut.dived=false;
+    state.cutT=0; state.cutCull=0;
+    state.mode='playing';
+    state.timeLeft=state.stageTime;
+    state.cutDone=true;
+    state.input.x=0; state.input.z=0; state.velocity.set(0,0);
+    ui.cutSkip.classList.add('hidden');
+    ui.cutTaunt.classList.remove('on'); ui.cutTaunt.classList.add('hidden');
+    ui.cutBars.classList.remove('on'); ui.cutBars.classList.add('hidden');
+    if(typeof hideBossGlimpse==='function') hideBossGlimpse();
+    appEl.classList.remove('cut');
+    camState.init=false;
+    showToast('STAGE '+stageInfo(state.stage).code+' START!', theme.emoji+' '+theme.label, '#8fe9ff');
+    return;
+  }
   cut.active=true; cut.t=0; cut.t0=performance.now();
   state.cutCull=34;                   /* 컷신은 조금 더 멀리까지 보여준다 */
-  /* 스테이지별 오프닝 길이 — 5:5.0s 보스 대사 / 1:2.5s 테마 첫 판 / 2·3·4:0.7s */
-  const sub=stageInfo(state.stage).sub;
-  cut.dur = full ? CAM_INTRO_DUR : (sub===1 ? CAM_INTRO_THEME : CAM_INTRO_FAST);
-  cut.full=!!full; cut.skip=false; cut.taunt=false; cut.dived=false;
+  /* 새 테마 첫 판 — 맵 전체를 훑는 2.5초 카메라 무빙 */
+  cut.dur = CAM_INTRO_THEME;
+  cut.full=false; cut.skip=false; cut.taunt=false; cut.dived=false;
   state.mode='intro';
   state.cutT=cut.dur;
   state.input.x=0; state.input.z=0; state.velocity.set(0,0);
-  ui.cutSkip.classList.toggle('hidden', !full);
+  ui.cutSkip.classList.toggle('hidden', true);
   ui.cutTaunt.classList.add('hidden'); ui.cutTaunt.classList.remove('on');
   ui.cutBars.classList.remove('hidden');
   void ui.cutBars.offsetWidth;
   ui.cutBars.classList.add('on');
-  if(full && typeof showBossGlimpse==='function') showBossGlimpse();
   camState.init=false;
   appEl.classList.add('cut');
 }
@@ -9125,6 +9503,8 @@ function setJoy(baseX,baseY,cx,cy){
 function onPointerDown(e){
   if(state.mode!=='playing') return;
   if(e.target.closest && e.target.closest('button')) return;
+  /* v3.2 — 모달 안 터치 스크롤은 조이스틱이 가로채지 않는다 */
+  if(e.target.closest && e.target.closest('.overlay, .upListWrap, .skinList, .armoryGrid, .gachaCard, input, textarea')) return;
   Sound.init();
   if(state.autoChip) state.autoChip=null;   // 드래그하면 즉시 수동 복귀
   if(joy.active) return;
@@ -9270,8 +9650,8 @@ function updateCamera(dt, immediate, intro){
   }
   let pitchUse=PITCH, yawUse=YAW, dUse=d;
   if(scene && scene.fog){
-    scene.fog.near = Math.max(190, dUse + 120);
-    scene.fog.far  = Math.max(640, dUse + 480);
+    scene.fog.near = Math.max(260, dUse + 130);
+    scene.fog.far  = Math.max(1300, dUse + 620);
   }
   const tx=player.pos.x + state.input.x*Math.min(3.2,R*0.3);
   const tz=player.pos.z + state.input.z*Math.min(3.2,R*0.3) - 6.5;
@@ -9643,6 +10023,79 @@ window.__BH = {
       skipVisible:ui.outroSkip?ui.outroSkip.classList.contains('on'):null,
       capOn:ui.outroCap?ui.outroCap.classList.contains('on'):null},
     mode:state.mode, boss:BOSS.revealed?{x:+BOSS.pos.x.toFixed(1),z:+BOSS.pos.z.toFixed(1)}:null}; },
+  /* ── v3.2 보스전 고도화 디버그 훅 ── */
+  buffInfo(){ return {
+    justDodgeT:+(state.justDodgeT||0).toFixed(2), justDodgeCount:state.justDodgeCount|0, justDodgeLast:state.justDodgeLast,
+    speedBuffT:+(state.speedBuffT||0).toFixed(2), bossPowT:+(state.bossPowT||0).toFixed(2),
+    buffShield:state.buffShield|0, orbLast:state.buffOrbLast||null, orbsGet:BUFF.got|0,
+    orbs:(BUFF.list||[]).map(o=>({type:o.type, x:+o.x.toFixed(1), z:+o.z.toFixed(1), t:+o.t.toFixed(1)})),
+    orbTimer:+(BUFF.t||0).toFixed(2),
+    curseSwords:(CURSE.list||[]).map(s=>({x:+s.x.toFixed(1), z:+s.z.toFixed(1), pull:+(s.pull||0).toFixed(2), out:!!s.out})),
+    curseThrows:state.curseThrows|0, curseHits:state.curseHits|0, curseCd:+(CURSE.cd||0).toFixed(2),
+    speed:+playerBaseSpd().toFixed(2), hearts:state.hearts|0,
+    augLink:{magnet:state.aug.magnet|0, turbo:state.aug.turbo|0, pulse:state.aug.pulse|0, pillarBoost:+bossPillarBoost().toFixed(2)},
+    bossFight:bossFightOn(), pendingAug:state.pendingAug|0 }; },
+  aimInfo(){ const B=BOSS; return {motion:B.motion, motionT:+(B.motionT||0).toFixed(3),
+    aimLocked:!!B.aimLocked, aimLockT:B.aimLockT, dashDir:{x:+(B.dashDirX||0).toFixed(3), z:+(B.dashDirZ||0).toFixed(3)},
+    tele:!!B.dashTele, dashDist:+(B.dashDist||0).toFixed(2), dashHit:!!B.dashHit }; },
+  skinUlt(){ const u=curSkinUlt(); const F=SKIN_ULT_FX;
+    return {skin:Wallet.equipped, tier:currentSkin().tier, ult:u?u.id:null, mul:+(F.m||1).toFixed(2),
+      parts:(F.parts||[]).filter(p=>p&&p.type).map(p=>p.type), partsN:(F.parts||[]).filter(p=>p&&p.type).length,
+      bladeCount:F.parts.bladeCount||0,
+      hits:F.hits|0, eats:F.eats|0, grown:+(F.grown||0).toFixed(2),
+      warps:F.warps|0, warpT:+(F.warpT||0).toFixed(2), dashing:!!F.warpDash }; },
+  spawnOrb(type){ return spawnBuffOrb(type); },
+  grabOrb(i){ const o=(BUFF.list||[])[i||0]; if(!o) return false;
+    const ty=o.type; grabBuffOrb(o); scene.remove(o.g); disposeTree(o.g);
+    BUFF.list.splice(BUFF.list.indexOf(o),1); return ty; },
+  curseNow(n){ return spawnCurseSwords(n||1); },
+  curseTry(n){ return bossTryCurseSwords(n||1); },
+  dashPrep(){ if(!BOSS.alive) return false; BOSS.chargeT=0; BOSS.motion='crouch'; BOSS.motionT=0; return true; },
+  aimProbe(seconds){
+    /* 예고선 고정 검증: 조준 중 플레이어를 옮겨도 방향이 그대로인지 */
+    const out=[];
+    const steps=Math.round((seconds||0.7)*60);
+    for(let i=0;i<steps;i++){
+      if(BOSS.motion==='aim'){
+        if(i===Math.round(0.20*60)) player.pos.x+=12;
+        if(i===Math.round(0.40*60)) player.pos.z-=12;
+      }
+      updatePlaying(1/60);
+      out.push({t:+(i/60).toFixed(3), m:BOSS.motion, dx:+(BOSS.dashDirX||0).toFixed(3),
+        dz:+(BOSS.dashDirZ||0).toFixed(3), locked:!!BOSS.aimLocked, mt:+(BOSS.motionT||0).toFixed(2)});
+      if(BOSS.motion==='dash') break;
+    }
+    return out;
+  },
+  justDodgeNow(perp){
+    BOSS.dashSX=player.pos.x-(perp===undefined?10:0); BOSS.dashSZ=player.pos.z;
+    BOSS.dashDirX=1; BOSS.dashDirZ=0; BOSS.dashDist=26; BOSS.dashHit=false;
+    const ok=bossJustDodgeCheck();
+    return {ok:ok, info:this.buffInfo()};
+  },
+  levelUpNow(){ gainXP(xpNeededFor(state.level)+1); return {mode:state.mode, level:state.level, pending:state.pendingAug|0, bossFight:bossFightOn()}; },
+  skinUltFor(id){ const s=SKIN_BY_ID[id]; const u=skinUltPassive(s); return u?u.id:null; },
+  skinUltCounts(){ const o={none:0, blades:0, minion:0, grow:0, warp:0};
+    SKINS.forEach(s=>{ const id=skinUltId(s); o[id||'none']++; }); return o; },
+  skinUltSample(id){ const s=SKINS.find(x=>skinUltId(x)===id); return s?{id:s.id, tier:s.tier, name:s.name, ult:skinUltId(s)}:null; },
+  warpNow(){ SKIN_ULT_FX.warpT=0.02; return true; },
+  uiProbe(){
+    state.skinCd=2.44; state.skillCd.mega=1.26;
+    updateSkillBar();
+    const bars=[...document.querySelectorAll('#skills .skillBtn')].map(b=>({id:b.dataset.id, txt:(b.querySelector('.cdTxt')||{}).textContent}));
+    return {bars:bars};
+  },
+  upgradeProbe(){
+    renderSkills(); renderUpgradeBalance();
+    return {rows:[...document.querySelectorAll('#upgrade .skillRow')].map(r=>({btn:(r.querySelector('button')||{}).textContent, dis:(r.querySelector('button')||{}).disabled})),
+      coins:(document.getElementById('upCoins')||{}).textContent, tickets:(document.getElementById('upTickets')||{}).textContent};
+  },
+  buyStat(){
+    const b=[...document.querySelectorAll('#upgrade .upRow button')].find(x=>!x.disabled && x.textContent.includes('🪙'));
+    if(!b) return null;
+    b.click();
+    return (document.getElementById('upCoins')||{}).textContent;
+  },
   pullPillar(i){ const p=(BOSS.pillars||[])[i]; if(!p) return false; pullBossPillar(p); return true; },
   pullAllPillars(){ (BOSS.pillars||[]).forEach(p=>pullBossPillar(p)); return BOSS.inv; },
   spawnBombNow(){ spawnBossBomb(); return (BOSS.bombs||[]).length; },
@@ -9735,6 +10188,8 @@ window.__BH = {
   setSkill(id,lv){ if(SKILL_BY_ID[id]){ Wallet.skills[id]=clamp(lv,0,6); Wallet.save(); renderSkills(); renderSkillBar(); } },
   useSkill(id){ activateSkill(id); },
   stageNow(n, fast){ ui.result.classList.add('hidden'); ui.title.classList.add('hidden'); startStage(n, {fast:fast!==false}); },
+  stageIntro(n){ ui.result.classList.add('hidden'); ui.title.classList.add('hidden'); startStage(n, {fast:false}); return true; },
+  giveTickets(n){ Wallet.tickets=Math.max(0,(Wallet.tickets||0)+(n||1)); Wallet.save(); renderSkills(); renderUpgradeBalance(); return Wallet.tickets; },
   nearestBig(){
     let best=null,bd=1e9;
     objects.forEach(o=>{ if(o.tier>=4){ const d=Math.hypot(o.group.position.x-player.pos.x,o.group.position.z-player.pos.z); if(d<bd){bd=d;best=o;} } });
@@ -10048,7 +10503,8 @@ function buildBossBody(kind,g){
     const hide =mat(0x221320,{emissive:0x120208}), hide2=mat(0x11070f,{emissive:0x0c0105}),
           armor=mat(0x4a2a3a,{emissive:0x180409}), armor2=mat(0x2a1420,{emissive:0x0e0207}),
           bone =mat(0x8d7c71), bone2=mat(0x5d4e46),
-          ember=basicMat(0xff2f12), ember2=basicMat(0xff7a24);
+          ember=basicMat(0xff2f12), ember2=basicMat(0xff7a24),
+          fang=mat(0xf7f1e2,{emissive:0x241a10}), fangTip=basicMat(0xfffaf0);
     const rig={root:new THREE.Group(), hips:null, torso:null, head:null, jaw:null,
       arms:[], legs:[], tail:[], spikes:[], eyes:[], chestGlow:null, runeRing:null,
       wings:[], halo:null, haloRing:null, haloStars:[], haloRunes:[]};
@@ -10234,7 +10690,7 @@ function buildBossBody(kind,g){
       /* 깊게 패인 눈구멍 + 그 안에서 타오르는 붉은 안광 */
       const socket=box(3.2,2.4,2.4,mat(0x030003)); socket.position.set(s*2.6,1.6,3.4); socket.rotation.z=-s*0.18; head.add(socket);
       const gl=sphereGlow(1.55,0xff1a08,0.85); gl.position.set(s*2.6,1.6,3.9); head.add(gl); rig.eyes.push(gl);
-      const pupil=sph(0.62,8,basicMat(0xffd9a0)); pupil.position.set(s*2.6,1.6,4.15); head.add(pupil);
+      const pupil=sph(0.30,8,basicMat(0xfffbe8)); pupil.position.set(s*2.6,1.58,4.22); pupil.scale.set(1,1.45,1); head.add(pupil);
       rig.pupils=rig.pupils||[]; rig.pupils.push(pupil);
       const bp=cone(0.55,2.6,5,bone); bp.position.set(s*3.6,3.4,2.0); bp.rotation.z=s*0.55; bp.rotation.x=-0.55; head.add(bp);
       /* 거대한 염소뿔 — 뒤로 길게 말려 올라간다 */
@@ -10252,14 +10708,24 @@ function buildBossBody(kind,g){
     [-1,1].forEach(s=>{
       const nostril=box(0.7,0.6,1.0,mat(0x030002)); nostril.position.set(s*1.0,0.6,5.4); muzzle.add(nostril);
     });
-    const maw=box(5.2,1.2,5.4, basicMat(0x8a0614)); maw.userData.noFade=true; maw.position.set(0,-1.45,2.6); muzzle.add(maw);
+    const maw=box(5.2,1.2,5.4, basicMat(0x1a060a)); maw.userData.noFade=true; maw.position.set(0,-1.45,2.6); muzzle.add(maw);
+    /* 입 안쪽 어둠 — 붉은 띠 대신 깊게 꺼진 검붉은 안쪽 */
+    const mawIn=box(4.4,1.9,4.6, basicMat(0x0a0204)); mawIn.userData.noFade=true;
+    mawIn.position.set(0,-1.05,2.2); muzzle.add(mawIn);
+    const mawGlow=new THREE.Mesh(new THREE.PlaneGeometry(4.2,1.0),
+      new THREE.MeshBasicMaterial({color:C(0x5c0410), transparent:true, opacity:0.30,
+        blending:THREE.AdditiveBlending, depthWrite:false, side:THREE.DoubleSide}));
+    mawGlow.rotation.x=-Math.PI/2; mawGlow.position.set(0,-1.90,2.6); muzzle.add(mawGlow);
+    /* 송곳니 — 어두운 입 안에서 또렷하게 드러나는 상아빛 (재질은 위에서 정의) */
     /* 윗니 — 길고 날카로운 송곳니 */
     for(let k=0;k<7;k++){
-      const len=1.6+Math.abs(k-3)*0.28;
-      const t=cone(0.34,len,4,bone); t.position.set((k-3)*0.92,-1.05,0.35+k*0.86);
+      const len=1.75+Math.abs(k-3)*0.30;
+      const t=cone(0.36,len,4,fang); t.position.set((k-3)*0.92,-1.02,0.35+k*0.86);
       t.rotation.x=Math.PI; muzzle.add(t);
+      const tip=cone(0.17,len*0.42,4,fangTip); tip.userData.noFade=true;
+      tip.position.set((k-3)*0.92,-1.02-len*0.30,0.35+k*0.86); tip.rotation.x=Math.PI; muzzle.add(tip);
       if(k===0||k===6){
-        const big=cone(0.46,2.9,5,bone); big.position.set((k-3)*0.98,-1.05,0.35+k*0.86);
+        const big=cone(0.50,3.15,5,fang); big.position.set((k-3)*0.98,-1.02,0.35+k*0.86);
         big.rotation.x=Math.PI; muzzle.add(big);
       }
     }
@@ -10268,7 +10734,7 @@ function buildBossBody(kind,g){
     const jawM=cyl(1.4,2.5,5.4,7,hide2); jawM.rotation.x=Math.PI/2;
     jawM.scale.set(1.26,1.0,0.60); jawM.position.set(0,-0.60,2.7); jaw.add(jawM);
     for(let k=0;k<6;k++){
-      const t=cone(0.28,1.7,4,bone); t.position.set((k-2.5)*0.94,0.10,1.6+k*0.80); jaw.add(t);
+      const t=cone(0.30,1.85,4,fang); t.position.set((k-2.5)*0.94,0.10,1.6+k*0.80); jaw.add(t);
     }
     const chinSpike=cone(0.50,2.6,5,bone); chinSpike.position.set(0,-1.7,4.0); chinSpike.rotation.x=1.85; jaw.add(chinSpike);
 
@@ -10835,6 +11301,18 @@ function knockPlayer(fx,fz,power,label){
 function hurtBossHeart(label){
   if(!state.hasBoss) return false;
   if((state.invuln||0)>0) return false;
+  /* 🛡️ 바닥 방어막 구을 — 하트 피해를 1회 대신 막는다 */
+  if((state.buffShield||0)>0){
+    state.buffShield--;
+    state.invuln=0.9;
+    state.flash=Math.max(state.flash,0.3);
+    showToast('🛡️ 방어막이 대신 맞았다', '하트 피해 1회 차감 ('+label+' · 남은 방어막 '+state.buffShield+')', '#9bf24b');
+    popupAt(new THREE.Vector3(player.pos.x,1.8,player.pos.z), '🛡️ 방어막!', '#9bf24b');
+    spawnRipple(0x9bf24b, state.R*1.9, true);
+    Sound.tone(420,0.18,'sine',0.06,220);
+    updateHUD(true);
+    return false;
+  }
   state.invuln=1.0;
   state.hearts=Math.max(0,(state.hearts|0)-1);
   state.hitFlash=Math.max(state.hitFlash||0,0.9);
@@ -11223,26 +11701,31 @@ function bossStrike(){
   bossBolt(BOSS.pos.x+rnd(-8,8), BOSS.pos.z+rnd(-8,8));
   Sound.siren();
   if(Settings.shake) state.shake=Math.max(state.shake,0.5);
+  /* v3.2 — 효오(바닥 패턴) 때 저주 마검을 하나 꼽는다 */
+  if(typeof bossTryCurseSwords==='function') bossTryCurseSwords(1);
 }
 /* ═══════════════════════════════════════════════════════════
    v3.1 — 괴수 활보 AI
    · 기둥(BOSS.inv>0)이 남아 있어도 그로기가 아니면 결투장을 계속 누빈다
    · 순찰/추적(플레이어 주변 선회) · 예고선 돌진 · 점프 찍기
-   · 결투장 밖으로는 나가지 않는다 (ARENA.r - 10)
+   · 결투장 밖으로는 나가지 않는다 (ARENA.r - 12 = 60)
    ═══════════════════════════════════════════════════════════ */
 function bossResetMotion(){
   BOSS.motion='roam'; BOSS.motionT=0; BOSS.walkPhase=0; BOSS.crouch=0; BOSS.lean=0;
   BOSS.jumpY=0; BOSS.velX=0; BOSS.velZ=0; BOSS.chargeT=4.6; BOSS.jumpT=9.6;
   BOSS.strafeDir=RNG()<0.5?-1:1; BOSS.strafeT=2.5; BOSS.dashT=0; BOSS.dashFxT=0;
   BOSS.slammed=false; BOSS.lastCheck2=null;
-  BOSS.groggyK=0;
+  BOSS.groggyK=0; BOSS.aimLocked=false; BOSS.dashHit=false; BOSS.dashDist=0;
+  BOSS.dashSX=undefined; BOSS.dashSZ=undefined;
 }
 function bossSetMotion(m){ BOSS.motion=m; BOSS.motionT=0; }
+/* v3.2 — 돌진 예고선: 0.65초 중 처음 0.12초만 조준, 이후 0.53초는 방향 고정 */
+const BOSS_AIM_DUR=0.65, BOSS_AIM_TRACK=0.12, BOSS_JUST_DODGE_R=18;
 
-/* 보스가 돌아다닐 수 있는 범위 — 결투장이 있으면 그 안쪽 10유닛까지 */
+/* 보스가 돌아다닐 수 있는 범위 — 결투장이 있으면 그 안쪽 12유닛까지 (R=72 → 60) */
 function bossArenaBounds(){
   if(typeof ARENA!=='undefined' && ARENA.on)
-    return {x:ARENA.cx, z:ARENA.cz, r:Math.max(8,(ARENA.r||46)-10)};
+    return {x:ARENA.cx, z:ARENA.cz, r:Math.max(8,(ARENA.r||46)-12)};
   return {x:BOSS.homeX||0, z:BOSS.homeZ||0, r:34};
 }
 function bossClampPos(x,z){
@@ -11258,6 +11741,41 @@ function bossApplyPos(x,z,dt){
   BOSS.velZ=(cl.z-cur.z)/Math.max(dt,0.0001);
   cur.x=cl.x; cur.z=cl.z;
   BOSS.pos.set(cur.x,0,cur.z);
+}
+
+/* ── ⚡ 아슬아슬 회피 카운터 — 돌진 종료 시 판정 ──
+   예고선 폭 근처(18m 이내)에서 맞지 않고 빠졌다면 카운터 찬스:
+   4초 이속 1.35배 + 🟡 흡수 폭탄 1개 즉시 스폰 */
+function bossJustDodgeCheck(){
+  const B=BOSS;
+  if(B.dashHit) return false;
+  if(!B.dashSX && !B.dashSZ) return false;
+  if((B.dashDist||0) < 8) return false;                 /* 제자리 돌진은 카운터 아님 */
+  if(!B.alive || B.defeated) return false;
+  const dx=player.pos.x-B.dashSX, dz=player.pos.z-B.dashSZ;
+  const along=dx*B.dashDirX + dz*B.dashDirZ;
+  const perp=Math.abs(dx*B.dashDirZ - dz*B.dashDirX);
+  if(along < -3) return false;                          /* 돌진선 뒤쪽은 제외 */
+  if(perp > BOSS_JUST_DODGE_R) return false;
+  state.justDodgeT=4.0;
+  state.justDodgeCount=(state.justDodgeCount||0)+1;
+  state.justDodgeLast=+perp.toFixed(1);
+  showToast('⚡ 저스트 회피! 카운터 찬스', '4초 이속 1.35배 · 🟡 흡수 폭탄 즉시 스폰 (아슬 ' + perp.toFixed(1) + 'm)', '#57e6ff');
+  Sound.jackpot(); Sound.bossAlert(); vibrate([40,30,90]);
+  state.flash=Math.max(state.flash,0.4);
+  state.shake=Math.max(state.shake,0.5);
+  bossRing(player.pos.x, player.pos.z, 0x57e6ff, 18, 0.8);
+  spawnRipple(0x57e6ff, state.R*1.7, true);
+  for(let i=0;i<10;i++){
+    const a=RNG()*6.283, rr=rnd(2,7);
+    spawnSpark(new THREE.Vector3(player.pos.x+Math.cos(a)*rr, 1.0+rnd(0,2), player.pos.z+Math.sin(a)*rr), i%2?0x57e6ff:0xffffff, 0.5, 0.4);
+  }
+  if((BOSS.bombs||[]).length < 3){
+    const a=RNG()*6.283;
+    spawnBossBomb(player.pos.x+Math.cos(a)*6.5, player.pos.z+Math.sin(a)*6.5);
+  }
+  B.aimLocked=false;
+  return true;
 }
 
 /* ── 돌진 예고선: 보스 발치에서 플레이어 방향으로 길게 뻗는 붉은 직선 ── */
@@ -11330,6 +11848,8 @@ function bossSlamImpact(){
   Sound.boom(); vibrate([60,40,120]);
   const d=Math.hypot(player.pos.x-x, player.pos.z-z);
   if(d<34) knockPlayer(x,z, 26, '🪨 지진!');
+  /* v3.2 — 착지 소크 속에서 저주 마검을 결투장에 꼽아 둔다 */
+  if(typeof bossTryCurseSwords==='function') bossTryCurseSwords(RNG()<0.5?2:1);
 }
 
 function updateBossMotion(dt, dxp, dzp, dp){
@@ -11370,15 +11890,22 @@ function updateBossMotion(dt, dxp, dzp, dp){
     }
     return;
   }
-  /* ② 0.6초 붉은 직선 예고 */
+  /* ② 0.65초 붉은 직선 예고 — 처음 0.12초만 플레이어를 따라가고, 남은 0.53초는 방향을 완전히 고정 */
   if(B.motion==='aim'){
     B.crouch=damp(B.crouch,1.0,9,dt);
     B.velX=0; B.velZ=0;
-    if(mt<0.40){ B.dashDirX=ux; B.dashDirZ=uz; }
+    if(mt<BOSS_AIM_TRACK){ B.dashDirX=ux; B.dashDirZ=uz; B.aimLocked=false; }
+    else if(!B.aimLocked){
+      /* 화면 고정 — 예고선을 본 플레이어가 옆으로 빠질 수 있도록 방향을 묶는다 */
+      B.aimLocked=true;
+      B.aimLockT=mt;
+      spawnSpark(new THREE.Vector3(cur.x+B.dashDirX*8, 1.4, cur.z+B.dashDirZ*8), 0xff2b46, 0.6, 0.35);
+    }
     bossDashTeleAim(B.dashDirX,B.dashDirZ);
-    if(mt>=0.6){
+    if(mt>=BOSS_AIM_DUR){
       bossSetMotion('dash');
       B.dashT=0; B.lean=0;
+      B.dashSX=cur.x; B.dashSZ=cur.z; B.dashDist=0; B.dashHit=false;
       if(B.dashTele) B.dashTele.on=false;
       Sound.siren(); Sound.boom();
       state.shake=Math.max(state.shake,0.45);
@@ -11404,13 +11931,16 @@ function updateBossMotion(dt, dxp, dzp, dp){
     const dn=Math.hypot(player.pos.x-cur.x, player.pos.z-cur.z);
     if(dn < state.R*0.9+B.R*0.62 && B.hitCd<=0){
       B.hitCd=1.2;
+      B.dashHit=true;
       knockPlayer(cur.x, cur.z, 32, '💥 돌진!');
       bossRing(cur.x, cur.z, 0xff1a36, 26, 0.7);
       bossRing(cur.x, cur.z, 0xffd34d, 16, 0.5);
       B.dashT=9;
     }
+    B.dashDist=Math.max(B.dashDist||0, Math.hypot(cur.x-(B.dashSX||cur.x), cur.z-(B.dashSZ||cur.z)));
     if(moved < step*0.4 || B.dashT>=0.62){
       B.lean=damp(B.lean,0,6,dt);
+      bossJustDodgeCheck();
       bossSetMotion('recover');
       bossRing(cur.x, cur.z, 0x8b3bff, 30, 0.85);
       spawnPoof(cur.x, cur.z, 0x2a1a33, 10);
@@ -11514,53 +12044,89 @@ function animateBossRig(dt,t){
   if(rig.torso){
     const s=1+0.022*breath;
     rig.torso.scale.set(s, 1+0.030*breath, s);
-    /* 평상시엔 숨쉬며 꼿꼿이, 그로기엔 상체가 앞으로 푹 꺾인다 */
-    rig.torso.rotation.x = (-Math.max(0,crouch)*0.10 + lean*0.05)*alive + G*0.55;
-    rig.torso.rotation.y = Math.sin(t*0.62)*0.035*alive + G*0.10*Math.sin(t*0.55);
-    rig.torso.rotation.z = G*0.05*Math.sin(t*1.1);
+    /* 평상시엔 숨쉬며 꼿꼿이, 그로기엔 상체가 앞으로 푹 꺾인다
+       v3.2 — 좌우 비틀림을 2배로 + 각도는 damp 보간으로 부드럽게 */
+    rig.torso.rotation.x = damp(rig.torso.rotation.x,
+      (-Math.max(0,crouch)*0.10 + lean*0.05)*alive + G*0.55, 9, dt);
+    rig.torso.rotation.y = damp(rig.torso.rotation.y,
+      (Math.sin(t*0.62)*0.075 + Math.sin(w*0.5)*0.085*Math.min(1,walkK))*alive
+      + G*0.10*Math.sin(t*0.55), 7, dt);
+    rig.torso.rotation.z = damp(rig.torso.rotation.z,
+      (Math.sin(w)*0.035*Math.min(1,walkK) + Math.sin(t*1.1)*0.02)*alive
+      + G*0.05*Math.sin(t*1.1), 7, dt);
   }
   if(rig.head){
-    rig.head.rotation.x = (0.05 + Math.sin(t*0.85)*0.05 - crouch*0.30 + lean*0.16
-      + Math.abs(Math.sin(w))*0.04*Math.min(1,walkK))*alive + G*(0.78 + 0.05*Math.sin(t*1.35));
-    rig.head.rotation.y = Math.sin(t*0.55)*0.12*alive + G*0.18*Math.sin(t*0.45);
-    rig.head.rotation.z = Math.sin(t*0.70)*0.04*alive + G*0.22*Math.sin(t*0.6);
+    rig.head.rotation.x = damp(rig.head.rotation.x,
+      (0.05 + Math.sin(t*0.85)*0.05 - crouch*0.30 + lean*0.16
+      + Math.abs(Math.sin(w))*0.04*Math.min(1,walkK))*alive + G*(0.78 + 0.05*Math.sin(t*1.35)), 9, dt);
+    rig.head.rotation.y = damp(rig.head.rotation.y,
+      Math.sin(t*0.55)*0.12*alive + G*0.18*Math.sin(t*0.45), 8, dt);
+    rig.head.rotation.z = damp(rig.head.rotation.z,
+      Math.sin(t*0.70)*0.04*alive + G*0.22*Math.sin(t*0.6), 8, dt);
   }
   if(rig.jaw){
     const roar=Math.max(0, Math.sin(t*1.7)-0.55)/0.45;
-    rig.jaw.rotation.x = 0.05 + 0.22*roar*alive + Math.max(0,crouch)*0.10*alive + G*0.42;
+    rig.jaw.rotation.x = damp(rig.jaw.rotation.x,
+      0.05 + 0.22*roar*alive + Math.max(0,crouch)*0.10*alive + G*0.42, 10, dt);
+  }
+  /* ── 팔: 활보 시 좌우 교차 ±1.0rad, 돌진/점프 찍기 시 ±1.4rad로 크게 휘두른다 ── */
+  const mt0=BOSS.motionT||0;
+  let armAction=0;
+  if(BOSS.motion==='crouch') armAction = -1.10*Math.min(1, mt0/0.5);
+  else if(BOSS.motion==='aim') armAction = -1.25;
+  else if(BOSS.motion==='dash') armAction = 1.35;
+  else if(BOSS.motion==='jump'){
+    const k=clamp(mt0/1.0, 0, 1);
+    armAction = k<0.45 ? -1.75*(k/0.45) : lerp(-1.75, 1.75, clamp((k-0.45)/0.30, 0, 1));
+  } else if(BOSS.motion==='recover'){
+    armAction = 0.55*Math.max(0, 1-mt0/0.85);
   }
   rig.arms.forEach((a,i)=>{
     const s=a.side;
-    const swing=Math.sin(w + (s>0?Math.PI:0))*0.55*walkK;
-    a.g.rotation.x = (swing - crouch*0.55 + lean*0.95)*alive
-      + G*(-0.52 + 0.10*Math.sin(t*1.15+i));
-    a.g.rotation.z = s*(0.10 + 0.05*Math.sin(t*1.4+s))*alive
+    const swing=Math.sin(w + (s>0?Math.PI:0))*1.05*Math.min(1,walkK);
+    const idle=Math.sin(t*1.15 + i*1.7)*0.20;
+    const tx=(swing + idle - crouch*0.55 + lean*0.60 + armAction)*alive
+      + G*(-0.55 + 0.12*Math.sin(t*1.15+i));
+    const tz=(s*(0.10 + 0.09*Math.sin(t*1.4+s)) + s*Math.sin(w+(s>0?Math.PI:0))*0.16*Math.min(1,walkK))*alive
       + s*G*(0.24 + 0.06*Math.sin(t*1.05+i));
-    a.g.position.y = a.baseY + Math.sin(t*1.1+i*0.9)*0.10*alive - G*1.1;
-    if(a.elbow) a.elbow.rotation.x = 0.05*Math.sin(t*1.6+i)*alive + G*(0.60 + 0.05*Math.sin(t*1.2+i));
+    a.g.rotation.x = damp(a.g.rotation.x, tx, 8, dt);
+    a.g.rotation.z = damp(a.g.rotation.z, tz, 8, dt);
+    a.g.position.y = damp(a.g.position.y, a.baseY + Math.sin(t*1.1+i*0.9)*0.16*alive - G*1.1, 6, dt);
+    if(a.elbow){
+      const bend = Math.max(0, Math.sin(w+(s>0?Math.PI:0)))*0.55*Math.min(1,walkK)
+        + Math.sin(t*1.6+i*1.3)*0.16 + Math.max(0,-armAction)*0.62 + Math.max(0,armAction)*0.30;
+      a.elbow.rotation.x = damp(a.elbow.rotation.x, bend*alive + G*(0.60 + 0.05*Math.sin(t*1.2+i)), 10, dt);
+      if(a.hand) a.hand.rotation.x = damp(a.hand.rotation.x, (-bend*0.35 + Math.sin(t*2.1+i)*0.10)*alive, 10, dt);
+    }
   });
   rig.legs.forEach((l,i)=>{
     const s=l.side;
     const step=Math.sin(w + (s>0?Math.PI:0));
     const stand=step*0.50*walkK + Math.max(0,crouch)*0.30 + (jumpY>0.6?0.40:0);
-    l.g.rotation.x = stand*alive + (l.standX-0.20)*G;
-    l.g.rotation.z = s*0.05 + s*0.30*G;
-    if(l.knee) l.knee.rotation.x = l.standK*alive + 1.92*G;
-    if(l.ankle) l.ankle.rotation.x = l.standA*alive - 1.42*G;
+    l.g.rotation.x = damp(l.g.rotation.x, stand*alive + (l.standX-0.20)*G, 9, dt);
+    l.g.rotation.z = damp(l.g.rotation.z, s*0.05 + s*0.30*G, 8, dt);
+    if(l.knee) l.knee.rotation.x = damp(l.knee.rotation.x, l.standK*alive + 1.92*G, 10, dt);
+    if(l.ankle) l.ankle.rotation.x = damp(l.ankle.rotation.x, l.standA*alive - 1.42*G, 10, dt);
   });
   rig.tail.forEach((seg,i)=>{
     const bx=seg.userData.bx||0;
-    seg.rotation.y = Math.sin(t*1.5 - i*0.6)*0.15*alive + Math.sin(w*0.8 - i*0.5)*0.10*Math.min(1,walkK)*alive
-      + G*0.05*Math.sin(t*0.5 - i*0.35);
-    seg.rotation.x = bx + Math.sin(t*1.1 - i*0.45)*0.05*alive + G*0.07;
+    seg.rotation.y = damp(seg.rotation.y,
+      Math.sin(t*1.5 - i*0.6)*0.32*alive + Math.sin(w*0.8 - i*0.5)*0.22*Math.min(1,walkK)*alive
+      + G*0.05*Math.sin(t*0.5 - i*0.35), 7, dt);
+    seg.rotation.x = damp(seg.rotation.x,
+      bx + Math.sin(t*1.1 - i*0.45)*0.11*alive + G*0.07, 7, dt);
   });
   rig.wings.forEach((wg,i)=>{
     const s=wg.side, low=wg.pair?1:0;
-    const flap=Math.sin(t*(low?1.65:1.15) + (s>0?0.5:0)) * (low?0.055:0.095);
+    /* v3.2 — 날개를 크게 펄럭: 활보/호흡에 맞춰 ±0.45rad 이상 (damp 보간) */
+    const flap=Math.sin(t*(low?1.85:1.30) + (s>0?0.5:0)) * (low?0.34:0.52)
+      + Math.sin(w*0.7 + (s>0?0.4:0))*0.20*Math.min(1,walkK)
+      + breath*0.12;
     const open=wg.baseZ*alive;
-    wg.g.rotation.z = open + flap*alive - s*1.32*G - s*0.10*G*Math.sin(t*0.9+i);
-    wg.g.rotation.y = wg.baseY*alive + s*0.82*G;
-    wg.g.rotation.x = 0.04*Math.sin(t*0.9+i)*alive - 0.18*G;
+    wg.g.rotation.z = damp(wg.g.rotation.z, open + flap*alive - s*1.32*G - s*0.10*G*Math.sin(t*0.9+i), 8, dt);
+    wg.g.rotation.y = damp(wg.g.rotation.y, wg.baseY*alive + s*0.82*G + s*0.10*Math.sin(t*0.9+i)*alive, 8, dt);
+    wg.g.rotation.x = damp(wg.g.rotation.x,
+      (0.10*Math.sin(t*0.9+i) + 0.12*Math.sin(w*0.6+(s>0?1.0:0))*Math.min(1,walkK))*alive - 0.18*G, 8, dt);
   });
   rig.eyes.forEach((e,i)=>{
     const base=0.55+0.40*Math.abs(Math.sin(t*(2.4+i*0.4)+i));
@@ -11625,6 +12191,9 @@ function updateBoss(dt){
   updateBossBullets(dt);
   updateBombCarry(dt);
   updateBossWeak(dt);
+  /* v3.2 — 🗡️ 저주 마검 역공 · 바닥 버프 구을 */
+  updateCurseSwords(dt);
+  updateBossOrbs(dt);
 
   /* ④ 그로기 타이머 */
   state.bossUnlocked = BOSS.inv<=0 && BOSS.groggy<=0 && !BOSS.defeated;
@@ -11639,11 +12208,12 @@ function updateBoss(dt){
     }
   }
 
-  /* ⑤ 붉은 눈 코어가 항상 플레이어를 노려본다 */
-  if(BOSS.group){
+  /* ⑤ 붉은 눈 코어가 천천히 플레이어를 노려본다 — 묵직하게(dt*0.34), 돌진 준비·돌진·그로기에는 완전 정지 */
+  const turnFrozen = (BOSS.groggy>0) || BOSS.motion==='crouch' || BOSS.motion==='aim' || BOSS.motion==='dash';
+  if(BOSS.group && !turnFrozen){
     const want=Math.atan2(dxp,dzp);
     let diff=((want-BOSS.group.rotation.y+Math.PI*3)%(Math.PI*2))-Math.PI;
-    BOSS.group.rotation.y += diff*Math.min(1, dt*(BOSS.motion==='dash'?3.0:1.1));
+    BOSS.group.rotation.y += diff*Math.min(1, dt*0.34);
   }
 
   /* ⑥ 몸체 접촉 — 하트는 깎지 않고 부드럽게 바깥으로만 밀어낸다 (피해는 붉은 가시탄/3초 폭탄 폭발만!) */
@@ -11742,6 +12312,8 @@ function pickDefKind(){
   return 'police';
 }
 function spawnDefenseUnit(kind){
+  /* v3.2 — 1:1 결투장에서는 약탈차를 스폰하지 않는다 */
+  if(typeof ARENA!=='undefined' && (ARENA.on || ARENA.active)) return null;
   if(defenseList.filter(d=>d.alive).length >= defCap()+2) return null;
   kind = kind || pickDefKind();
   const k=DEF_KINDS[kind];
@@ -11966,6 +12538,19 @@ function smashAlongPath(d, dt){
   return broke;
 }
 function updateDefense(dt){
+  /* v3.2 — 결투장에서는 약탈차·장판 업데이트를 멈춘다 (진짜 1:1 결투만) */
+  if(typeof ARENA!=='undefined' && (ARENA.on || ARENA.active)){
+    if(defenseList.length){
+      defenseList.forEach(d=>{ if(d.group){ scene.remove(d.group); disposeTree(d.group); } });
+      defenseList.length=0;
+    }
+    if(telegraphs.length){
+      telegraphs.forEach(t=>{ if(t.group){ scene.remove(t.group); disposeTree(t.group); } });
+      telegraphs.length=0;
+    }
+    state.defSlow=1;
+    return;
+  }
   state.defSlow=1;
   if(typeof updateSmashChunks==='function') updateSmashChunks(dt);
   const R=state.R, dom=state.aug.dominator;
@@ -12550,8 +13135,15 @@ window.__BOSSAI = {
       jumpY:+(BOSS.jumpY||0).toFixed(2), dashTele:!!BOSS.dashTele,
       inv:BOSS.inv, groggy:+BOSS.groggy.toFixed(2), defeated:!!BOSS.defeated,
       rigRootY:r&&r.root?+r.root.position.y.toFixed(2):null,
+      rotY:r&&r&&BOSS.group?+(BOSS.group.rotation.y).toFixed(2):null,
       armL:r?+r.arms[0].g.rotation.x.toFixed(2):null,
       armR:r&&r.arms[1]?+r.arms[1].g.rotation.x.toFixed(2):null,
+      armZ:r?+r.arms[0].g.rotation.z.toFixed(2):null,
+      elbow:r&&r.arms[0].elbow?+r.arms[0].elbow.rotation.x.toFixed(2):null,
+      wingZ:r&&r.wings[0]?+r.wings[0].g.rotation.z.toFixed(2):null,
+      torsoY:r&&r.torso?+r.torso.rotation.y.toFixed(2):null,
+      jaw:r&&r.jaw?+r.jaw.rotation.x.toFixed(2):null,
+      rootY:r&&r.root?+r.root.position.y.toFixed(2):null,
       armRootY:r&&r.arms[0]?+r.arms[0].g.position.y.toFixed(2):null,
       tail0:r&&r.tail[0]?+r.tail[0].rotation.y.toFixed(2):null,
       legL:r&&r.legs[0]?+r.legs[0].g.rotation.x.toFixed(2):null,
@@ -12580,6 +13172,8 @@ function clearBossRaid(){
   if(BOSS.flying){ BOSS.flying.forEach(b=>{ if(b.g){ scene.remove(b.g); disposeTree(b.g); } }); }
   BOSS.flying=[];
   closeBossWeak();
+  if(typeof clearCurseSwords==='function') clearCurseSwords();
+  if(typeof clearBuffOrbs==='function') clearBuffOrbs();
   state.bomb=null; state.bombT=0;
   if(ui.bombHud) ui.bombHud.classList.remove('on','crit');
 }
@@ -12593,6 +13187,13 @@ function clearBossBullets(){
 }
 
 /* ═══════════════ ① 동력 기둥 ═══════════════ */
+/* v3.2 — 일반 증강 연동: ⚡중력 펄스 → 기둥 뽑기 가속, ⚔️회전 칼날 → 기둥 뽑기 추가 가속 */
+function bossPillarBoost(){
+  let k=1 + 0.22*(state.aug.pulse||0);
+  if(typeof skinUltActive==='function' && skinUltActive('blades')) k+=0.65;
+  if((state.bossPowT||0)>0) k+=0.15;
+  return k;
+}
 function buildBossPillars(n){
   if(BOSS.pillarGroup){ scene.remove(BOSS.pillarGroup); disposeTree(BOSS.pillarGroup); }
   BOSS.pillarGroup=null; BOSS.pillars=[];
@@ -12600,7 +13201,7 @@ function buildBossPillars(n){
   root.position.set(BOSS.pos.x, 0, BOSS.pos.z);
   scene.add(root);
   BOSS.pillarGroup=root;
-  const rad = BOSS.mini ? 25 : 30;
+  const rad = BOSS.mini ? 25 : (ARENA.on ? ARENA_PILLAR_R : 30);
   const h   = BOSS.mini ? 13 : 16;
   for(let i=0;i<n;i++){
     const a=i/n*Math.PI*2 + (BOSS.mini?0.35:0.785);
@@ -12643,6 +13244,7 @@ function updateBossPillars(dt){
   if(!BOSS.pillars.length) return;
   const t=performance.now()*0.001;
   const R=state.R;
+  const boost=bossPillarBoost();
   const root=BOSS.pillarGroup;
   /* 기둥은 보스 몸을 중심으로 따라다닌다 — 보스가 활보하면 기둥도 같이 움직인다 */
   if(root){ root.position.x=BOSS.pos.x; root.position.z=BOSS.pos.z; }
@@ -12673,7 +13275,7 @@ function updateBossPillars(dt){
     const near = d < 9.2;
     const swallow = d < Math.max(9.2, R*1.05+2.6);
     if(near || swallow){
-      p.pull += dt*(swallow && d<R*1.05+2.6 ? 3.0 : 1.35);
+      p.pull += dt*(swallow && d<R*1.05+2.6 ? 3.0 : 1.35)*boost;
       p.sparkT-=dt;
       if(p.sparkT<=0){
         p.sparkT=0.13;
@@ -12700,8 +13302,7 @@ function updateBossPillars(dt){
   }
 }
 
-function pullBossPillar(p){
-  if(p.out) return;
+function pullBossPillar(p){  if(p.out) return;
   p.out=true; p.t=0; p.pull=1;
   BOSS.inv=Math.max(0, BOSS.inv-1);
   const total=BOSS.pillarNeed, got=total-BOSS.inv;
@@ -12737,7 +13338,7 @@ function bossFireVolley(){
   try{ popupAt(new THREE.Vector3(BOSS.pos.x, 18, BOSS.pos.z), '🟡 흡수 폭탄 발사!', '#ffe45c'); }catch(e){}
 }
 
-function spawnBossBomb(){
+function spawnBossBomb(atX, atZ){
   if(!BOSS.group || BOSS.defeated) return;
   const g=new THREE.Group();
   const core=new THREE.Mesh(new THREE.SphereGeometry(1.9,14,12), basicMat(0xffe45c));
@@ -12752,7 +13353,9 @@ function spawnBossBomb(){
       blending:THREE.AdditiveBlending, depthWrite:false}));
   halo.rotation.x=Math.PI/2.6; g.add(halo);
   const a=RNG()*6.283;
-  g.position.set(BOSS.pos.x+Math.cos(a)*9, 6.4, BOSS.pos.z+Math.sin(a)*9);
+  const sx=(typeof atX==='number')?atX:BOSS.pos.x+Math.cos(a)*9;
+  const sz=(typeof atZ==='number')?atZ:BOSS.pos.z+Math.sin(a)*9;
+  g.position.set(sx, 6.4, sz);
   scene.add(g);
   BOSS.bombs.push({g:g, core:core, glow:glow, ring:ring, halo:halo, life:0, bob:RNG()*6.283});
   spawnPoof(g.position.x, g.position.z, 0xffd34d, 6);
@@ -12799,14 +13402,14 @@ function updateBossBullets(dt){
     const g=b.g;
     const dx=player.pos.x-g.position.x, dz=player.pos.z-g.position.z;
     const d=Math.hypot(dx,dz)||1;
-    const sp=8.4+Math.min(4.5, b.life*0.30);
+    const sp=8.4+Math.min(4.5, b.life*0.30) + (state.aug.magnet||0)*1.15;   /* 🧲 중력 자석: 폭탄 자석 */
     if(d>1.0){ g.position.x += dx/d*sp*dt; g.position.z += dz/d*sp*dt; }
     g.position.y = 5.2 + Math.sin(t*4.2+b.bob)*0.75;
     g.rotation.y += dt*2.1;
     b.ring.rotation.z += dt*3.4;
     b.halo.rotation.z -= dt*2.2;
     b.core.scale.setScalar(1+0.09*Math.sin(t*11+b.bob));
-    const reach=Math.max(5.2, state.R*0.95+1.8);
+    const reach=Math.max(5.2, state.R*0.95+1.8) + (state.aug.magnet||0)*0.45;
     if(d < reach){ absorbBossBomb(b); removeAt(BOSS.bombs,i); continue; }
     if(b.life>13){
       spawnPoof(g.position.x, g.position.z, 0xffd34d, 8);
@@ -12930,6 +13533,292 @@ function launchBomb(src){
   return true;
 }
 
+/* ═══════════════ ③-2 🗡️ 저주 마검 역공 ═══════════════
+   보스가 점프 찍기/효오 때 결투장 바닥에 거대한 붉은 저주 마검을 1~2개 꽂아 둔다.
+   플레이어가 다가가 0.6초 머물며 삼키면 그 검이 보스에게 날아가 박히며
+   보스 그로기(또는 약점 1입 분량)를 만든다. */
+const CURSE = {list:[], cd:8.0, max:3};
+function buildCurseSwordGroup(){
+  const g=new THREE.Group();
+  const bladeM=mat(0x3d0710,{emissive:0x6a0616}), darkM=mat(0x170306,{emissive:0x2a0208});
+  const glow=basicMat(0xff2a3a);
+  /* 칼날 — 땅에 박힌 채 하늘로 솟는다 */
+  const blade=box(2.6,21,0.55,bladeM); blade.position.y=10.5; g.add(blade);
+  const spine=box(0.62,20.4,0.66,glow); spine.userData.noFade=true; spine.position.y=10.5; g.add(spine);
+  const tip=cone(1.35,5.2,4,bladeM); tip.position.y=23.6; g.add(tip);
+  const tipGlow=sphereGlow(2.4,0xff2a3a,0.8); tipGlow.position.y=25.2; g.add(tipGlow);
+  /* 칼날 홈의 저주 룬 */
+  for(let i=0;i<6;i++){
+    const r=box(1.0,0.9,0.72,glow); r.userData.noFade=true;
+    r.position.set(0, 3.4+i*3.0, 0.02); r.rotation.z=(i%2?0.6:-0.6); g.add(r);
+  }
+  /* 가드 — 거대한 붉은 십자 */
+  const guard=box(11.5,1.9,1.7,darkM); guard.position.y=1.2; g.add(guard);
+  const guardGlow=box(11.9,0.5,1.8,glow); guardGlow.userData.noFade=true; guardGlow.position.y=1.2; g.add(guardGlow);
+  [-1,1].forEach(s=>{
+    const horn=cone(0.9,4.6,4,darkM); horn.position.set(s*6.5,1.5,0);
+    horn.rotation.z=-s*1.15; g.add(horn);
+  });
+  /* 바닥 저주 마법진 · 붉은 기둥 */
+  const ring=new THREE.Mesh(new THREE.TorusGeometry(5.6,0.30,6,40),
+    new THREE.MeshBasicMaterial({color:C(0xff1f36), transparent:true, opacity:0.7,
+      blending:THREE.AdditiveBlending, depthWrite:false}));
+  ring.rotation.x=-Math.PI/2; ring.position.y=0.14; g.add(ring);
+  const ring2=new THREE.Mesh(new THREE.TorusGeometry(3.4,0.16,6,32),
+    new THREE.MeshBasicMaterial({color:C(0xff7a8a), transparent:true, opacity:0.5,
+      blending:THREE.AdditiveBlending, depthWrite:false}));
+  ring2.rotation.x=-Math.PI/2; ring2.position.y=0.20; g.add(ring2);
+  const beam=new THREE.Mesh(new THREE.CylinderGeometry(1.3,2.6,40,8,1,true),
+    new THREE.MeshBasicMaterial({color:C(0xff1f36), transparent:true, opacity:0.08,
+      blending:THREE.AdditiveBlending, depthWrite:false, side:THREE.DoubleSide}));
+  beam.position.y=20; g.add(beam);
+  g.userData.parts={ring:ring, ring2:ring2, tipGlow:tipGlow, beam:beam};
+  return g;
+}
+function bossTryCurseSwords(n){
+  if(!BOSS.revealed || !BOSS.alive || BOSS.defeated || BOSS.mini) return 0;
+  if(typeof ARENA==='undefined' || !ARENA.on) return 0;
+  if((CURSE.cd||0)>0) return 0;
+  CURSE.cd=11.0;
+  return spawnCurseSwords(n||1);
+}
+function spawnCurseSwords(n){
+  let made=0;
+  for(let i=0;i<n && CURSE.list.length<CURSE.max;i++){
+    let x=0, z=0, ok=false;
+    for(let t=0;t<24 && !ok;t++){
+      const a=RNG()*6.283, r=rnd(15, ARENA.r*0.70);
+      x=ARENA.cx+Math.cos(a)*r; z=ARENA.cz+Math.sin(a)*r;
+      if(Math.hypot(x-player.pos.x, z-player.pos.z) < 14) continue;
+      if(Math.hypot(x-BOSS.pos.x, z-BOSS.pos.z) < 12) continue;
+      ok=true;
+    }
+    if(!ok) continue;
+    const g=buildCurseSwordGroup();
+    g.position.set(x,0,z);
+    g.rotation.y=RNG()*6.283; g.rotation.z=rnd(-0.09,0.09); g.rotation.x=rnd(-0.09,0.09);
+    scene.add(g);
+    CURSE.list.push({group:g, x:x, z:z, pull:0, out:false, t:0, sparkT:0, spin:RNG()*6.283});
+    spawnPoof(x, z, 0xff2a3a, 10);
+    made++;
+  }
+  if(made){
+    showToast('🗡️ 저주 마검이 꽂혔다', '다가가 삼키면(0.6초) 보스에게 역공 — 그로기 찬스', '#ff5a5a');
+    Sound.bossAlert(); state.shake=Math.max(state.shake,0.4);
+  }
+  return made;
+}
+function launchCurseSword(sw){
+  sw.out=true; sw.t=0;
+  Sound.boom(); Sound.zap(); vibrate([40,30,90]);
+  state.shake=Math.max(state.shake,0.55); state.flash=Math.max(state.flash,0.26);
+  bossRing(sw.x, sw.z, 0xff2a3a, 16, 0.8);
+  spawnPoof(sw.x, sw.z, 0xff2a3a, 14);
+  showToast('🗡️ 저주 마검 역공!', '검이 보스를 항해 날아간다', '#ff5a5a');
+  state.curseThrows=(state.curseThrows||0)+1;
+}
+function curseSwordStrike(){
+  if(!BOSS.alive || BOSS.defeated) return;
+  state.curseHits=(state.curseHits||0)+1;
+  bossRing(BOSS.pos.x, BOSS.pos.z, 0xff2a3a, 34, 1.1);
+  bossRing(BOSS.pos.x, BOSS.pos.z, 0xffd34d, 22, 0.9);
+  spawnPoof(BOSS.pos.x, BOSS.pos.z, 0xff2a3a, 18);
+  for(let i=0;i<12;i++){
+    spawnSpark(new THREE.Vector3(BOSS.pos.x+rnd(-6,6), 4+rnd(0,12), BOSS.pos.z+rnd(-6,6)),
+      i%2?0xff2a3a:0xffd34d, 0.55, 0.5);
+  }
+  Sound.boom(); Sound.bossAlert(); vibrate([60,40,120]);
+  state.shake=Math.max(state.shake,1.0); state.flash=Math.max(state.flash,0.5);
+  popupAt(new THREE.Vector3(BOSS.pos.x, 14, BOSS.pos.z), '🗡️ 저주 마검!', '#ff5a5a');
+  if(BOSS.inv>0){
+    /* 무적이 남아 있으면 그로기 대신 큰 경직 + 점수 (약점 1입 분량 보상) */
+    BOSS.groggy=Math.max(BOSS.groggy, 2.0); BOSS.stagger=BOSS.groggy; BOSS.hitCd=0;
+    BOSS.groggyK=0;
+    state.score += Math.round(1600*scoreMul());
+    state.mass += 2.0; recalcR();
+    showToast('🗡️ 저주 마검 명중!', '보스가 휘청인다 — 동력 기둥 '+BOSS.inv+'개를 먼저 뽑아라', '#ff5a5a');
+  } else {
+    state.score += Math.round(2600*scoreMul());
+    bossGroggy();
+    showToast('🗡️ 저주 마검 명중!', '보스 그로기 — 등 뒤 약점을 갉아먹어라', '#ff5a5a');
+  }
+}
+function updateCurseSwords(dt){
+  CURSE.cd=Math.max(0,(CURSE.cd||0)-dt);
+  if(!CURSE.list.length) return;
+  const t=performance.now()*0.001;
+  const R=state.R;
+  for(let i=CURSE.list.length-1;i>=0;i--){
+    const sw=CURSE.list[i];
+    const parts=sw.group.userData.parts||{};
+    if(sw.out){
+      sw.t+=dt;
+      const k=Math.min(1, sw.t/0.42), e=k*k;
+      sw.group.position.x=sw.x+(BOSS.pos.x-sw.x)*e;
+      sw.group.position.z=sw.z+(BOSS.pos.z-sw.z)*e;
+      sw.group.position.y=Math.sin(k*Math.PI)*7.0;
+      sw.group.rotation.y+=dt*13;
+      sw.group.rotation.x=Math.PI*0.5*e;
+      sw.group.scale.setScalar(Math.max(0.4, 1-k*0.45));
+      if(k>=1){
+        curseSwordStrike();
+        scene.remove(sw.group); disposeTree(sw.group);
+        CURSE.list.splice(i,1);
+      }
+      continue;
+    }
+    /* 대기 연출 */
+    sw.group.position.y=Math.sin(t*1.6+sw.spin)*0.10;
+    if(parts.ring){ parts.ring.material.opacity=0.45+0.30*Math.sin(t*3.1+sw.spin); parts.ring.rotation.z+=dt*0.6; }
+    if(parts.ring2){ parts.ring2.material.opacity=0.28+0.22*Math.sin(t*4.2+sw.spin); parts.ring2.rotation.z-=dt*0.9; }
+    if(parts.tipGlow){ parts.tipGlow.material.opacity=0.42+0.30*Math.abs(Math.sin(t*2.6+sw.spin)); }
+    if(parts.beam){ parts.beam.material.opacity=0.06+0.04*Math.sin(t*1.9+sw.spin); }
+    const d=Math.hypot(player.pos.x-sw.x, player.pos.z-sw.z);
+    const swallow=d < R*1.05+3.0;
+    if(d < Math.max(9.5, R*1.05+3.0)){
+      sw.pull += dt*(swallow?1.7:1.0)/0.6;          /* 0.6초 머물면 뽑힌다 (삼키면 더 빠르게) */
+      sw.sparkT-=dt;
+      if(sw.sparkT<=0){
+        sw.sparkT=0.12;
+        spawnSpark(new THREE.Vector3(sw.x+rnd(-2,2), 1.2+rnd(0,4), sw.z+rnd(-2,2)), 0xff2a3a, 0.42, 0.34);
+      }
+      if(sw.pull>=1){ launchCurseSword(sw); continue; }
+    } else {
+      sw.pull=Math.max(0, sw.pull-dt*0.8);
+    }
+    if(parts.ring) parts.ring.scale.setScalar(1+0.10*Math.min(1,sw.pull));
+  }
+}
+function clearCurseSwords(){
+  CURSE.list.forEach(sw=>{ if(sw.group){ scene.remove(sw.group); disposeTree(sw.group); } });
+  CURSE.list.length=0; CURSE.cd=8.0;
+}
+
+/* ═══════════════ ④ 바닥 버프 구슬 (11초마다) ═══════════════ */
+const BOSS_BUFFS = {
+  shield:{emoji:'🛡️', name:'방어막 1회', col:0x9bf24b, css:'#9bf24b'},
+  speed: {emoji:'⚡', name:'5초 광속',  col:0xffd34d, css:'#ffd34d'},
+  power: {emoji:'🔥', name:'폭탄·약점 강화', col:0xff8a3a, css:'#ff8a3a'}
+};
+const BOSS_ORB_TYPES=['shield','speed','power'];
+const BUFF = {list:[], t:11.0, gap:11.0, got:0, last:null};
+let ORB_EMOJI_TEX={};
+function orbEmojiTex(em){
+  if(ORB_EMOJI_TEX[em]) return ORB_EMOJI_TEX[em];
+  const cv=document.createElement('canvas'); cv.width=cv.height=128;
+  const gg=cv.getContext('2d');
+  gg.clearRect(0,0,128,128);
+  gg.font='84px "Apple Color Emoji","Noto Color Emoji",sans-serif';
+  gg.textAlign='center'; gg.textBaseline='middle';
+  gg.fillText(em, 64, 68);
+  const t=new THREE.CanvasTexture(cv); t.encoding=THREE.sRGBEncoding;
+  ORB_EMOJI_TEX[em]=t; return t;
+}
+function spawnBuffOrb(type){
+  if(typeof ARENA==='undefined' || !ARENA.on) return null;
+  const ty=type||BOSS_ORB_TYPES[Math.floor(RNG()*BOSS_ORB_TYPES.length)];
+  const cfg=BOSS_BUFFS[ty]||BOSS_BUFFS.shield;
+  let x=0, z=0;
+  for(let t=0;t<20;t++){
+    const a=RNG()*6.283, r=rnd(10, ARENA.r*0.68);
+    x=ARENA.cx+Math.cos(a)*r; z=ARENA.cz+Math.sin(a)*r;
+    if(Math.hypot(x-player.pos.x, z-player.pos.z) > 12) break;
+  }
+  const g=new THREE.Group();
+  const core=new THREE.Mesh(new THREE.SphereGeometry(2.1,14,12), basicMat(cfg.col));
+  core.userData.noFade=true; g.add(core);
+  const glow=sphereGlow(4.2, cfg.col, 0.8); g.add(glow);
+  const r1=new THREE.Mesh(new THREE.TorusGeometry(3.2,0.20,6,30),
+    new THREE.MeshBasicMaterial({color:C(0xffffff), transparent:true, opacity:0.85,
+      blending:THREE.AdditiveBlending, depthWrite:false}));
+  r1.rotation.x=Math.PI/2; g.add(r1);
+  const r2=new THREE.Mesh(new THREE.TorusGeometry(4.0,0.12,6,30),
+    new THREE.MeshBasicMaterial({color:C(cfg.col), transparent:true, opacity:0.6,
+      blending:THREE.AdditiveBlending, depthWrite:false}));
+  r2.rotation.x=Math.PI/2.4; g.add(r2);
+  const beam=new THREE.Mesh(new THREE.CylinderGeometry(1.5,3.0,34,8,1,true),
+    new THREE.MeshBasicMaterial({color:C(cfg.col), transparent:true, opacity:0.10,
+      blending:THREE.AdditiveBlending, depthWrite:false, side:THREE.DoubleSide}));
+  beam.position.y=17; g.add(beam);
+  const spr=new THREE.Sprite(new THREE.SpriteMaterial({map:orbEmojiTex(cfg.emoji), transparent:true,
+    depthTest:false, depthWrite:false}));
+  spr.scale.set(4.4,4.4,1); spr.position.y=5.0; spr.renderOrder=30; g.add(spr);
+  g.position.set(x, 3.2, z);
+  scene.add(g);
+  spawnPoof(x, z, cfg.col, 8);
+  BUFF.list.push({g:g, core:core, glow:glow, r1:r1, r2:r2, spr:spr, type:ty, x:x, z:z, t:0, bob:RNG()*6.283, cfg:cfg});
+  return ty;
+}
+function grabBuffOrb(o){
+  BUFF.got++; BUFF.last=o.type;
+  state.buffOrbLast=o.type;
+  if(o.type==='shield'){
+    state.buffShield=Math.min(3,(state.buffShield||0)+1);
+    showToast('🛡️ 방어막 구슬!', '하트 피해 1회를 대신 막아준다 ('+state.buffShield+'회)', '#9bf24b');
+  } else if(o.type==='speed'){
+    state.speedBuffT=5.0;
+    showToast('⚡ 5초 광속!', '이동 속도가 폭증한다', '#ffd34d');
+  } else {
+    state.bossPowT=8.0;
+    showToast('🔥 폭탄·약점 강화!', '폭탄 그로기 연장 · 약점 갉아먹기 2입', '#ff8a3a');
+  }
+  Sound.jackpot(); vibrate([25,35,25]);
+  state.flash=Math.max(state.flash,0.34); state.shake=Math.max(state.shake,0.35);
+  spawnRipple(o.cfg.col, state.R*1.8, true);
+  bossRing(o.x, o.z, o.cfg.col, 14, 0.7);
+  for(let i=0;i<10;i++){
+    spawnSpark(new THREE.Vector3(o.x+rnd(-3,3), 2.2+rnd(0,3), o.z+rnd(-3,3)), o.cfg.col, 0.45, 0.4);
+  }
+  popupAt(new THREE.Vector3(o.x, 4, o.z), o.cfg.emoji+' '+o.cfg.name, o.cfg.css);
+}
+function updateBossOrbs(dt){
+  const t=performance.now()*0.001;
+  for(let i=BUFF.list.length-1;i>=0;i--){
+    const o=BUFF.list[i];
+    o.t+=dt;
+    o.g.position.y=3.2+Math.sin(t*2.4+o.bob)*0.6;
+    o.core.scale.setScalar(1+0.10*Math.sin(t*7+o.bob));
+    o.r1.rotation.z+=dt*2.6; o.r2.rotation.z-=dt*1.8;
+    o.glow.material.opacity=0.55+0.28*Math.abs(Math.sin(t*4.4+o.bob));
+    o.spr.position.y=5.0+Math.sin(t*3.0+o.bob)*0.4;
+    const d=Math.hypot(player.pos.x-o.x, player.pos.z-o.z);
+    if(d < Math.max(7.0, state.R*0.95+1.8)){
+      grabBuffOrb(o);
+      scene.remove(o.g); disposeTree(o.g);
+      BUFF.list.splice(i,1);
+      continue;
+    }
+    if(o.t>22){
+      spawnPoof(o.x, o.z, o.cfg.col, 6);
+      scene.remove(o.g); disposeTree(o.g);
+      BUFF.list.splice(i,1);
+    }
+  }
+  /* 결투장에서만 — 11초마다 1개 */
+  if(typeof ARENA!=='undefined' && ARENA.on && BOSS.alive && !BOSS.defeated){
+    BUFF.t-=dt;
+    if(BUFF.t<=0){
+      BUFF.t=BUFF.gap;
+      if(BUFF.list.length<3) spawnBuffOrb();
+    }
+  }
+}
+function clearBuffOrbs(){
+  BUFF.list.forEach(o=>{ if(o.g){ scene.remove(o.g); disposeTree(o.g); } });
+  BUFF.list.length=0; BUFF.t=BUFF.gap;
+}
+function updateBuffBar(){
+  const el=ui.buffBar; if(!el) return;
+  const rows=[];
+  if(state.justDodgeT>0) rows.push('<div class="buffChip" style="border-color:#57e6ff;color:#57e6ff">⚡ 저스트 회피 '+state.justDodgeT.toFixed(1)+'s</div>');
+  if(state.speedBuffT>0) rows.push('<div class="buffChip" style="border-color:#ffd34d;color:#ffd34d">⚡ 광속 '+state.speedBuffT.toFixed(1)+'s</div>');
+  if(state.bossPowT>0) rows.push('<div class="buffChip" style="border-color:#ff8a3a;color:#ff8a3a">🔥 강화 '+state.bossPowT.toFixed(1)+'s</div>');
+  if((state.buffShield||0)>0) rows.push('<div class="buffChip" style="border-color:#9bf24b;color:#9bf24b">🛡️ 방어막 '+state.buffShield+'</div>');
+  const html=rows.join('');
+  if(el.__h!==html){ el.innerHTML=html; el.__h=html; }
+  el.classList.toggle('on', rows.length>0);
+}
+
 /* ═══════════════ ③ 그로기 · 약점 갉아먹기 ═══════════════ */
 function bossGroggy(){
   if(!BOSS.alive || BOSS.defeated) return;
@@ -12942,7 +13831,7 @@ function bossGroggy(){
     showToast('🛡️ 폭탄이 튕겨졌다!', '동력 기둥 '+BOSS.inv+'개를 먼저 뽑아 무적을 풀어라', '#9fe8ff');
     return;
   }
-  BOSS.groggy=BOSS.groggyDur;
+  BOSS.groggy=BOSS.groggyDur + ((state.bossPowT||0)>0 ? 2.0 : 0);   /* 🔥 강화 구을: 그로기 연장 */
   BOSS.stagger=BOSS.groggy;
   BOSS.hitCd=0;
   if(BOSS.bombs.length){ BOSS.bombs.forEach(b=>{ if(b.g){ scene.remove(b.g); disposeTree(b.g); } }); }
@@ -13013,11 +13902,13 @@ function updateBossWeak(dt){
 
 function bossBite(){
   if(BOSS.defeated) return;
-  BOSS.bites++;
+  const pow=((state.bossPowT||0)>0);
+  const n=pow?2:1;                     /* 🔥 폭탄·약점 강화 구을: 1회에 2입 */
+  BOSS.bites+=n;
   BOSS.biteCd=0.55;
   BOSS.scaleMul=Math.max(0.34, 1 - BOSS.bites*0.165);
-  state.score += Math.round(2600*scoreMul());
-  state.mass += 8; recalcR();
+  state.score += Math.round(2600*scoreMul())*(pow?1.6:1);
+  state.mass += 8*(pow?1.5:1); recalcR();
   gainXP(420);
   Sound.jackpot(); Sound.boom(); vibrate([50,40,110]);
   state.shake=Math.max(state.shake,0.95);
@@ -13058,7 +13949,10 @@ function bossDefeat(){
 }
 
 /* ═══════════════ 5스테이지 — 1:1 원형 결투장 ═══════════════ */
-const ARENA = {on:false, active:false, cx:0, cz:0, r:46, t:0, dur:2.2, cleared:false, fxT:0, group:null};
+/* v3.2 — 결투장 반경 46m → 72m (바닥·결계 링·포스트·기둥 반경을 비례 확장) */
+const ARENA_R = 72;
+const ARENA_PILLAR_R = Math.round(30 * (ARENA_R / 46));   /* 30m → 47m */
+const ARENA = {on:false, active:false, cx:0, cz:0, r:72, t:0, dur:2.2, cleared:false, fxT:0, group:null};
 const ARENA_COLORS = {
   sunny:{a:0x9fe8ff,b:0x2a4a7a}, beach:{a:0x7fe4ff,b:0x0a5f9e}, neon:{a:0x57e6ff,b:0xb06bff},
   port:{a:0xff8a2a,b:0x6a3010}, autumn:{a:0xffb347,b:0xc0531a}, snow:{a:0xffffff,b:0x9fe8ff},
@@ -13127,7 +14021,7 @@ function buildArenaFloor(){
   const col=ARENA_COLORS[theme.id]||ARENA_COLORS.sunny;
   const g=new THREE.Group();
   /* 결투장 밖은 어둠 — 도시가 통째로 지워진 느낌 */
-  const voidDisc=new THREE.Mesh(new THREE.CircleGeometry(160, 60),
+  const voidDisc=new THREE.Mesh(new THREE.CircleGeometry(ARENA.r+120, 60),
     new THREE.MeshBasicMaterial({map:arenaVoidTexture(theme.id), transparent:true, depthWrite:false}));
   voidDisc.rotation.x=-Math.PI/2; voidDisc.position.y=0.045; voidDisc.renderOrder=3; g.add(voidDisc);
   const floor=new THREE.Mesh(new THREE.CircleGeometry(ARENA.r, 72),
@@ -13142,13 +14036,13 @@ function buildArenaFloor(){
   const wall=new THREE.Mesh(new THREE.CylinderGeometry(ARENA.r, ARENA.r, 24, 80, 1, true),
     new THREE.MeshBasicMaterial({color:C(col.a), transparent:true, opacity:0.16,
       blending:THREE.AdditiveBlending, depthWrite:false, side:THREE.DoubleSide}));
-  wall.position.y=12; g.add(wall);
+  wall.position.y=12; g.add(wall); ARENA.wallMat=wall.material;
   const rim=new THREE.Mesh(new THREE.TorusGeometry(ARENA.r, 0.16, 6, 90),
     new THREE.MeshBasicMaterial({color:C(col.a), transparent:true, opacity:0.55,
       blending:THREE.AdditiveBlending, depthWrite:false}));
   rim.rotation.x=-Math.PI/2; rim.position.y=23.6; g.add(rim);
-  for(let i=0;i<10;i++){
-    const a=i/10*Math.PI*2;
+  for(let i=0;i<14;i++){
+    const a=i/14*Math.PI*2;
     const post=cyl(0.55,0.75,9,6,mat(0x1a1626));
     post.position.set(Math.cos(a)*(ARENA.r-1.2), 4.5, Math.sin(a)*(ARENA.r-1.2)); g.add(post);
     const lamp=sphereGlow(1.1, i%2?col.a:col.b, 0.85);
@@ -13172,6 +14066,10 @@ function updateArenaGroup(dt){
 
 function resetArena(){
   ARENA.on=false; ARENA.active=false; ARENA.t=0; ARENA.cleared=false; ARENA.fxT=0;
+  ARENA.built=false; ARENA.collapse=null; ARENA.collapseInit=false; ARENA.cityCleared=false;
+  ARENA.wallMat=null;
+  if(typeof clearCurseSwords==='function') clearCurseSwords();
+  if(typeof clearBuffOrbs==='function') clearBuffOrbs();
   if(ARENA.group){ scene.remove(ARENA.group); disposeTree(ARENA.group); ARENA.group=null; }
   const fx=document.getElementById('arenaFx');
   if(fx){ fx.classList.remove('on'); fx.className=''; }
@@ -13212,8 +14110,12 @@ function clearCityForArena(){
 function startArenaTransition(){
   if(ARENA.active || BOSS.arenaStarted || BOSS.revealed) return;
   BOSS.arenaStarted=true;
-  ARENA.active=true; ARENA.on=false; ARENA.cleared=false; ARENA.fxT=0; ARENA.t=0; ARENA.dur=2.2;
-  ARENA.cx=0; ARENA.cz=0; ARENA.r=46;
+  ARENA.active=true; ARENA.on=false; ARENA.cleared=false; ARENA.fxT=0; ARENA.t=0; ARENA.dur=2.4;
+  /* 결투장 중심을 플레이어-보스 사이에 놓는다 — 플레이어는 순간이동하지 않는다 */
+  ARENA.cx=(player.pos.x + BOSS.pos.x)*0.5;
+  ARENA.cz=(player.pos.z + BOSS.pos.z)*0.5;
+  ARENA.r=ARENA_R;
+  ARENA.built=false; ARENA.collapse=null; ARENA.collapseInit=false;
   state.mode='arena';
   state.input.x=0; state.input.z=0; state.velocity.set(0,0);
   state.bomb=null; state.bombT=0;
@@ -13231,13 +14133,127 @@ function startArenaTransition(){
   }
   appEl.classList.add('cut');
   Sound.bossArrival();
-  state.flash=Math.max(state.flash,0.7);
-  state.shake=Math.max(state.shake,1.1);
+  state.flash=Math.max(state.flash,0.35);
+  state.shake=Math.max(state.shake,0.9);
   camState.init=false;
   const col=(ARENA_COLORS[theme.id]||ARENA_COLORS.sunny);
-  bossRing(0,0,col.a, 60, 1.6);
-  bossRing(0,0,0xffffff, 34, 1.1);
-  showToast('⚔️ 1:1 결투장', theme.emoji+' 도시가 사라지고 결투장이 열린다', '#ffd34d');
+  bossRing(ARENA.cx, ARENA.cz, col.a, 60, 1.6);
+  bossRing(ARENA.cx, ARENA.cz, 0xffffff, 34, 1.1);
+  showToast('⚔️ 1:1 결투장', theme.emoji+' 도시가 무너지고 결투장이 솟아오른다', '#ffd34d');
+}
+
+/* ── 도시 붕괴: 외곽부터 안쪽으로 차례로 흔들리며 바닥 아래로 가라앉아 폭발 ── */
+function prepArenaCollapse(){
+  const cx=ARENA.cx, cz=ARENA.cz;
+  ARENA.collapse=[];
+  let maxD=1;
+  objects.forEach(o=>{
+    if(!o || !o.alive || !o.group) return;
+    const d=Math.hypot(o.group.position.x-cx, o.group.position.z-cz);
+    if(d>maxD) maxD=d;
+  });
+  objects.forEach(o=>{
+    if(!o || !o.alive || !o.group) return;
+    const d=Math.hypot(o.group.position.x-cx, o.group.position.z-cz);
+    const k=clamp(d/maxD, 0, 1);                 /* 1 = 가장 바깥 */
+    o.collapseAt = 0.06 + (1-k)*1.50 + RNG()*0.12;  /* 외곽 먼저 → 안쪽 나중 */
+    o.collapseBase = o.group.position.y||0;
+    o.collapseShake = RNG()*6.283;
+    o.collapseDrop = Math.max(6, (o.top||8)*1.15);
+    ARENA.collapse.push(o);
+  });
+  cars.forEach(c=>{
+    if(!c || !c.alive || !c.group) return;
+    const d=Math.hypot(c.group.position.x-cx, c.group.position.z-cz);
+    const k=clamp(d/maxD, 0, 1);
+    c.collapseAt = 0.06 + (1-k)*1.45 + RNG()*0.12;
+    c.collapseBase = c.group.position.y||0;
+    c.collapseShake = RNG()*6.283;
+    c.collapseDrop = 8;
+    ARENA.collapse.push(c);
+  });
+  /* 무거운 부품을 그 자리에서 지우지 않고, 아래로 가라않게 한다 */
+}
+function collapseObject(o){
+  const g=o.group;
+  const p=g?g.position:null;
+  if(p){
+    const col=(o.tier>=5)?0xffd34d:(o.tier>=4)?0xff9a6a:(o.tier>=3)?0x9bf24b:0xc9d6e4;
+    if(Math.random()<0.55){
+      spawnPoof(p.x, p.z, col, 6+(o.tier||1)*2);
+      spawnSpark(new THREE.Vector3(p.x, 1.2, p.z), col, 0.55+(o.tier||1)*0.12, 0.42);
+    }
+    if((o.tier||1)>=4 && Math.random()<0.6) spawnRipple(col, Math.max(4,(o.eatR||2)*1.6), false);
+  }
+  o.alive=false;
+  if(g && g.parent) g.parent.remove(g);
+  if(g) disposeTree(g);
+  const k=objects.indexOf(o); if(k>=0) objects.splice(k,1);
+  const ci=cars.indexOf(o); if(ci>=0) cars.splice(ci,1);
+  const bi=cameraBlockers.indexOf(o); if(bi>=0) cameraBlockers.splice(bi,1);
+}
+function updateArenaCollapse(dt){
+  const list=ARENA.collapse;
+  if(!list || !list.length) return;
+  const t=ARENA.t;
+  for(let i=list.length-1;i>=0;i--){
+    const o=list[i];
+    if(!o || !o.alive || !o.group){ list.splice(i,1); continue; }
+    if(t < o.collapseAt) continue;
+    const k=clamp((t-o.collapseAt)/0.38, 0, 1);
+    /* 흔들리다가 점점 빠르게 바닥 아래로 빨려 들어간다 */
+    o.group.position.y = o.collapseBase - Math.pow(k,1.7)*(o.collapseDrop||10) - k*4;
+    o.group.rotation.z = Math.sin(t*26 + o.collapseShake)*0.055*k;
+    o.group.rotation.x = Math.cos(t*22 + o.collapseShake)*0.045*k;
+    if(k>=1){ collapseObject(o); list.splice(i,1); }
+  }
+  /* 시간이 다 되면 남은 것은 억지로 정리 */
+  if(t>2.15 && list.length){
+    for(let i=0;i<list.length;i++) collapseObject(list[i]);
+    list.length=0;
+  }
+}
+
+function updateArenaTransition(dt){
+  if(!ARENA.active) return;
+  ARENA.t+=dt;
+  const t=ARENA.t;
+  ARENA.fxT-=dt;
+  if(t<2.2 && ARENA.fxT<=0){ ARENA.fxT=0.13; spawnArenaSweep(); }
+  /* ① 3D 도시 붕괴 — 화면을 가리지 않고 실제 오브젝트가 무너진다 */
+  if(!ARENA.collapseInit){ ARENA.collapseInit=true; prepArenaCollapse(); }
+  updateArenaCollapse(dt);
+  if(t<1.9) state.shake=Math.max(state.shake, 0.35+0.5*Math.min(1,t/1.2));
+
+  /* ② 1.0~2.4초: 결투장 바닥·결계 벽이 중심에서 스케일 0.05 → 1.0 으로 펄쳐 솟는다 */
+  if(!ARENA.built && t>=1.0){
+    ARENA.built=true; ARENA.cleared=true;
+    buildArenaFloor();
+    if(ARENA.group){ ARENA.group.scale.setScalar(0.05); }
+    ARENA.on=true;
+    /* 보스는 결투장 중앙으로 들어와 강림한다 (플레이어는 제자리) */
+    BOSS.pos.set(ARENA.cx,0,ARENA.cz);
+    if(BOSS.group) BOSS.group.position.set(ARENA.cx,0,ARENA.cz);
+    triggerBossArrival(ARENA.cx, ARENA.cz);
+    state.velocity.set(0,0);
+    updateHoleVisual(player);
+    state.flash=Math.max(state.flash,0.45);
+    state.shake=Math.max(state.shake,1.0);
+    Sound.boom();
+    bossRing(ARENA.cx, ARENA.cz, 0xffd34d, 30, 1.2);
+    for(let i=0;i<8;i++){ const a=i/8*Math.PI*2; bossRing(ARENA.cx+Math.cos(a)*(ARENA.r*0.8), ARENA.cz+Math.sin(a)*(ARENA.r*0.8), 0xffd34d, 18, 1.0); }
+  }
+  if(ARENA.built && ARENA.group){
+    const k=clamp((t-1.0)/1.4, 0, 1);
+    const e=easeOut3(k);
+    const s=lerp(0.05, 1.0, e);
+    ARENA.group.scale.setScalar(s);
+    ARENA.group.position.y = (1-e)*5.5;
+    if(ARENA.wallMat) ARENA.wallMat.opacity = 0.16*e;
+  }
+  /* 결투장 바닥이 깔린 뒤 도시 셀/리스폰·방어군 정리 */
+  if(t>=2.15 && !ARENA.cityCleared){ ARENA.cityCleared=true; clearCityForArena(); }
+  if(t>=ARENA.dur) endArenaTransition();
 }
 
 function spawnArenaSweep(){
@@ -13264,23 +14280,40 @@ function updateArenaTransition(dt){
   ARENA.t+=dt;
   const t=ARENA.t;
   ARENA.fxT-=dt;
-  if(t<1.7 && ARENA.fxT<=0){ ARENA.fxT=0.14; spawnArenaSweep(); }
-  if(!ARENA.cleared && t>=0.55){
-    ARENA.cleared=true;
-    clearCityForArena();
+  if(t<2.2 && ARENA.fxT<=0){ ARENA.fxT=0.13; spawnArenaSweep(); }
+  /* ① 3D 도시 붕괴 — 화면을 가리지 않고 실제 오브젝트가 무너진다 */
+  if(!ARENA.collapseInit){ ARENA.collapseInit=true; prepArenaCollapse(); }
+  updateArenaCollapse(dt);
+  if(t<1.9) state.shake=Math.max(state.shake, 0.35+0.5*Math.min(1,t/1.2));
+
+  /* ② 1.0~2.4초: 결투장 바닥·결계 벽이 중심에서 스케일 0.05 → 1.0 으로 펄쳐 솟는다 */
+  if(!ARENA.built && t>=1.0){
+    ARENA.built=true; ARENA.cleared=true;
     buildArenaFloor();
-    player.pos.set(ARENA.cx, 0, ARENA.cz+34);
-    state.velocity.set(0,0);
-    updateHoleVisual(player);
+    if(ARENA.group){ ARENA.group.scale.setScalar(0.05); }
+    ARENA.on=true;
+    /* 보스는 결투장 중앙으로 들어와 강림한다 (플레이어는 제자리) */
     BOSS.pos.set(ARENA.cx,0,ARENA.cz);
     if(BOSS.group) BOSS.group.position.set(ARENA.cx,0,ARENA.cz);
-    ARENA.on=true;
     triggerBossArrival(ARENA.cx, ARENA.cz);
-    state.flash=Math.max(state.flash,0.6);
-    state.shake=Math.max(state.shake,1.3);
+    state.velocity.set(0,0);
+    updateHoleVisual(player);
+    state.flash=Math.max(state.flash,0.45);
+    state.shake=Math.max(state.shake,1.0);
     Sound.boom();
-    for(let i=0;i<8;i++){ const a=i/8*Math.PI*2; bossRing(Math.cos(a)*(ARENA.r*0.8), Math.sin(a)*(ARENA.r*0.8), 0xffd34d, 18, 1.0); }
+    bossRing(ARENA.cx, ARENA.cz, 0xffd34d, 30, 1.2);
+    for(let i=0;i<8;i++){ const a=i/8*Math.PI*2; bossRing(ARENA.cx+Math.cos(a)*(ARENA.r*0.8), ARENA.cz+Math.sin(a)*(ARENA.r*0.8), 0xffd34d, 18, 1.0); }
   }
+  if(ARENA.built && ARENA.group){
+    const k=clamp((t-1.0)/1.4, 0, 1);
+    const e=easeOut3(k);
+    const s=lerp(0.05, 1.0, e);
+    ARENA.group.scale.setScalar(s);
+    ARENA.group.position.y = (1-e)*5.5;
+    if(ARENA.wallMat) ARENA.wallMat.opacity = 0.16*e;
+  }
+  /* 결투장 바닥이 깔린 뒤 도시 셀/리스폰·방어군 정리 */
+  if(t>=2.15 && !ARENA.cityCleared){ ARENA.cityCleared=true; clearCityForArena(); }
   if(t>=ARENA.dur) endArenaTransition();
 }
 
@@ -13300,8 +14333,8 @@ function endArenaTransition(){
 function arenaCamPose(d){
   const t=clamp(ARENA.t/ARENA.dur,0,1);
   const e=easeInOut(t);
-  const far=Object.assign(orbitPos(0,0,YAW-0.55,PITCH+0.42, 150),{tx:0,ty:6,tz:0});
-  const near=Object.assign(orbitPos(player.pos.x,player.pos.z,YAW,PITCH, Math.min(96,d)),{tx:player.pos.x,ty:3,tz:player.pos.z-6.5});
+  const far=Object.assign(orbitPos(ARENA.cx,ARENA.cz,YAW-0.55,PITCH+0.42, 160),{tx:ARENA.cx,ty:6,tz:ARENA.cz});
+  const near=Object.assign(orbitPos(player.pos.x,player.pos.z,YAW,PITCH, Math.min(110,d)),{tx:player.pos.x,ty:3,tz:player.pos.z-6.5});
   return mixPose(far,near,e);
 }
 
@@ -13334,6 +14367,83 @@ function startBossOutro(){
   camState.init=false;
 }
 
+/* v3.2 — 엔딩 시네마 관절 연기: 발버둥(양팔 허우적·입 벌려 효오·날개 버둥) → 마지막 한 팔 */
+function bossOutroRig(t){
+  const rig=BOSS.rig; if(!rig) return;
+  const A=rig.arms||[], W=rig.wings||[], LEG=rig.legs||[], TL=rig.tail||[];
+  const struggle = t<3.2;
+  const sink = t>=3.2 ? clamp((t-3.2)/1.1, 0, 1) : 0;
+  if(rig.torso){
+    rig.torso.rotation.x = -0.16 + 0.10*Math.sin(t*7.5) - sink*0.28;
+    rig.torso.rotation.y = Math.sin(t*5.2)*0.18*(1-sink*0.55);
+    rig.torso.rotation.z = Math.sin(t*6.6)*0.11*(1-sink*0.5);
+  }
+  if(rig.head){
+    rig.head.rotation.x = -0.26 + Math.sin(t*8.0)*0.17 - sink*0.45;
+    rig.head.rotation.y = Math.sin(t*4.4)*0.26;
+    rig.head.rotation.z = Math.sin(t*7.1)*0.13;
+  }
+  if(rig.jaw){
+    /* “그아아아악…!!” — 발버둥 구간에서 입을 크게 벌린다 */
+    const roar = struggle ? (0.80 + 0.22*Math.abs(Math.sin(t*7.4))) : lerp(0.85, 0.16, sink);
+    rig.jaw.rotation.x = 0.10 + roar;
+  }
+  A.forEach((a,i)=>{
+    const s=a.side||1;
+    if(struggle){
+      /* 번갈아 허우적 — 한쪽은 위로 뻗고 다른 쪽은 앞으로 휘젓기 */
+      const ph = t*(i%2? -6.6 : 6.6) + i*1.5;
+      const reach = 0.5+0.5*Math.sin(ph);
+      a.g.rotation.x = -1.45 - 0.35*Math.sin(ph);
+      a.g.rotation.z = s*(0.30 + 0.60*reach);
+      if(a.elbow) a.elbow.rotation.x = -0.55 + 0.40*Math.cos(ph);
+      if(a.hand) a.hand.rotation.x = Math.sin(ph*1.3)*0.28;
+    } else if(a.side>0){
+      /* 소멸 직전까지 한쪽 팔만 하늘·바깥으로 끝까지 뻗는다 */
+      a.g.rotation.x = -1.80 + 0.05*Math.sin(t*9);
+      a.g.rotation.z = 0.80 - 0.15*sink;
+      if(a.elbow) a.elbow.rotation.x = -0.18;
+      if(a.hand) a.hand.rotation.x = Math.sin(t*11)*0.18;
+    } else {
+      a.g.rotation.x = lerp(-1.30, 0.85, sink);
+      a.g.rotation.z = s*0.22;
+      if(a.elbow) a.elbow.rotation.x = lerp(-0.4, 0.7, sink);
+      if(a.hand) a.hand.rotation.x = 0.2*sink;
+    }
+  });
+  W.forEach((wg,i)=>{
+    const s=wg.side, low=wg.pair?1:0;
+    const flap=Math.sin(t*(low?9.5:8.0)+(s>0?0.6:0))*(low?0.36:0.58);
+    const open = struggle ? 1 : (1-0.70*sink);
+    wg.g.rotation.z = wg.baseZ + s*0.30*open + flap*open;
+    wg.g.rotation.y = wg.baseY + s*0.28*open + s*0.10*Math.sin(t*6.2+i)*open;
+    wg.g.rotation.x = (0.18*Math.sin(t*7.0+i) - 0.10)*open;
+  });
+  LEG.forEach((l,i)=>{
+    const s=l.side||1;
+    l.g.rotation.x = l.standX*(1-sink*0.6) + Math.sin(t*6.4+i*1.7)*0.20*(1-sink);
+    l.g.rotation.z = s*(0.10 + 0.20*(1-sink));
+    if(l.knee) l.knee.rotation.x = l.standK*(1-sink*0.5) + Math.sin(t*7.2+i)*0.18;
+    if(l.ankle) l.ankle.rotation.x = l.standA + Math.sin(t*8.1+i)*0.16;
+  });
+  TL.forEach((seg,i)=>{
+    const bx=seg.userData.bx||0;
+    seg.rotation.y = Math.sin(t*7.0 - i*0.7)*0.34*(1-sink*0.5);
+    seg.rotation.x = bx + Math.sin(t*5.5 - i*0.5)*0.14;
+  });
+  if(rig.eyes) rig.eyes.forEach((e,i)=>{
+    if(e.material) e.material.opacity=0.55+0.40*Math.abs(Math.sin(t*(6.0+i)+i));
+    e.scale.setScalar(0.85+0.35*Math.abs(Math.sin(t*(5.0+i))));
+  });
+  if(rig.chestGlow) rig.chestGlow.material.opacity=0.35+0.30*Math.abs(Math.sin(t*5.0));
+  if(rig.runeRing){ rig.runeRing.rotation.z=t*3.4; rig.runeRing.material.opacity=0.95; }
+  if(rig.root){
+    rig.root.rotation.z = Math.sin(t*5.6)*0.06*(1-sink*0.4);
+    rig.root.position.x = Math.sin(t*4.2)*0.5*(1-sink);
+    rig.root.position.y = Math.sin(t*6.0)*0.35*(1-sink);
+  }
+}
+
 function updateBossOutro(dt){
   if(!BOSS_OUTRO.active) return;
   BOSS_OUTRO.t+=dt;
@@ -13347,7 +14457,7 @@ function updateBossOutro(dt){
     const k=Math.min(1,t/1.3);
     g.position.x=damp(g.position.x, hx, 3.0, dt);
     g.position.z=damp(g.position.z, hz, 3.0, dt);
-    g.position.y=damp(g.position.y, 10.0, 3.0, dt);
+    g.position.y=damp(g.position.y, 8.6, 3.0, dt);
     const wantS=(BOSS.baseScale||BOSS_SCALE)*0.78;
     g.scale.setScalar(damp(g.scale.x, wantS, 2.2, dt));
     g.rotation.z=Math.sin(t*13)*0.05*k;
@@ -13362,7 +14472,8 @@ function updateBossOutro(dt){
     const k=(t-1.3)/1.9;
     g.position.x=damp(g.position.x, hx+Math.sin(t*7.0)*0.7, 4.0, dt);
     g.position.z=damp(g.position.z, hz+Math.cos(t*6.0)*0.5, 4.0, dt);
-    g.position.y=9.6+Math.sin(t*9.0)*1.1 - k*1.6;
+    /* 하반신이 블랙홀 안쪽으로 깊게 잠긴다 */
+    g.position.y=5.1+Math.sin(t*9.0)*0.85 - k*1.3;
     g.rotation.z=Math.sin(t*11.0)*0.12;
     g.rotation.x=damp(g.rotation.x, 0.30+Math.sin(t*7.4)*0.035, 4.0, dt);
     g.rotation.y+=dt*1.8;
@@ -13376,9 +14487,11 @@ function updateBossOutro(dt){
     }
     if(!BOSS_OUTRO.cap1){
       BOSS_OUTRO.cap1=true;
-      setOutroCap('STRUGGLE', kit.emoji+' 보스가 블랙홀 가장자리에서 발버둥 친다!');
-      state.shake=Math.max(state.shake,0.9);
-      Sound.hurt();
+      setOutroCap('STRUGGLE', kit.emoji+' “그아아아악…!!” 보스가 블랙홀 가장자리에서 발버둥 친다!');
+      state.shake=Math.max(state.shake,1.15);
+      state.flash=Math.max(state.flash,0.22);
+      Sound.hurt(); Sound.bossAlert(); vibrate([50,60,140]);
+      try{ popupAt(new THREE.Vector3(g.position.x, g.position.y+18, g.position.z), '😖 “그아아아악…!!”', '#ff5a5a'); }catch(e){}
     }
   } else if(t<4.3){
     const k=(t-3.2)/1.1;
@@ -13414,6 +14527,8 @@ function updateBossOutro(dt){
     Sound.boom(); Sound.bossKill(); Sound.clearFanfare();
     vibrate([90,70,180,60,240]);
   }
+  /* v3.2 — 관절 연기: 발버둥 · 마지막 한 팔 · 효오 */
+  bossOutroRig(t);
   if(t>=BOSS_OUTRO.dur) endBossOutro();
 }
 
@@ -13916,6 +15031,7 @@ function renderArmory(){
     const eq=Wallet.equipped===s.id;
     const sk=SKIN_TIER_SKILLS[s.tier]||SKIN_TIER_SKILLS.common;
     const syn=skinSynergy(s);
+    const ult=skinUltPassive(s);
     const el=document.createElement('div');
     el.className='armCard'+(eq?' equipped':'');
     el.innerHTML='<div class="armPrev" style="'+skinPreviewCss(s)+'"></div>'+
@@ -13924,6 +15040,8 @@ function renderArmory(){
         '<div class="armStars">'+('★'.repeat(lv))+'<span class="dim">'+('☆'.repeat(Math.max(0,SKIN_MAX_LV-lv)))+'</span> Lv.'+lv+
           ' · 스킬 +'+skinLvBonus(lv)+'%</div>'+
         '<div class="armSkill">'+sk.emoji+' '+sk.name+' — '+sk.desc+'</div>'+
+        (ult?'<div class="armUlt" style="color:'+ult.color+'">∞ 상시 '+ult.short+' — '+ult.desc+'</div>':
+          '<div class="armUlt" style="color:#5b6c86">∞ 상시 패시브 없음</div>')+
         '<div class="armSyn">추천 '+syn.icon+' '+syn.name+' · '+syn.reason+' <b>+15%</b></div>'+
       '</div>'+
       '<button class="armBtn" data-id="'+s.id+'"'+(eq?' disabled':'')+'>'+(eq?'사용 중':'장착')+'</button>';

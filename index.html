@@ -7592,7 +7592,8 @@ function suctionMul(){
   return (1+sp) + 0.15*(state.aug.golden||0) + 0.22*(state.aug.vortex||0);
 }
 function recalcR(){
-  state.R = (CFG.START_R*state.startBonus + Math.pow(Math.max(0,state.mass), 0.42) * 0.44) * state.sizeMul;
+  const maxR = (typeof ARENA!=='undefined' && ARENA.active) ? 11.5 : 16.0;
+  state.R = Math.min(maxR, (CFG.START_R*state.startBonus + Math.pow(Math.max(0,state.mass), 0.42) * 0.44) * state.sizeMul);
 }
 function xpNeededFor(lv){ return lv < LEVELS.length ? LEVELS[lv] : LEVELS[LEVELS.length-1] + (lv-LEVELS.length+1)*520; }
 function gainXP(amount){
@@ -10535,10 +10536,9 @@ function animateBoss(dt){
       s.mesh.position.set(x, s.y+Math.sin(t*2+s.a)*0.6, z);
       s.mesh.rotation.y+=dt*3.2;
       const d=Math.hypot(player.pos.x-(BOSS.group.position.x+x), player.pos.z-(BOSS.group.position.z+z));
-      if(d < state.R*0.95+2.2 && !s.hitCd){
-        s.hitCd=1.6;
-        knockPlayer(BOSS.group.position.x+x, BOSS.group.position.z+z, 20, '🌵 가시 충돌!');
-        hurtBossHeart('🌵 가시 충돌!');
+      if(d < state.R*0.95+2.0 && !s.hitCd){
+        s.hitCd=1.8;
+        knockPlayer(BOSS.group.position.x+x, BOSS.group.position.z+z, 12, '');
       }
       if(s.hitCd>0) s.hitCd=Math.max(0,s.hitCd-dt);
     });
@@ -10774,12 +10774,11 @@ function updateBoss(dt){
     BOSS.group.rotation.y += diff*Math.min(1, dt*1.1);
   }
 
-  /* ⑤ 몸체 접촉 — 기둥이 남아 있으면 무적 반발, 무적이 풀리면 충격 피해 */
-  if(BOSS.groggy<=0 && dp < R*0.95 + BOSS.R*0.72 && BOSS.hitCd<=0){
-    BOSS.hitCd=1.7;
-    bossRing(BOSS.pos.x,BOSS.pos.z,0xff2b46, 22, 0.75);
-    knockPlayer(BOSS.pos.x,BOSS.pos.z, 26, BOSS.inv>0?'🛡️ 무적 반발!':'💥 몸체 충격!');
-    hurtBossHeart(BOSS.inv>0?'🛡️ 무적 반발!':'💥 몸체 충격!');
+  /* ⑤ 몸체 접촉 — 하트는 깎지 않고 부드럽게 바깥으로만 밀어낸다 (피해는 붉은 가시탄/3초 폭탄 폭발만!) */
+  if(BOSS.groggy<=0 && dp < R*0.9 + BOSS.R*0.62 && BOSS.hitCd<=0){
+    BOSS.hitCd=1.2;
+    bossRing(BOSS.pos.x,BOSS.pos.z,0xff2b46, 18, 0.65);
+    knockPlayer(BOSS.pos.x,BOSS.pos.z, 15, '');
     if(BOSS.inv>0 && state.bossWarnCd<=0){
       state.bossWarnCd=3.0;
       showToast('🛡️ 보스 무적', '동력 기둥 '+BOSS.inv+'개를 먼저 뽑아라', '#ff9f5c');
@@ -10790,7 +10789,7 @@ function updateBoss(dt){
   if(BOSS.groggy<=0){
     BOSS.fireT-=dt;
     if(BOSS.fireT<=0 && dp<95){
-      BOSS.fireT=rnd(4.0,5.6);
+      BOSS.fireT=rnd(3.0,4.2);
       bossFireVolley();
     }
   }

@@ -1471,6 +1471,12 @@ canvas#cv{position:fixed;inset:0;width:100%;height:100%;display:block;touch-acti
 /* v3.6.1 — 인게임 증강 선택 시 하단 탭 바 / 빠른 점프 바 숨김 & 가림 방지 */
 #app.playing:not(.tabsOn) #tabBar, #app.augment #tabBar, #app.augment #devJump, #app.result #tabBar, #app.chest #tabBar { display: none !important; }
 #augment { z-index: 75 !important; overflow-y: auto !important; padding: 18px 14px 28px !important; }
+
+/* v3.6.7 — 스테이지 도전 중 하단 UI(#tabBar, #goalWrap) 완전 숨김 */
+#app:not(.lobby) #tabBar { display: none !important; }
+#app.tabsOn #tabBar { display: flex !important; }
+#app.playing #tabBar, #app.arena #tabBar, #app.augment #tabBar, #app.cut #tabBar { display: none !important; }
+#goalWrap { display: none !important; }
 </style>
 </head>
 <body>

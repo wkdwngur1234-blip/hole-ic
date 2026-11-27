@@ -9792,13 +9792,32 @@ document.addEventListener('click', e=>{
   const btn = e.target && e.target.closest && e.target.closest('#devJump button');
   if(!btn || !window.__BH) return;
   const j=btn.dataset.j;
-  const intro=document.getElementById('intro'); if(intro) intro.classList.add('hidden');
+  ['intro','result','chest','augment','upgrade','shop','armory','settings','pauseModal','defeat'].forEach(id=>{
+    const el=document.getElementById(id); if(el) el.classList.add('hidden');
+  });
+  ['toast','cutTaunt','bombHud'].forEach(id=>{
+    const el=document.getElementById(id); if(el){ el.classList.remove('on','show','crit'); }
+  });
+  const af=document.getElementById('arenaFx'); if(af){ af.classList.remove('on'); af.classList.add('hidden'); }
+  const oo=document.getElementById('outroOverlay'); if(oo){ oo.classList.remove('on'); oo.classList.add('hidden'); }
+  if(typeof endMiniBossCine==='function') endMiniBossCine();
+  if(typeof endCutscene==='function') endCutscene();
   if(j==='mini'){
     __BH.stageNow(3, true);
-    setTimeout(()=>{ try{ __BH.bossWake(); }catch(err){} }, 120);
+    setTimeout(()=>{
+      try{
+        state.mass=24; state.level=4; recalcR(); updateHoleVisual(player); updateHUD(true);
+        __BH.bossWake();
+      }catch(err){}
+    }, 120);
   } else if(j==='boss'){
     __BH.stageNow(5, true);
-    setTimeout(()=>{ try{ __BH.bossWake(); }catch(err){} }, 120);
+    setTimeout(()=>{
+      try{
+        state.mass=75; state.level=7; recalcR(); updateHoleVisual(player); updateHUD(true);
+        __BH.bossWake();
+      }catch(err){}
+    }, 120);
   } else if(j==='outro'){
     if(typeof BOSS!=='undefined' && BOSS.alive && BOSS.revealed && !BOSS.mini && typeof bossDefeat==='function'){
       bossDefeat();
@@ -9947,163 +9966,386 @@ function bossBezierSpike(p0,p1,p2,r0,r1,material,segs){
   return grp;
 }
 
+/* ── 악마 날개 막: 뼈대 사이를 잇는 찢어진 막 (삼각 팬) ── */
+function bossWingMembrane(rootPt, edge, material){
+  const a=new THREE.Vector3(rootPt[0],rootPt[1],rootPt[2]);
+  const pts=edge.map(p=>new THREE.Vector3(p[0],p[1],p[2]));
+  const pos=[];
+  for(let i=0;i<pts.length-1;i++){
+    const p=pts[i], q=pts[i+1];
+    pos.push(a.x,a.y,a.z, p.x,p.y,p.z, q.x,q.y,q.z);
+  }
+  const geo=new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.Float32BufferAttribute(pos,3));
+  geo.computeVertexNormals();
+  const m=new THREE.Mesh(geo, material);
+  m.material.side=THREE.DoubleSide;
+  return m;
+}
+/* ── 뼈 마디: 두 점을 잇는 테이퍼 원기둥 ── */
+function bossBoneSeg(p,q,r0,r1,material){
+  const a=new THREE.Vector3(p[0],p[1],p[2]), b=new THREE.Vector3(q[0],q[1],q[2]);
+  const len=Math.max(0.01,a.distanceTo(b));
+  const m=cyl(r1,r0,len,6,material);
+  m.position.copy(a).add(b).multiplyScalar(0.5);
+  m.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0), new THREE.Vector3().subVectors(b,a).normalize());
+  return m;
+}
+/* ── 마디 홈이 파인 뿔 ── */
+function bossRibbedHorn(p0,p1,p2,r0,r1,material,segs,ridgeMat){
+  const N=segs||7;
+  const grp=bossBezierSpike(p0,p1,p2,r0,r1,material,N);
+  const curve=new THREE.QuadraticBezierCurve3(p0,p1,p2);
+  for(let i=1;i<N;i++){
+    const tt=i/N, r=lerp(r0,r1,tt);
+    const ring=new THREE.Mesh(new THREE.TorusGeometry(Math.max(0.08,r*1.10), Math.max(0.05,r*0.16), 5, 10), ridgeMat||material);
+    ring.position.copy(curve.getPoint(tt));
+    ring.quaternion.setFromUnitVectors(new THREE.Vector3(0,0,1), curve.getTangent(tt).normalize());
+    grp.add(ring);
+  }
+  return grp;
+}
+/* ── 별(황금) · 룬(보라) 스프라이트 텍스처 ── */
+let BOSS_STAR_TEX=null, BOSS_RUNE_TEX=null;
+function bossStarTex(){
+  if(BOSS_STAR_TEX) return BOSS_STAR_TEX;
+  const c=document.createElement('canvas'); c.width=c.height=128;
+  const g=c.getContext('2d');
+  const grd=g.createRadialGradient(64,64,2,64,64,62);
+  grd.addColorStop(0,'rgba(255,250,210,1)'); grd.addColorStop(.30,'rgba(255,214,80,.95)');
+  grd.addColorStop(.62,'rgba(255,166,30,.35)'); grd.addColorStop(1,'rgba(255,140,20,0)');
+  g.fillStyle=grd; g.beginPath(); g.arc(64,64,62,0,6.2832); g.fill();
+  g.fillStyle='#fffbe0'; g.beginPath();
+  for(let i=0;i<8;i++){ const a=i/8*Math.PI*2-Math.PI/2, r=i%2?8:52; g.lineTo(64+Math.cos(a)*r, 64+Math.sin(a)*r); }
+  g.closePath(); g.fill();
+  const t=new THREE.CanvasTexture(c); t.encoding=THREE.sRGBEncoding; BOSS_STAR_TEX=t; return t;
+}
+function bossRuneTex(){
+  if(BOSS_RUNE_TEX) return BOSS_RUNE_TEX;
+  const c=document.createElement('canvas'); c.width=c.height=128;
+  const g=c.getContext('2d');
+  g.clearRect(0,0,128,128);
+  g.strokeStyle='rgba(196,140,255,.96)'; g.lineWidth=6; g.lineJoin='round'; g.lineCap='round';
+  g.beginPath(); g.moveTo(64,12); g.lineTo(108,64); g.lineTo(64,116); g.lineTo(20,64); g.closePath(); g.stroke();
+  g.beginPath(); g.moveTo(64,26); g.lineTo(64,100); g.moveTo(44,48); g.lineTo(84,48);
+  g.moveTo(44,80); g.lineTo(84,80); g.stroke();
+  const t=new THREE.CanvasTexture(c); t.encoding=THREE.sRGBEncoding; BOSS_RUNE_TEX=t; return t;
+}
+
 /* ── 조형 빌더 ── */
 function buildBossBody(kind,g){
   const kit=bossTheme();
   switch(kind){
   case 'beast':{
-    /* ═══════ 심연의 거신 크리처 ═══════
-       팔다리 · 큰 주먹 팔 · 뿔 · 등 가시 · 꼬리 · 붉은 안광을 가진 살아있는 괴수.
-       rig 의 각 피벗을 animateBossRig() 이 계속 흔들어 '살아 움직이는' 인상을 준다. */
-    const hide=mat(0x2c2140), hide2=mat(0x1b1428), plate=mat(0x483463),
-          bone=mat(0xc0aed6), ember=basicMat(0xff1a36), ember2=basicMat(0xff5a2a);
-    const rig={root:new THREE.Group(), torso:null, head:null, jaw:null,
-      arms:[], legs:[], tail:[], spikes:[], eyes:[], chestGlow:null};
+    /* ═══════ 심연의 악마 군주 (Demon Lord) ═══════
+       레고 블록 같은 동글동글한 덩어리를 없애고, 뾰족한 악마 실루엣으로 재조형했다.
+       · 거대한 뼈 날개 2쌍(관절 뼈대 + 찢어진 검붉은 막 + 끝 발톱)
+       · 두개골형 얼굴 + 뒤로 말려 올라간 염소뿔 2쌍 + 눈구멍 속 붉은 안광
+       · 역삼각형 근육질 상체 + 검붉은 용암 혈관 + 가슴 악마 룬 코어
+       · 역관절 악마 다리 · 4개 긴 클로 손톱 · 삼지창 끝 채찍 꼬리
+       rig 의 모든 피벗을 animateBossRig() 이 살아 움직이게 하고,
+       그로기에는 무릎 꿇고 상체가 앞으로 꺾여 고꾸라지는 전용 포즈로 접힌다. */
+    const hide =mat(0x221320,{emissive:0x120208}), hide2=mat(0x11070f,{emissive:0x0c0105}),
+          armor=mat(0x4a2a3a,{emissive:0x180409}), armor2=mat(0x2a1420,{emissive:0x0e0207}),
+          bone =mat(0x8d7c71), bone2=mat(0x5d4e46),
+          ember=basicMat(0xff2f12), ember2=basicMat(0xff7a24);
+    const rig={root:new THREE.Group(), hips:null, torso:null, head:null, jaw:null,
+      arms:[], legs:[], tail:[], spikes:[], eyes:[], chestGlow:null, runeRing:null,
+      wings:[], halo:null, haloRing:null, haloStars:[], haloRunes:[]};
+    rig.root.scale.setScalar(0.78);
     g.add(rig.root);
     const root=rig.root;
 
-    /* ── 다리 2개: 엉덩이 피벗 → 허벅지 → 무릎 → 정강이 → 발·발톱 ── */
+    /* ══════ ① 골반 — 허리에서 상체가 꺾이고, 다리·꼬리가 여기서 갈라진다 ══════ */
+    const hips=new THREE.Group(); hips.position.set(0,19.0,0); root.add(hips); rig.hips=hips;
+    const pelvis=sph(4.6,14,hide); pelvis.scale.set(1.18,0.70,0.92); pelvis.position.y=-0.5; hips.add(pelvis);
     [-1,1].forEach(s=>{
-      const hip=new THREE.Group(); hip.position.set(s*5.5, 13.65, 0.1); root.add(hip);
-      const thigh=cyl(2.5,3.1,6.2,8,hide); thigh.position.y=-3.1; hip.add(thigh);
-      const knee=sph(2.5,10,plate); knee.position.y=-6.5; hip.add(knee);
-      const shin=cyl(1.9,2.6,5.6,8,hide2); shin.position.set(0,-9.3,0.35); hip.add(shin);
-      const ankle=sph(2.0,8,plate); ankle.position.set(0,-12.15,0.5); hip.add(ankle);
-      const foot=box(4.4,1.5,5.8,hide2); foot.position.set(0,-12.9,1.4); hip.add(foot);
-      for(let c=0;c<3;c++){
-        const claw=cone(0.55,2.6,5,bone);
-        claw.position.set((c-1)*1.55,-12.75,4.4); claw.rotation.x=Math.PI/2.15; hip.add(claw);
-      }
-      const ksp=cone(0.85,2.8,5,plate); ksp.position.set(s*1.9,-5.2,1.2); ksp.rotation.z=-s*0.55; hip.add(ksp);
-      rig.legs.push({g:hip, side:s});
+      const plate=box(2.8,4.2,1.0,armor); plate.position.set(s*4.2,-0.9,2.2);
+      plate.rotation.z=s*0.26; plate.rotation.x=-0.20; hips.add(plate);
+      const sp=cone(0.60,2.8,5,bone2); sp.position.set(s*5.4,1.2,-0.8); sp.rotation.z=-s*1.00; hips.add(sp);
     });
 
-    /* ── 꼬리: 5마디 사슬 — 마디마다 흔들린다 ── */
-    const tailRoot=new THREE.Group(); tailRoot.position.set(0,15.4,-5.0); tailRoot.rotation.x=-0.06; tailRoot.rotation.y=0.26; root.add(tailRoot);
-    const segLen=[6.2,5.4,4.6,3.8,3.0];
+    /* ══════ ② 역관절 악마 다리 — 허벅지·정강이·발톱 3개 ══════ */
+    [-1,1].forEach(s=>{
+      const hip=new THREE.Group(); hip.position.set(s*5.0,-1.4,0.4); hips.add(hip);
+      const thigh=cyl(1.9,2.9,8.0,8,hide); thigh.position.y=-3.7; hip.add(thigh);
+      /* 허벅지 앞을 감싸는 뾰족 갑옷 */
+      const thighGear=cyl(2.2,3.1,5.4,6,armor2); thighGear.position.set(s*0.35,-3.0,0.5);
+      thighGear.scale.z=0.72; hip.add(thighGear);
+      const thighSpike=cone(0.65,3.0,5,bone); thighSpike.position.set(s*2.0,-5.4,1.2);
+      thighSpike.rotation.z=-s*0.55; thighSpike.rotation.x=-0.35; hip.add(thighSpike);
+      const veinA=bossBoneSeg([s*1.9,-1.0,1.5],[s*1.2,-6.2,1.5],0.17,0.09,ember); hip.add(veinA);
+      const knee=new THREE.Group(); knee.position.y=-7.6; hip.add(knee);
+      const kneeCap=cone(1.8,3.0,6,bone2); kneeCap.position.set(0,-0.1,2.0); kneeCap.rotation.x=-1.42; knee.add(kneeCap);
+      const kneeSpike=cone(0.55,2.4,5,bone); kneeSpike.position.set(0,-0.5,1.2); kneeSpike.rotation.x=-1.05; knee.add(kneeSpike);
+      const shin=cyl(1.0,1.7,7.2,7,hide2); shin.position.y=-3.6; knee.add(shin);
+      for(let k=0;k<2;k++){
+        const sp=cone(0.42,2.4,5,bone2); sp.position.set(0,-2.2-k*2.8,-1.4); sp.rotation.x=-2.75; knee.add(sp);
+      }
+      const ankle=new THREE.Group(); ankle.position.y=-7.0; knee.add(ankle);
+      const foot=box(3.2,1.1,4.6,hide2); foot.position.set(0,-0.4,1.5); ankle.add(foot);
+      const heel=cone(0.5,2.2,5,bone2); heel.position.set(0,0.2,-1.7); heel.rotation.x=-2.55; ankle.add(heel);
+      for(let c=0;c<3;c++){
+        const claw=cone(0.42,3.0,5,bone); claw.position.set((c-1)*1.15,-0.45,3.8);
+        claw.rotation.x=1.545; ankle.add(claw);
+      }
+      rig.legs.push({g:hip, knee:knee, ankle:ankle, side:s,
+        standX:-0.35, standK:1.05, standA:-0.70});
+    });
+
+    /* ══════ ③ 채찍 꼬리 — 8마디 + 가시 + 삼지창 끝 ══════ */
+    const tailRoot=new THREE.Group(); tailRoot.position.set(0,-1.8,-3.8); hips.add(tailRoot);
+    const TL=[5.4,4.8,4.4,4.0,3.6,3.2,2.8,2.4];
     let node=tailRoot;
-    for(let i=0;i<segLen.length;i++){
+    for(let i=0;i<TL.length;i++){
       const seg=new THREE.Group();
-      seg.position.set(0,0, i===0?0:-segLen[i-1]);
+      seg.position.z= i===0?0:-TL[i-1];
+      seg.rotation.x= i===0?-0.20:0.05;
+      seg.userData.bx=seg.rotation.x; seg.userData.by=0;
       node.add(seg);
-      const rA=3.1*(1-i*0.15), rB=3.1*(1-(i+1)*0.15);
-      const m=cyl(Math.max(0.35,rB), rA, segLen[i], 7, i%2?hide2:hide);
-      m.rotation.x=Math.PI/2; m.position.z=-segLen[i]/2; seg.add(m);
+      const rA=2.3*(1-i*0.098), rB=2.3*(1-(i+1)*0.098);
+      const m=cyl(Math.max(0.14,rB), rA, TL[i], 6, i%2?hide2:hide);
+      m.rotation.x=Math.PI/2; m.position.z=-TL[i]/2; seg.add(m);
       if(i%2===1){
-        const sp=cone(0.75,2.6,5,bone); sp.rotation.x=Math.PI/2;
-        sp.position.set(0,0,-segLen[i]*0.45); seg.add(sp);
+        const sp=cone(0.55,2.6,5,bone); sp.rotation.x=-Math.PI/2;
+        sp.position.set(0,0.10,-TL[i]*0.42); seg.add(sp);
+      }
+      if(i===2||i===5){
+        const vein=bossBoneSeg([0.35,0,0],[0.10,0,-TL[i]],0.10,0.05,ember); seg.add(vein);
       }
       rig.tail.push(seg);
       node=seg;
     }
-    const tip=cone(1.0,4.2,6,bone); tip.rotation.x=-Math.PI/2; tip.position.z=-2.6; node.add(tip);
+    const tailTip=new THREE.Group(); tailTip.position.z=-TL[TL.length-1]; node.add(tailTip);
+    const shaft=cone(0.50,5.0,6,bone); shaft.rotation.x=-Math.PI/2; shaft.position.z=-2.4; tailTip.add(shaft);
+    [-1,1].forEach(s=>{
+      const barb=cone(0.40,3.0,5,bone2); barb.rotation.x=-Math.PI/2; barb.rotation.z=s*0.55;
+      barb.position.set(s*0.80,0,-2.8); tailTip.add(barb);
+    });
 
-    /* ── 몸통 ── */
-    const torso=new THREE.Group(); torso.position.y=13.4; root.add(torso); rig.torso=torso;
-    const pelvis=sph(6.2,14,hide); pelvis.scale.set(1.30,0.86,1.05); pelvis.position.y=0.7; torso.add(pelvis);
-    const belly=sph(6.4,16,hide); belly.scale.set(1.26,1.04,1.02); belly.position.set(0,4.8,0.2); torso.add(belly);
-    const chest=sph(7.0,18,hide); chest.scale.set(1.42,0.96,1.08); chest.position.set(0,8.6,0.3); torso.add(chest);
-    /* 흉갑 판금 3겹 */
+    /* ══════ ④ 역삼각형 흉체 — 좁은 허리 → 넓은 어깨 ══════ */
+    const torso=new THREE.Group(); torso.position.set(0,0.8,0); hips.add(torso); rig.torso=torso;
+    const waist=cyl(3.7,4.4,4.2,10,hide); waist.position.y=2.0; torso.add(waist);
+    const rib=cyl(9.2,4.0,9.6,12,hide); rib.scale.z=0.68; rib.position.y=8.0; torso.add(rib);
+    const chestTop=cyl(9.4,8.6,2.4,12,hide); chestTop.scale.z=0.70; chestTop.position.y=12.6; torso.add(chestTop);
+    /* 복근 판 — 좁아지는 허리를 강조 */
     for(let i=0;i<3;i++){
-      const p=box(15.0-i*1.9, 1.5, 2.8, plate);
-      p.position.set(0, 6.6+i*2.2, 6.2-i*0.5); p.rotation.x=-0.20+i*0.06; torso.add(p);
+      const ab=box(5.6-i*1.2,1.0,1.2,armor2); ab.position.set(0,2.2+i*1.9,3.4-i*0.35); torso.add(ab);
     }
-    /* 등 혹 */
-    const hump=sph(5.4,14,hide2); hump.scale.set(0.95,0.80,0.9); hump.position.set(0,9.6,-3.8); torso.add(hump);
-    /* 붉은 균열 — 몸통을 타고 흐르는 심연의 열 */
-    [[0,9.0,7.0,0.55,3.4,0],[0,4.4,6.4,0.5,3.0,0],[-4.6,6.8,5.6,0.45,2.6,-0.35],
-     [4.6,6.8,5.6,0.45,2.6,0.35],[-2.4,2.2,5.4,0.4,2.0,-0.2],[2.4,2.2,5.4,0.4,2.0,0.2]].forEach((v,i)=>{
-      const crack=box(v[3],v[4],0.4, i%3===0?ember2:ember);
-      crack.userData.noFade=true; crack.position.set(v[0],v[1],v[2]); crack.rotation.z=v[5]; torso.add(crack);
-    });
-    /* 가슴 속 심연 코어 */
-    const inner=sphereGlow(3.4,0xff1a36,0.30); inner.position.set(0,8.6,3.8); torso.add(inner); rig.chestGlow=inner;
-    const rim=new THREE.Mesh(new THREE.TorusGeometry(3.2,0.30,6,26), basicMat(0xff2b46,{transparent:true,opacity:0.9}));
-    rim.userData.noFade=true; rim.position.set(0,8.6,5.7); torso.add(rim);
-
-    /* ── 어깨 · 팔 · 큰 주먹 ── */
+    /* 흉갑 — 겹친 판금과 흉골 뼈 */
     [-1,1].forEach(s=>{
-      const sh=new THREE.Group(); sh.position.set(s*9.2, 24.2, 0.7); root.add(sh);
-      const cap=sph(4.2,12,plate); cap.scale.set(1.05,0.95,1.0); sh.add(cap);
-      for(let k=0;k<2;k++){
-        const sp=cone(0.9,3.6,5,bone);
-        sp.position.set(s*(2.5+k*0.9),1.5+k*0.7,-0.5+k*1.0);
-        sp.rotation.z=-s*(0.9+k*0.28); sh.add(sp);
-      }
-      const upper=cyl(2.3,3.0,7.4,8,hide); upper.position.set(s*0.7,-4.0,0.2); upper.rotation.z=-s*0.09; sh.add(upper);
-      const elbow=sph(2.6,10,plate); elbow.position.set(s*1.1,-7.9,0.6); sh.add(elbow);
-      const fore=cyl(2.5,3.1,6.2,8,hide2); fore.position.set(s*1.3,-11.1,1.4); sh.add(fore);
-      /* 큰 주먹 */
-      const fist=new THREE.Group(); fist.position.set(s*1.5,-14.8,2.0); sh.add(fist);
-      const kn=sph(3.6,14,hide); kn.scale.set(1.15,1.0,1.12); fist.add(kn);
-      const backf=sph(2.7,10,plate); backf.position.set(s*0.5,0.9,-1.1); fist.add(backf);
-      for(let k=0;k<4;k++){
-        const kb=sph(1.0,8,plate); kb.position.set(s*(k-1.5)*1.3,0.7,2.8); fist.add(kb);
-      }
+      const pec=box(4.6,3.2,1.0,armor); pec.position.set(s*4.1,10.8,4.6);
+      pec.rotation.z=s*0.14; pec.rotation.x=-0.14; torso.add(pec);
+      const pec2=box(3.8,2.0,0.9,armor2); pec2.position.set(s*4.6,8.4,4.4);
+      pec2.rotation.z=s*0.10; torso.add(pec2);
+      const edge=cone(0.55,2.6,5,bone2); edge.position.set(s*6.4,12.0,4.0);
+      edge.rotation.z=-s*1.85; edge.rotation.x=-0.30; torso.add(edge);
+    });
+    const sternum=box(1.5,7.0,1.0,bone2); sternum.position.set(0,7.4,4.4); torso.add(sternum);
+    /* 옆구리 뼈 갑주 */
+    for(let i=0;i<3;i++){
+      [-1,1].forEach(s=>{
+        const side=box(1.1,1.6,3.6,armor2); side.position.set(s*(6.0-i*0.7), 5.2+i*2.6, 0.6);
+        side.rotation.z=s*0.25; torso.add(side);
+      });
+    }
+    /* 등뼈 가시 — 척추를 따라 솟은 뼈 가시 */
+    for(let i=0;i<5;i++){
+      const y=4.2+i*2.3, z=-4.0-i*0.30;
+      const sp=bossBezierSpike(new THREE.Vector3(0,y,z), new THREE.Vector3(0,y+3.8,z-2.8),
+        new THREE.Vector3(0,y+3.4,z-6.0), 1.25-i*0.15, 0.08, bone, 4);
+      torso.add(sp); rig.spikes.push(sp);
+    }
+    /* 검붉은 용암 혈관 */
+    [[-1,3.6,4.2,5.2],[1,2.4,4.4,6.8],[-1,9.2,4.6,2.4],[1,8.0,4.5,3.4]].forEach((v,i)=>{
+      const s=v[0], y0=v[1], z0=v[2], y1=v[3];
+      const vein=bossBezierSpike(new THREE.Vector3(s*1.0,y0,z0),
+        new THREE.Vector3(s*2.4,(y0+y1)/2,z0+0.8),
+        new THREE.Vector3(s*3.2,y1,z0-0.4), 0.19, 0.05, i%2?ember2:ember, 4);
+      torso.add(vein);
+    });
+    /* 가슴 중앙 — 불타는 악마 룬 코어 */
+    const coreY=8.6;
+    const socket=new THREE.Mesh(new THREE.SphereGeometry(2.6,14,12), mat(0x2c040e,{emissive:0x240208}));
+    socket.scale.z=0.50; socket.position.set(0,coreY,4.2); torso.add(socket);
+    const core=new THREE.Mesh(new THREE.OctahedronGeometry(1.55,0), basicMat(0xff6a1e));
+    core.userData.noFade=true; core.position.set(0,coreY,4.9); core.rotation.z=Math.PI/4; torso.add(core);
+    const coreGlow=sphereGlow(2.9,0xff2a10,0.45); coreGlow.position.set(0,coreY,5.1); torso.add(coreGlow); rig.chestGlow=coreGlow;
+    const runeRing=new THREE.Mesh(new THREE.TorusGeometry(2.7,0.20,6,26),
+      new THREE.MeshBasicMaterial({color:C(0xffb028), transparent:true, opacity:0.92,
+        blending:THREE.AdditiveBlending, depthWrite:false}));
+    runeRing.userData.noFade=true; runeRing.position.set(0,coreY,5.2); torso.add(runeRing); rig.runeRing=runeRing;
+    for(let i=0;i<6;i++){
+      const a=i/6*Math.PI*2;
+      const rp=box(0.62,0.62,0.14, basicMat(0xffd34d));
+      rp.userData.noFade=true;
+      rp.position.set(Math.cos(a)*2.7, coreY+Math.sin(a)*2.7, 5.22);
+      rp.rotation.z=a; torso.add(rp);
+    }
+
+    /* ══════ ⑤ 팔 — 어깨 뼈 갑주 + 긴 팔 + 4개 긴 클로 ══════ */
+    [-1,1].forEach(s=>{
+      const sh=new THREE.Group(); sh.position.set(s*8.4,12.0,0.5); torso.add(sh);
+      const pauld=new THREE.Mesh(new THREE.ConeGeometry(3.9,3.2,7), armor);
+      pauld.rotation.z=-s*0.55; pauld.position.set(s*0.6,1.2,0); sh.add(pauld);
+      const pauld2=sph(2.9,12,armor2); pauld2.scale.set(1.10,0.80,1.02); pauld2.position.set(s*0.2,0.2,0); sh.add(pauld2);
       for(let k=0;k<3;k++){
-        const cl=cone(0.5,1.8,5,bone); cl.position.set((k-1)*1.35,-1.9,2.4); cl.rotation.x=Math.PI/1.85; fist.add(cl);
+        const sp=cone(0.50,4.0-k*0.6,5,bone);
+        sp.position.set(s*(1.6+k*0.95),2.6-k*0.7,-0.4+k*0.6);
+        sp.rotation.z=-s*(0.55+k*0.20); sp.rotation.x=-0.10; sh.add(sp);
       }
-      rig.arms.push({g:sh, side:s, baseY:sh.position.y});
+      const upper=cyl(1.6,2.4,8.0,7,hide); upper.position.set(s*0.5,-4.0,0.1); upper.rotation.z=-s*0.09; sh.add(upper);
+      const armVein=bossBoneSeg([s*1.5,-1.2,1.1],[s*1.4,-7.4,0.9],0.14,0.08,ember); sh.add(armVein);
+      const elbow=new THREE.Group(); elbow.position.set(s*0.8,-8.0,0.4); sh.add(elbow);
+      const elbowSpike=cone(0.70,3.0,5,bone); elbowSpike.position.set(s*0.15,0,-1.6); elbowSpike.rotation.x=-2.35; elbow.add(elbowSpike);
+      const fore=cyl(1.05,1.6,7.4,7,hide2); fore.position.y=-3.7; elbow.add(fore);
+      const bracer=cyl(1.35,1.75,2.6,6,armor2); bracer.position.y=-6.2; elbow.add(bracer);
+      const foreVein=bossBoneSeg([0,-0.8,0.9],[0,-6.6,0.7],0.12,0.05,ember2); elbow.add(foreVein);
+      const hand=new THREE.Group(); hand.position.set(0,-7.4,0.2); elbow.add(hand);
+      const palm=sph(1.55,10,armor2); palm.scale.set(1.15,0.72,1.0); hand.add(palm);
+      for(let k=0;k<4;k++){
+        const a=(k-1.5)*0.46;
+        const f=new THREE.Group(); f.position.set(Math.sin(a)*1.2,-0.25,Math.cos(a)*0.70); f.rotation.z=-a*0.6; f.rotation.x=-0.30; hand.add(f);
+        const seg1=cyl(0.34,0.52,2.2,5,bone2); seg1.position.y=-1.1; f.add(seg1);
+        const knuckle=new THREE.Group(); knuckle.position.y=-2.2; knuckle.rotation.x=-0.85; f.add(knuckle);
+        const claw=cone(0.32,3.0,5,bone); claw.position.y=-1.5; knuckle.add(claw);
+      }
+      rig.arms.push({g:sh, elbow:elbow, hand:hand, side:s, baseY:sh.position.y, baseX:sh.rotation.x||0});
     });
 
-    /* ── 목 · 머리 · 아가리 ── */
-    const neck=cyl(3.3,4.8,3.6,10,hide2); neck.position.set(0,27.9,0.5); root.add(neck);
-    const head=new THREE.Group(); head.position.set(0,28.9,0.9); root.add(head); rig.head=head;
-    const skull=sph(4.7,16,hide); skull.scale.set(1.12,0.94,1.06); skull.position.y=2.4; head.add(skull);
-    /* 주둥이(윗턱) — 평평한 면도 죽지 않게 살짝 자체 발광 */
-    const muzzleMat=mat(0x4a3966,{emissive:0x120a1e});
-    const snout=box(5.6,2.6,3.0,muzzleMat); snout.position.set(0,1.45,4.0); head.add(snout);
-    const snoutTop=box(4.8,0.9,2.8,plate); snoutTop.position.set(0,2.9,3.9); head.add(snoutTop);
-    const nose=box(2.0,0.6,0.9,mat(0x0a0510)); nose.position.set(0,2.25,5.5); head.add(nose);
-    /* 아가리 — 이빨 사이로 붉은 빛이 새어 나온다 */
-    const maw=box(4.8,1.4,0.7, basicMat(0x8a0f22)); maw.userData.noFade=true; maw.position.set(0,0.05,5.55); head.add(maw);
-    /* 눈두덩 + 붉은 안광 2개 */
-    [-1,1].forEach(s=>{
-      const brow=box(3.0,1.0,1.6,plate); brow.position.set(s*2.2,3.85,4.55); brow.rotation.z=-s*0.30; head.add(brow);
-      const socket=box(2.1,1.8,0.9,mat(0x0a0510)); socket.position.set(s*2.15,2.85,4.75); head.add(socket);
-      const eye=sph(0.92,10,basicMat(0xff3350)); eye.position.set(s*2.15,2.85,5.1); head.add(eye);
-      const gl=sphereGlow(1.35,0xff1a36,0.85); gl.position.set(s*2.15,2.85,5.3); head.add(gl);
-      rig.eyes.push(gl);
-    });
-    /* 아랫턱 + 이빨 */
-    const jaw=new THREE.Group(); jaw.position.set(0,0.1,2.2); head.add(jaw); rig.jaw=jaw;
-    const jawM=box(5.2,1.5,3.8,mat(0x3a2b52,{emissive:0x0d0816})); jawM.position.set(0,-1.2,2.2); jaw.add(jawM);
-    for(let k=0;k<6;k++){
-      const t=cone(0.40,1.3,4,bone); t.position.set((k-2.5)*1.02,-0.55,4.1); jaw.add(t);
+    /* ══════ ⑥ 목 · 두개골 얼굴 · 염소뿔 2쌍 ══════ */
+    const neck=cyl(2.8,4.0,3.2,8,hide2); neck.position.set(0,14.2,0.9); neck.rotation.x=0.18; torso.add(neck);
+    const head=new THREE.Group(); head.position.set(0,16.4,1.6); torso.add(head); rig.head=head;
+    const skull=sph(5.6,16,hide); skull.scale.set(1.00,0.94,1.14); skull.position.set(0,0.9,0.0); head.add(skull);
+    const crest=box(3.0,1.6,7.0,armor2); crest.position.set(0,2.6,-1.6); crest.rotation.x=0.16; head.add(crest);
+    for(let i=0;i<3;i++){
+      const cs=cone(0.45,2.6-i*0.4,5,bone2); cs.position.set(0,3.4-i*0.2,-3.4-i*1.1);
+      cs.rotation.x=-0.9; head.add(cs);
     }
+    const brow=box(8.6,1.7,3.0,bone2); brow.position.set(0,3.0,2.4); brow.rotation.x=0.28; head.add(brow);
+    [-1,1].forEach(s=>{
+      /* 광대뼈 — 옆으로 뾰족하게 솟은 뼈 */
+      const cheek=cone(1.15,5.0,5,bone2); cheek.position.set(s*4.0,-0.5,2.2);
+      cheek.rotation.z=s*1.28; cheek.rotation.x=0.42; head.add(cheek);
+      const jawBone=cone(0.60,3.6,5,bone); jawBone.position.set(s*3.0,-2.6,1.8);
+      jawBone.rotation.z=s*1.02; jawBone.rotation.x=0.18; head.add(jawBone);
+      const horn3=cone(0.42,2.2,5,bone); horn3.position.set(s*4.4,0.9,0.6);
+      horn3.rotation.z=s*1.45; horn3.rotation.x=0.25; head.add(horn3);
+      /* 깊게 패인 눈구멍 + 그 안에서 타오르는 붉은 안광 */
+      const socket=box(3.2,2.4,2.4,mat(0x030003)); socket.position.set(s*2.6,1.6,3.4); socket.rotation.z=-s*0.18; head.add(socket);
+      const gl=sphereGlow(1.55,0xff1a08,0.85); gl.position.set(s*2.6,1.6,3.9); head.add(gl); rig.eyes.push(gl);
+      const pupil=sph(0.62,8,basicMat(0xffd9a0)); pupil.position.set(s*2.6,1.6,4.15); head.add(pupil);
+      rig.pupils=rig.pupils||[]; rig.pupils.push(pupil);
+      const bp=cone(0.55,2.6,5,bone); bp.position.set(s*3.6,3.4,2.0); bp.rotation.z=s*0.55; bp.rotation.x=-0.55; head.add(bp);
+      /* 거대한 염소뿔 — 뒤로 길게 말려 올라간다 */
+      head.add(bossRibbedHorn(new THREE.Vector3(s*3.6,3.4,-0.6), new THREE.Vector3(s*11.6,9.4,-4.8),
+        new THREE.Vector3(s*7.0,15.0,-9.4), 1.90, 0.10, bone, 9, bone2));
+      /* 두 번째 뿔 — 옆으로 뻗어 앞으로 말린다 */
+      head.add(bossRibbedHorn(new THREE.Vector3(s*4.3,1.0,-1.4), new THREE.Vector3(s*9.8,1.6,-4.6),
+        new THREE.Vector3(s*8.0,5.8,-6.8), 1.10, 0.08, bone2, 6, bone));
+    });
+    /* 주둥이 — 길게 뻗은 악마의 턱 */
+    const muzzle=new THREE.Group(); muzzle.position.set(0,-0.6,2.4); head.add(muzzle);
+    const snout=cyl(1.7,3.2,6.4,7,hide); snout.rotation.x=Math.PI/2;
+    snout.scale.set(1.26,1.0,0.74); snout.position.set(0,0.1,2.6); muzzle.add(snout);
+    const snoutTop=box(4.0,1.0,6.0,armor2); snoutTop.position.set(0,1.2,2.4); snoutTop.rotation.x=0.05; muzzle.add(snoutTop);
+    [-1,1].forEach(s=>{
+      const nostril=box(0.7,0.6,1.0,mat(0x030002)); nostril.position.set(s*1.0,0.6,5.4); muzzle.add(nostril);
+    });
+    const maw=box(5.2,1.2,5.4, basicMat(0x8a0614)); maw.userData.noFade=true; maw.position.set(0,-1.45,2.6); muzzle.add(maw);
+    /* 윗니 — 길고 날카로운 송곳니 */
     for(let k=0;k<7;k++){
-      const t=cone(0.38,1.2,4,bone); t.position.set((k-3)*1.00,-0.05,5.55); t.rotation.x=Math.PI; head.add(t);
+      const len=1.6+Math.abs(k-3)*0.28;
+      const t=cone(0.34,len,4,bone); t.position.set((k-3)*0.92,-1.05,0.35+k*0.86);
+      t.rotation.x=Math.PI; muzzle.add(t);
+      if(k===0||k===6){
+        const big=cone(0.46,2.9,5,bone); big.position.set((k-3)*0.98,-1.05,0.35+k*0.86);
+        big.rotation.x=Math.PI; muzzle.add(big);
+      }
     }
-    /* 뿔 2쌍 — 머리에서 위·바깥으로 크게 휘어진다 */
+    /* 아랫턱 — 제대로 벌어지도록 힌지 */
+    const jaw=new THREE.Group(); jaw.position.set(0,-1.7,1.0); head.add(jaw); rig.jaw=jaw;
+    const jawM=cyl(1.4,2.5,5.4,7,hide2); jawM.rotation.x=Math.PI/2;
+    jawM.scale.set(1.26,1.0,0.60); jawM.position.set(0,-0.60,2.7); jaw.add(jawM);
+    for(let k=0;k<6;k++){
+      const t=cone(0.28,1.7,4,bone); t.position.set((k-2.5)*0.94,0.10,1.6+k*0.80); jaw.add(t);
+    }
+    const chinSpike=cone(0.50,2.6,5,bone); chinSpike.position.set(0,-1.7,4.0); chinSpike.rotation.x=1.85; jaw.add(chinSpike);
+
+    /* ══════ ⑦ 뼈 날개 2쌍 ══════ */
+    const wingMat=new THREE.MeshLambertMaterial({color:C(0x38080f), emissive:C(0x1c0307), side:THREE.DoubleSide});
+    const wingVein=basicMat(0x7a0a14);
+    function demonWing(s, k){
+      const W=new THREE.Group();
+      const P=(x,y,z)=>[s*x*k,y*k,z*k];
+      const A=[0,0,0], E=P(7.6,6.4,-1.0);
+      const F1=P(20,22.5,-2.6), F2=P(26.5,13.0,-3.2), F3=P(27.5,4.0,-3.8), F4=P(22.5,-4.5,-4.2);
+      const n1=P(15.0,14.0,-3.0), n2=P(19.0,8.0,-3.6), n3=P(20.5,0.0,-4.0), n4=P(14.0,-8.5,-3.2);
+      const B=P(2.0,-15.5,-0.4);
+      W.add(bossWingMembrane(A,[E,F1,n1,F2,n2,F3,n3,F4,n4,B],wingMat));
+      /* 뼈대: 팔 → 손가락 4개 */
+      W.add(bossBoneSeg(A,E,1.55,0.95,bone2));
+      W.add(bossBoneSeg(E,F1,0.85,0.40,bone2));
+      W.add(bossBoneSeg(E,F2,0.80,0.36,bone2));
+      W.add(bossBoneSeg(E,F3,0.72,0.34,bone2));
+      W.add(bossBoneSeg(E,F4,0.64,0.30,bone2));
+      W.add(bossBoneSeg(F2,n2,0.30,0.10,wingVein));
+      W.add(bossBoneSeg(F3,n3,0.30,0.10,wingVein));
+      const elbowKnob=sph(1.0,8,bone2); elbowKnob.position.set(E[0],E[1],E[2]); W.add(elbowKnob);
+      /* 날개 끝 발톱 */
+      [[F1,1.25],[F2,1.05],[F3,0.85],[F4,0.7]].forEach(tp=>{
+        const p=tp[0], len=3.6*tp[1]*k;
+        const dir=new THREE.Vector3(s*0.55,0.78,-0.30).normalize();
+        const c=cone(0.26*k, len, 5, bone);
+        c.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0), dir);
+        c.position.set(p[0]+dir.x*len*0.45, p[1]+dir.y*len*0.45, p[2]+dir.z*len*0.45);
+        W.add(c);
+      });
+      return W;
+    }
     [-1,1].forEach(s=>{
-      head.add(bossBezierSpike(
-        new THREE.Vector3(s*3.2,3.5,-0.5),
-        new THREE.Vector3(s*8.0,7.2,-2.6),
-        new THREE.Vector3(s*5.2,10.6,-6.4), 1.55, 0.12, bone, 5));
-      head.add(bossBezierSpike(
-        new THREE.Vector3(s*4.0,1.2,-2.2),
-        new THREE.Vector3(s*6.6,2.0,-4.4),
-        new THREE.Vector3(s*6.2,3.4,-6.6), 0.85, 0.10, bone, 3));
+      const uw=new THREE.Group(); uw.position.set(s*3.2,12.6,-3.8);
+      uw.rotation.y=s*0.50; uw.rotation.z=-s*0.18;
+      uw.add(demonWing(s,1.0)); torso.add(uw);
+      rig.wings.push({g:uw, side:s, pair:0, baseZ:-s*0.18, baseY:s*0.50});
+      const lw=new THREE.Group(); lw.position.set(s*3.8,7.6,-4.2);
+      lw.rotation.y=s*0.78; lw.rotation.z=-s*0.32;
+      lw.add(demonWing(s,0.60)); torso.add(lw);
+      rig.wings.push({g:lw, side:s, pair:1, baseZ:-s*0.32, baseY:s*0.78});
     });
-    /* 등 가시 — 척추를 따라 솟은 뼈 가시 */
-    for(let i=0;i<4;i++){
-      const y=17.6+i*2.7, z=-3.4-i*0.35;
-      const sp=bossBezierSpike(
-        new THREE.Vector3(0,y,z),
-        new THREE.Vector3(0,y+4.2,z-2.4),
-        new THREE.Vector3(0,y+4.6,z-5.6), 1.45-i*0.16, 0.10, bone, 4);
-      root.add(sp); rig.spikes.push(sp);
+
+    /* ══════ ⑧ 그로기 기절 링 — 황금 별 + 보라 룬 (그로기일 때만) ══════ */
+    const halo=new THREE.Group(); halo.position.set(0,60,2); root.add(halo); rig.halo=halo;
+    const hring=new THREE.Mesh(new THREE.TorusGeometry(6.8,0.32,6,34),
+      new THREE.MeshBasicMaterial({color:C(0xffd34d), transparent:true, opacity:0.92,
+        blending:THREE.AdditiveBlending, depthWrite:false}));
+    hring.userData.noFade=true; hring.rotation.x=1.28; halo.add(hring); rig.haloRing=hring;
+    const hring2=new THREE.Mesh(new THREE.TorusGeometry(5.4,0.17,6,30),
+      new THREE.MeshBasicMaterial({color:C(0xc084ff), transparent:true, opacity:0.85,
+        blending:THREE.AdditiveBlending, depthWrite:false}));
+    hring2.userData.noFade=true; hring2.rotation.x=1.28; halo.add(hring2);
+    for(let i=0;i<5;i++){
+      const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:bossStarTex(), transparent:true,
+        blending:THREE.AdditiveBlending, depthWrite:false, depthTest:false}));
+      sp.scale.set(4.8,4.8,1); halo.add(sp); rig.haloStars.push(sp);
     }
+    for(let i=0;i<5;i++){
+      const rn=new THREE.Sprite(new THREE.SpriteMaterial({map:bossRuneTex(), transparent:true,
+        blending:THREE.AdditiveBlending, depthWrite:false, depthTest:false}));
+      rn.scale.set(3.2,3.2,1); halo.add(rn); rig.haloRunes.push(rn);
+    }
+    halo.visible=false;
 
     /* ── 땅 마법진 · 빛기둥 · 마커 ── */
-    bossGroundRings(g,0x9911ff,0xff1a36,13.2);
-    BOSS.beamMul=0.28;
-    bossBeam(g,0xff1a36,0.03); bossMarker(g,40,'👹 BOSS');
-    BOSS.markerY=40;
+    bossGroundRings(g,0x7a0a1c,0xff2a10,13.4);
+    BOSS.beamMul=0.24;
+    bossBeam(g,0xff1a0a,0.028); bossMarker(g,46,'👹 BOSS');
+    BOSS.markerY=46;
     BOSS.eye=rig.eyes[0];
     BOSS.rig=rig;
     break;
   }
+
   case 'crab':{
     const shell=mat(0xe0502e), dark=mat(0xb03a20), pale=mat(0xffd9a8), gold=mat(0xffd34d);
     const body=sph(9.2,18,shell); body.scale.set(1.35,0.82,1.0); body.position.y=7.5; g.add(body);
@@ -10993,6 +11235,7 @@ function bossResetMotion(){
   BOSS.jumpY=0; BOSS.velX=0; BOSS.velZ=0; BOSS.chargeT=4.6; BOSS.jumpT=9.6;
   BOSS.strafeDir=RNG()<0.5?-1:1; BOSS.strafeT=2.5; BOSS.dashT=0; BOSS.dashFxT=0;
   BOSS.slammed=false; BOSS.lastCheck2=null;
+  BOSS.groggyK=0;
 }
 function bossSetMotion(m){ BOSS.motion=m; BOSS.motionT=0; }
 
@@ -11237,6 +11480,8 @@ function updateBossMotion(dt, dxp, dzp, dp){
 }
 
 /* ── 괴수 리깅 — 팔·꼬리·몸통·머리·안광을 계속 살아 움직이게 ── */
+/* ── 악마 군주 리깅 — 뼈 날개·팔·꼬리·머리·안광을 살아 움직이게 하고,
+      그로기에는 무릎 꿇고 앞으로 고꾸라지는 전용 포즈로 접힌다 ── */
 function animateBossRig(dt,t){
   const rig=BOSS.rig; if(!rig) return;
   const spd=Math.hypot(BOSS.velX||0, BOSS.velZ||0);
@@ -11246,53 +11491,106 @@ function animateBossRig(dt,t){
   const lean=BOSS.lean||0;
   const jumpY=BOSS.jumpY||0;
   const breath=Math.sin(t*1.25);
+  /* 그로기 블렌드 0→1 */
+  const G = BOSS.groggyK = damp(BOSS.groggyK||0, BOSS.groggy>0 ? 1 : 0, 8.5, dt);
+  const alive = 1-G;
 
   if(rig.root){
-    /* 묵직한 걷기 바운스 + 몸통 흔들림 */
-    const bob=Math.abs(Math.sin(w))*0.95*Math.min(1.35,walkK);
-    rig.root.position.y = bob + jumpY - Math.max(0,crouch)*0.85;
-    rig.root.position.x = Math.sin(w*0.5)*0.38*Math.min(1,walkK);
-    rig.root.rotation.z = Math.sin(w*0.5)*0.035*Math.min(1,walkK) + Math.sin(t*0.8)*0.012;
-    rig.root.rotation.x = lean*0.20 - crouch*0.13;
+    /* 묵직한 걷기 바운스 → 그로기엔 바닥으로 주저앉는다 */
+    const bob=Math.abs(Math.sin(w))*0.95*Math.min(1.35,walkK)*alive;
+    rig.root.position.y = bob + jumpY - Math.max(0,crouch)*0.85*alive - G*9.0
+      + G*0.30*Math.sin(t*1.05);
+    rig.root.position.x = Math.sin(w*0.5)*0.38*Math.min(1,walkK)*alive + G*0.25*Math.sin(t*0.7);
+    rig.root.position.z = G*2.4;
+    rig.root.rotation.x = (lean*0.20 - crouch*0.13)*alive + G*0.22;
+    rig.root.rotation.z = (Math.sin(w*0.5)*0.035*Math.min(1,walkK) + Math.sin(t*0.8)*0.012)*alive
+      + G*0.07*Math.sin(t*0.85);
+  }
+  if(rig.hips){
+    rig.hips.position.y = 17.0 - G*1.1;
+    rig.hips.rotation.x = G*0.30;
+    rig.hips.rotation.z = G*0.06 + G*0.04*Math.sin(t*0.9);
   }
   if(rig.torso){
     const s=1+0.022*breath;
     rig.torso.scale.set(s, 1+0.030*breath, s);
-    rig.torso.rotation.x = -Math.max(0,crouch)*0.10 + lean*0.05;
-    rig.torso.rotation.y = Math.sin(t*0.62)*0.035;
+    /* 평상시엔 숨쉬며 꼿꼿이, 그로기엔 상체가 앞으로 푹 꺾인다 */
+    rig.torso.rotation.x = (-Math.max(0,crouch)*0.10 + lean*0.05)*alive + G*0.55;
+    rig.torso.rotation.y = Math.sin(t*0.62)*0.035*alive + G*0.10*Math.sin(t*0.55);
+    rig.torso.rotation.z = G*0.05*Math.sin(t*1.1);
   }
   if(rig.head){
-    rig.head.rotation.x = 0.05 + Math.sin(t*0.85)*0.05 - crouch*0.30 + lean*0.16
-      + Math.abs(Math.sin(w))*0.04*Math.min(1,walkK);
-    rig.head.rotation.y = Math.sin(t*0.55)*0.12;
-    rig.head.rotation.z = Math.sin(t*0.70)*0.04;
+    rig.head.rotation.x = (0.05 + Math.sin(t*0.85)*0.05 - crouch*0.30 + lean*0.16
+      + Math.abs(Math.sin(w))*0.04*Math.min(1,walkK))*alive + G*(0.78 + 0.05*Math.sin(t*1.35));
+    rig.head.rotation.y = Math.sin(t*0.55)*0.12*alive + G*0.18*Math.sin(t*0.45);
+    rig.head.rotation.z = Math.sin(t*0.70)*0.04*alive + G*0.22*Math.sin(t*0.6);
   }
   if(rig.jaw){
     const roar=Math.max(0, Math.sin(t*1.7)-0.55)/0.45;
-    rig.jaw.rotation.x = 0.05 + 0.22*roar + Math.max(0,crouch)*0.10;
+    rig.jaw.rotation.x = 0.05 + 0.22*roar*alive + Math.max(0,crouch)*0.10*alive + G*0.42;
   }
   rig.arms.forEach((a,i)=>{
     const s=a.side;
     const swing=Math.sin(w + (s>0?Math.PI:0))*0.55*walkK;
-    a.g.rotation.x = swing - crouch*0.55 + lean*0.95;
-    a.g.rotation.z = s*(0.10 + 0.05*Math.sin(t*1.4+s)) + s*crouch*0.10;
-    a.g.position.y = a.baseY + Math.sin(t*1.1+i*0.9)*0.10;
+    a.g.rotation.x = (swing - crouch*0.55 + lean*0.95)*alive
+      + G*(-0.52 + 0.10*Math.sin(t*1.15+i));
+    a.g.rotation.z = s*(0.10 + 0.05*Math.sin(t*1.4+s))*alive
+      + s*G*(0.24 + 0.06*Math.sin(t*1.05+i));
+    a.g.position.y = a.baseY + Math.sin(t*1.1+i*0.9)*0.10*alive - G*1.1;
+    if(a.elbow) a.elbow.rotation.x = 0.05*Math.sin(t*1.6+i)*alive + G*(0.60 + 0.05*Math.sin(t*1.2+i));
   });
-  rig.legs.forEach(l=>{
+  rig.legs.forEach((l,i)=>{
     const s=l.side;
     const step=Math.sin(w + (s>0?Math.PI:0));
-    l.g.rotation.x = step*0.50*walkK + Math.max(0,crouch)*0.30 + (jumpY>0.6?0.40:0);
-    l.g.rotation.z = s*0.05;
+    const stand=step*0.50*walkK + Math.max(0,crouch)*0.30 + (jumpY>0.6?0.40:0);
+    l.g.rotation.x = stand*alive + (l.standX-0.20)*G;
+    l.g.rotation.z = s*0.05 + s*0.30*G;
+    if(l.knee) l.knee.rotation.x = l.standK*alive + 1.92*G;
+    if(l.ankle) l.ankle.rotation.x = l.standA*alive - 1.42*G;
   });
   rig.tail.forEach((seg,i)=>{
-    seg.rotation.y = Math.sin(t*1.5 - i*0.6)*0.15 + Math.sin(w*0.8 - i*0.5)*0.10*Math.min(1,walkK);
-    seg.rotation.x = Math.sin(t*1.1 - i*0.45)*0.05;
+    const bx=seg.userData.bx||0;
+    seg.rotation.y = Math.sin(t*1.5 - i*0.6)*0.15*alive + Math.sin(w*0.8 - i*0.5)*0.10*Math.min(1,walkK)*alive
+      + G*0.05*Math.sin(t*0.5 - i*0.35);
+    seg.rotation.x = bx + Math.sin(t*1.1 - i*0.45)*0.05*alive + G*0.07;
+  });
+  rig.wings.forEach((wg,i)=>{
+    const s=wg.side, low=wg.pair?1:0;
+    const flap=Math.sin(t*(low?1.65:1.15) + (s>0?0.5:0)) * (low?0.055:0.095);
+    const open=wg.baseZ*alive;
+    wg.g.rotation.z = open + flap*alive - s*1.32*G - s*0.10*G*Math.sin(t*0.9+i);
+    wg.g.rotation.y = wg.baseY*alive + s*0.82*G;
+    wg.g.rotation.x = 0.04*Math.sin(t*0.9+i)*alive - 0.18*G;
   });
   rig.eyes.forEach((e,i)=>{
-    if(e.material) e.material.opacity=0.55+0.40*Math.abs(Math.sin(t*(2.4+i*0.4)+i));
-    e.scale.setScalar(0.9+0.22*Math.abs(Math.sin(t*(3.1+i))));
+    const base=0.55+0.40*Math.abs(Math.sin(t*(2.4+i*0.4)+i));
+    if(e.material) e.material.opacity=lerp(base, 0.16+0.10*Math.abs(Math.sin(t*1.7+i)), G);
+    e.scale.setScalar(lerp(0.9+0.22*Math.abs(Math.sin(t*(3.1+i))), 0.55, G));
   });
-  if(rig.chestGlow) rig.chestGlow.material.opacity=0.30+0.22*Math.abs(Math.sin(t*2.0));
+  if(rig.chestGlow) rig.chestGlow.material.opacity=lerp(0.30+0.22*Math.abs(Math.sin(t*2.0)), 0.10, G);
+  if(rig.runeRing){ rig.runeRing.rotation.z=t*0.9; rig.runeRing.material.opacity=0.9*alive+0.2*G; }
+  /* 기절 링 — 그로기일 때 머리 위에서 빙글빙글 */
+  if(rig.halo){
+    const on=G>0.06;
+    rig.halo.visible=on;
+    if(on){
+      rig.halo.position.set(0, 60-30*G, 2+10*G);
+      rig.halo.scale.setScalar(0.75+0.25*G);
+      rig.halo.rotation.y=t*1.9;
+      rig.halo.rotation.z=Math.sin(t*1.3)*0.14;
+      if(rig.haloRing) rig.haloRing.rotation.z=t*1.5;
+      rig.haloStars.forEach((sp,i)=>{
+        const a=t*2.6+i*1.2566, rr=6.4;
+        sp.position.set(Math.cos(a)*rr, Math.sin(a*2+i)*0.9, Math.sin(a)*rr);
+        sp.material.opacity=0.70+0.30*Math.abs(Math.sin(t*3.0+i));
+      });
+      rig.haloRunes.forEach((rn,i)=>{
+        const a=-t*1.6+i*1.2566, rr=4.6;
+        rn.position.set(Math.cos(a)*rr, 1.5+Math.sin(a*2)*0.7, Math.sin(a)*rr);
+        rn.material.opacity=0.55+0.35*Math.abs(Math.sin(t*2.2+i*1.3));
+      });
+    }
+  }
   bossDashTeleUpdate(dt,t);
 }
 

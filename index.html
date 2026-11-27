@@ -308,7 +308,7 @@ canvas#cv{position:fixed;inset:0;width:100%;height:100%;display:block;touch-acti
 
 /* ══════════ v2: skin shop ══════════ */
 #shop{z-index:24;background:radial-gradient(120% 80% at 50% 20%,rgba(10,20,40,.92),rgba(3,6,14,.97))}
-.shopCard{width:100%;max-width:368px;max-height:88vh;display:flex;flex-direction:column;
+.shopCard{width:100%;max-width:368px;max-height:92vh;display:flex;flex-direction:column;
   padding:14px 14px 10px;border-radius:22px;
   background:linear-gradient(160deg,rgba(18,28,50,.99),rgba(6,10,20,.99));
   border:1.5px solid rgba(120,200,255,.26);box-shadow:0 24px 60px rgba(0,0,0,.65),inset 0 1px 0 rgba(255,255,255,.1)}
@@ -332,26 +332,26 @@ canvas#cv{position:fixed;inset:0;width:100%;height:100%;display:block;touch-acti
 .gemAdBar{height:6px;border-radius:4px;background:rgba(255,255,255,.10);margin-top:6px;overflow:hidden}
 .gemAdBar i{display:block;height:100%;width:0%;background:linear-gradient(90deg,#7fe0ff,#c8f4ff);transition:width .1s linear}
 .skinList{overflow-y:auto;-webkit-overflow-scrolling:touch;display:flex;flex-direction:column;gap:8px;margin-top:10px;
-  padding:2px 2px 4px;max-height:52vh}
-.skinCard{pointer-events:auto;display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:15px;
+  padding:2px 2px 4px;max-height:42vh}
+.skinCard{pointer-events:auto;display:flex;align-items:center;gap:12px;padding:12px 11px;border-radius:16px;
   text-align:left;color:#fff;cursor:pointer;font-family:inherit;
   background:rgba(255,255,255,.04);border:1.5px solid rgba(255,255,255,.12)}
 .skinCard.owned{border-color:rgba(120,220,255,.30)}
 .skinCard.equipped{border-color:#9bf24b;background:rgba(155,242,75,.10);box-shadow:0 0 18px rgba(155,242,75,.22)}
 .skinCard.prem{border-color:rgba(255,211,77,.35);background:linear-gradient(120deg,rgba(60,44,12,.55),rgba(20,16,30,.6))}
 .skinCard.prem.equipped{border-color:#ffd34d;box-shadow:0 0 22px rgba(255,211,77,.28)}
-.skinPrev{width:54px;height:54px;border-radius:50%;flex:0 0 auto;box-shadow:inset 0 0 12px rgba(0,0,0,.7),0 0 14px rgba(120,220,255,.2)}
+.skinPrev{width:62px;height:62px;border-radius:50%;flex:0 0 auto;box-shadow:inset 0 0 12px rgba(0,0,0,.7),0 0 14px rgba(120,220,255,.2)}
 .skinInfo{flex:1;min-width:0}
-.skinName{font-family:"Black Han Sans",sans-serif;font-size:14.5px;display:flex;align-items:center;gap:5px}
-.skinName .tier{font-size:8.5px;padding:1px 5px;border-radius:5px;background:rgba(255,211,77,.16);
+.skinName{font-family:"Black Han Sans",sans-serif;font-size:16.5px;display:flex;align-items:center;gap:6px;flex-wrap:wrap;line-height:1.2}
+.skinName .tier{font-size:11.5px;font-weight:bold;padding:2px 7px;border-radius:7px;background:rgba(255,211,77,.16);
   color:#ffd873;border:1px solid rgba(255,211,77,.3);font-family:inherit;letter-spacing:.5px}
-.skinDesc{font-size:10px;color:#9fb6d6;line-height:1.35;margin-top:2px}
-.skinCost{font-size:11.5px;color:#ffe28a;margin-top:3px;font-weight:bold}
-.skinState{flex:0 0 auto;font-size:11.5px;font-family:"Black Han Sans",sans-serif;padding:7px 10px;border-radius:10px;
+.skinDesc{font-size:13px;color:#a9c0da;line-height:1.4;margin-top:3px}
+.skinCost{font-size:13.5px;color:#ffe28a;margin-top:4px;font-weight:bold}
+.skinState{flex:0 0 auto;font-size:13px;font-family:"Black Han Sans",sans-serif;padding:9px 12px;border-radius:11px;
   background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.16);color:#dfeaff;white-space:nowrap}
 .skinCard.equipped .skinState{background:rgba(155,242,75,.16);border-color:rgba(155,242,75,.5);color:#d8ffb0}
 .skinCard.prem .skinState{color:#ffe9a8}
-.shopTip{margin-top:8px;font-size:9.5px;color:#7e94b1;text-align:center}
+.shopTip{margin-top:8px;font-size:12px;color:#8fa9c8;text-align:center;line-height:1.3}
 #shopBtn{margin-top:12px;pointer-events:auto;border:1px solid rgba(255,255,255,.18);cursor:pointer;
   font-family:"Black Han Sans",sans-serif;font-size:12.5px;letter-spacing:1px;color:#eaf6ff;
   padding:8px 18px;border-radius:999px;background:rgba(8,14,26,.55);backdrop-filter:blur(8px);
@@ -378,17 +378,17 @@ canvas#cv{position:fixed;inset:0;width:100%;height:100%;display:block;touch-acti
 .exchangeBtn:active{transform:scale(.99)}
 .upCard{max-height:90vh}
 .upListWrap{overflow-y:auto;-webkit-overflow-scrolling:touch;margin-top:8px;padding-right:2px}
-.upSec{font-size:10px;letter-spacing:3px;color:#8fe9ff;margin:10px 0 6px;font-weight:bold}
-.upRow{display:flex;align-items:center;gap:9px;padding:9px 10px;border-radius:13px;margin-bottom:7px;
+.upSec{font-size:12.5px;letter-spacing:2px;color:#8fe9ff;margin:12px 0 7px;font-weight:bold}
+.upRow{display:flex;align-items:center;gap:10px;padding:11px 11px;border-radius:14px;margin-bottom:7px;
   background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.10)}
-.upRow .ic{font-size:20px;width:26px;text-align:center}
+.upRow .ic{font-size:23px;width:29px;text-align:center}
 .upRow .tx{flex:1;min-width:0}
-.upRow .nm{font-family:"Black Han Sans",sans-serif;font-size:13px}
-.upRow .ds{font-size:10px;color:#9fb6d6;margin-top:2px}
+.upRow .nm{font-family:"Black Han Sans",sans-serif;font-size:15.5px;line-height:1.2}
+.upRow .ds{font-size:12.5px;color:#a9c0da;margin-top:2px;line-height:1.3}
 .upRow .lv{display:flex;gap:3px;margin-top:4px}
 .upRow .lv i{width:10px;height:4px;border-radius:2px;background:rgba(255,255,255,.16)}
 .upRow .lv i.on{background:#9bf24b;box-shadow:0 0 6px rgba(155,242,75,.7)}
-.upRow .buy{flex:0 0 auto;font-family:"Black Han Sans",sans-serif;font-size:11px;padding:7px 9px;border-radius:10px;
+.upRow .buy{flex:0 0 auto;font-family:"Black Han Sans",sans-serif;font-size:13px;padding:9px 11px;border-radius:11px;
   border:1px solid rgba(255,211,77,.4);background:rgba(255,211,77,.12);color:#ffe28a;cursor:pointer;white-space:nowrap}
 .upRow .buy:disabled{opacity:.45;filter:grayscale(.6)}
 .upRow.locked{opacity:.85}
@@ -413,7 +413,7 @@ canvas#cv{position:fixed;inset:0;width:100%;height:100%;display:block;touch-acti
 
 
 /* ══════════ v2: reward chest ══════════ */
-#chest{z-index:23;background:radial-gradient(120% 80% at 50% 30%,rgba(14,22,40,.94),rgba(3,6,14,.97))}
+#chest{z-index:28;background:radial-gradient(120% 80% at 50% 30%,rgba(14,22,40,.94),rgba(3,6,14,.97))}
 .chestCard{width:100%;max-width:356px;text-align:center;padding:18px 14px 14px;border-radius:24px;
   background:linear-gradient(160deg,rgba(22,32,54,.99),rgba(7,11,22,.99));
   border:1.5px solid rgba(255,211,77,.32);box-shadow:0 24px 60px rgba(0,0,0,.65)}
@@ -426,21 +426,22 @@ canvas#cv{position:fixed;inset:0;width:100%;height:100%;display:block;touch-acti
   border:1.5px solid rgba(255,211,77,.38);color:#fff;font-family:inherit;
   background:linear-gradient(160deg,rgba(46,36,16,.96),rgba(12,12,22,.96));
   display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
-  box-shadow:inset 0 0 26px rgba(255,190,60,.10)}
-.chestBox .em{font-size:38px;line-height:1;filter:drop-shadow(0 0 12px rgba(255,200,80,.5));transition:transform .25s}
+  box-shadow:inset 0 0 26px rgba(255,190,60,.10);
+  transition:transform .26s cubic-bezier(.2,1.3,.5,1),box-shadow .3s ease,border-color .3s ease,background .3s ease}
+.chestBox .em{font-size:38px;line-height:1;filter:drop-shadow(0 0 12px rgba(255,200,80,.5));transition:transform .3s ease}
 .chestBox .lb{font-size:10.5px;color:#ffe28a;letter-spacing:.3px}
 .chestBox .qt{position:absolute;top:6px;right:9px;font-size:9px;color:#c9a24a;opacity:.7}
 .chestBox:active{transform:scale(.96)}
 .chestBox.open{border-color:#9bf24b;background:linear-gradient(160deg,rgba(26,50,22,.96),rgba(10,18,12,.96));
-  box-shadow:0 0 20px rgba(155,242,75,.25),inset 0 0 26px rgba(155,242,75,.12)}
+  box-shadow:0 0 20px rgba(155,242,75,.25),inset 0 0 26px rgba(155,242,75,.12);
+  animation:chestOpenIn .36s cubic-bezier(.2,1.4,.5,1) both}
+@keyframes chestOpenIn{0%{transform:scale(1)}45%{transform:scale(1.06)}100%{transform:scale(1)}}
 .chestBox.open .em{transform:scale(1.12)}
 .chestBox.miss{opacity:.62;border-color:rgba(255,255,255,.18);background:rgba(255,255,255,.04);filter:saturate(.8)}
 .chestRow.shuffling .chestBox{animation:chestShuffle .42s ease-in-out 2}
 .chestRow.shuffling .chestBox:nth-child(2){animation-delay:.05s}
 .chestRow.shuffling .chestBox:nth-child(3){animation-delay:.1s}
 .chestRow.shuffling .chestBox:nth-child(4){animation-delay:.15s}
-@keyframes chestShuffle{0%,100%{transform:translateX(0) rotate(0)}
-  25%{transform:translateX(-15px) rotate(-4deg)}75%{transform:translateX(15px) rotate(4deg)}}
 .chestMsg{margin-top:11px;font-size:13px;min-height:18px;color:#fff}
 .chestMsg b{font-size:15px}
 #chestAdBtn{margin-top:9px;width:100%;border:none;cursor:pointer;font-family:"Black Han Sans",sans-serif;
@@ -474,7 +475,7 @@ canvas#cv{position:fixed;inset:0;width:100%;height:100%;display:block;touch-acti
 
 /* ══════════ v2.1: boss gauge / threats / minimap ══════════ */
 #hudRow2{display:flex;justify-content:space-between;align-items:flex-start;margin-top:6px;width:100%}
-#minimap{width:84px;height:84px;border-radius:50%;background:rgba(7,13,26,.70);border:1.5px solid rgba(110,190,255,.38);backdrop-filter:blur(6px);box-shadow:0 4px 16px rgba(0,0,0,.45)}
+#minimap{width:84px;height:84px;border-radius:16px;background:rgba(7,13,26,.70);border:1.5px solid rgba(110,190,255,.38);backdrop-filter:blur(6px);box-shadow:0 4px 16px rgba(0,0,0,.45)}
 #threats{margin-top:0;align-self:flex-start;width:158px;padding:6px 8px;border-radius:12px;
   background:rgba(8,13,25,.62);border:1px solid rgba(255,255,255,.12);backdrop-filter:blur(6px);
   box-shadow:0 6px 16px rgba(0,0,0,.3)}
@@ -487,25 +488,29 @@ canvas#cv{position:fixed;inset:0;width:100%;height:100%;display:block;touch-acti
 #bossWrap.ready #bossTxt{color:#ffd34d;text-shadow:0 0 10px rgba(255,211,77,.8)}
 
 /* ══════════ v2.1: lobby tabs ══════════ */
-#title{padding-bottom:86px}
+#title{padding-bottom:100px}
 #title .titleBtns{display:none}
 #homeProg{background:rgba(6,10,20,.55);border-radius:10px;padding:3px 8px;display:inline-block}
 #homeMeta{display:flex;gap:8px;margin-top:10px;font-size:11.5px;color:#cfe4ff;align-items:center;justify-content:center}
 #homeMeta span{padding:4px 10px;border-radius:20px;background:rgba(12,22,40,.75);border:1px solid rgba(87,230,255,.28)}
-#homeProg{margin-top:7px;font-size:10.5px;color:#8fa9c8;text-align:center}
+#homeProg{margin-top:7px;font-size:12px;color:#9fb6d6;text-align:center}
 #offlineBtn{margin-top:10px;pointer-events:auto;border:1px solid rgba(255,211,77,.5);cursor:pointer;
   font-family:"Black Han Sans",sans-serif;font-size:12px;color:#ffe9a8;padding:8px 16px;border-radius:999px;
   background:linear-gradient(120deg,rgba(70,52,14,.8),rgba(20,26,40,.8));box-shadow:0 0 18px rgba(255,211,77,.2)}
 #tabBar{position:fixed;left:0;right:0;bottom:0;z-index:22;display:none;justify-content:space-around;
-  padding:7px 6px calc(env(safe-area-inset-bottom) + 7px);background:rgba(6,10,20,.94);
-  border-top:1px solid rgba(255,255,255,.10);backdrop-filter:blur(14px)}
+  gap:2px;padding:6px 6px calc(env(safe-area-inset-bottom) + 6px);background:rgba(6,10,20,.95);
+  border-top:1px solid rgba(255,255,255,.12);backdrop-filter:blur(14px);
+  box-shadow:0 -8px 22px rgba(0,0,0,.45)}
 #app.lobby #tabBar{display:flex}
-#tabBar button{flex:1;background:none;border:none;color:#8fa9c8;font-family:inherit;font-size:10px;
-  display:flex;flex-direction:column;align-items:center;gap:2px;padding:3px 0;cursor:pointer}
-#tabBar button span{font-size:19px;line-height:1;filter:grayscale(.4);transition:transform .15s}
-#tabBar button.on{color:#9bf24b}
-#tabBar button.on span{filter:none;transform:translateY(-2px) scale(1.12)}
-#tabPage{position:fixed;left:0;right:0;top:0;bottom:64px;z-index:21;display:flex;flex-direction:column;
+#tabBar button{flex:1;height:68px;background:none;border:none;color:#93aacb;font-family:inherit;
+  font-size:12.5px;font-weight:bold;letter-spacing:.2px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:4px 0;cursor:pointer;
+  border-radius:14px;text-shadow:0 1px 2px rgba(0,0,0,.55)}
+#tabBar button span{font-size:23px;line-height:1;filter:grayscale(.35) brightness(.95);transition:transform .15s}
+#tabBar button.on{color:#c9ff8f;background:rgba(155,242,75,.10)}
+#tabBar button.on span{filter:none;transform:translateY(-2px) scale(1.10)}
+#tabBar button:active{transform:scale(.96)}
+#tabPage{position:fixed;left:0;right:0;top:0;bottom:calc(env(safe-area-inset-bottom) + 80px);z-index:21;display:flex;flex-direction:column;
   padding:calc(env(safe-area-inset-top) + 14px) 14px 10px;
   background:linear-gradient(180deg,rgba(6,12,24,.97),rgba(3,6,14,.995))}
 .tpHead{display:flex;align-items:center;margin-bottom:10px}
@@ -513,52 +518,52 @@ canvas#cv{position:fixed;inset:0;width:100%;height:100%;display:block;touch-acti
 #tpClose{width:34px;height:34px;border-radius:11px;border:1px solid rgba(255,255,255,.18);
   background:rgba(255,255,255,.06);color:#dfeaff;font-size:15px;cursor:pointer}
 .tpBody{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:12px}
-.wSec{margin:14px 0 7px;font-size:11px;letter-spacing:2px;color:#8fe9ff;font-weight:bold;display:flex;gap:8px;align-items:baseline}
-.wSec b{color:#fff;letter-spacing:0;font-size:12px}
-.wHint{font-size:9.5px;letter-spacing:0;color:#7e94b1;font-weight:normal}
+.wSec{margin:15px 0 8px;font-size:12.5px;letter-spacing:1.6px;color:#8fe9ff;font-weight:bold;display:flex;gap:8px;align-items:baseline}
+.wSec b{color:#fff;letter-spacing:0;font-size:14px}
+.wHint{font-size:11.5px;letter-spacing:0;color:#8fa9c8;font-weight:normal}
 .wBar{height:9px;border-radius:6px;background:rgba(255,255,255,.10);overflow:hidden}
 .wBar i{display:block;height:100%;background:linear-gradient(90deg,#57e6ff,#9bf24b);box-shadow:0 0 12px rgba(155,242,75,.6)}
 .wList{display:flex;flex-direction:column;gap:6px}
-.wRow{display:flex;gap:9px;align-items:center;padding:8px 9px;border-radius:13px;
+.wRow{display:flex;gap:10px;align-items:center;padding:11px 10px;border-radius:14px;
   background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.10)}
 .wRow.locked{opacity:.45;filter:saturate(.4)}
-.wEmo{font-size:22px;width:28px;text-align:center}
+.wEmo{font-size:25px;width:31px;text-align:center}
 .wInfo{flex:1;min-width:0}
-.wName{font-family:"Black Han Sans",sans-serif;font-size:13px;display:flex;gap:6px;align-items:center}
-.wBadge{font-size:8.5px;padding:1px 6px;border-radius:6px;background:rgba(155,242,75,.18);color:#c8ff9a}
-.wSub{font-size:9.5px;color:#8fa9c8;margin-top:1px}
+.wName{font-family:"Black Han Sans",sans-serif;font-size:15.5px;display:flex;gap:6px;align-items:center;line-height:1.2}
+.wBadge{font-size:11px;font-weight:bold;padding:2px 7px;border-radius:7px;background:rgba(155,242,75,.18);color:#c8ff9a}
+.wSub{font-size:12.5px;color:#9fb6d6;margin-top:2px}
 .wPips{display:flex;gap:4px;margin-top:5px}
 .wPips i{display:inline-block;width:22px;height:6px;border-radius:3px;background:rgba(255,255,255,.14);font-style:normal;font-size:0;line-height:0;overflow:hidden}
 .wPips i.done{background:#9bf24b;box-shadow:0 0 8px rgba(155,242,75,.7)}
 .wPips i.cur{background:#ffd34d;box-shadow:0 0 8px rgba(255,211,77,.8)}
 .lgList{display:flex;flex-direction:column;gap:4px}
-.lgRow{display:flex;gap:8px;font-size:11.5px;padding:6px 9px;border-radius:10px;background:rgba(255,255,255,.03)}
+.lgRow{display:flex;gap:8px;font-size:13px;padding:8px 10px;border-radius:10px;background:rgba(255,255,255,.03)}
 .lgRow.me{background:rgba(155,242,75,.12);border:1px solid rgba(155,242,75,.35);color:#eaffd9;font-weight:bold}
 .lgR{width:16px;color:#8fa9c8;text-align:center}
 .lgS{margin-left:auto;color:#ffe28a;font-variant-numeric:tabular-nums}
-.wFoot{margin-top:14px;font-size:9.5px;color:#6c82a0;text-align:center;line-height:1.5}
+.wFoot{margin-top:14px;font-size:11.5px;color:#7e94b1;text-align:center;line-height:1.5}
 .msList{display:flex;flex-direction:column;gap:7px}
-.msRow{display:flex;gap:9px;align-items:center;padding:9px;border-radius:13px;
+.msRow{display:flex;gap:10px;align-items:center;padding:11px 10px;border-radius:14px;
   background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.10)}
-.msEmo{font-size:20px;width:26px;text-align:center}
+.msEmo{font-size:23px;width:29px;text-align:center}
 .msTx{flex:1;min-width:0}
-.msName{font-family:"Black Han Sans",sans-serif;font-size:12.5px}
+.msName{font-family:"Black Han Sans",sans-serif;font-size:15px;line-height:1.2}
 .msBar{height:6px;border-radius:4px;background:rgba(255,255,255,.12);margin-top:4px;overflow:hidden}
 .msBar i{display:block;height:100%;background:linear-gradient(90deg,#57e6ff,#9bf24b)}
-.msP{font-size:9.5px;color:#9fb6d6;margin-top:3px}
-.msBtn{flex:0 0 auto;font-family:"Black Han Sans",sans-serif;font-size:11px;padding:7px 10px;border-radius:10px;
+.msP{font-size:12.5px;color:#a9c0da;margin-top:4px;line-height:1.35}
+.msBtn{flex:0 0 auto;font-family:"Black Han Sans",sans-serif;font-size:13px;padding:9px 12px;border-radius:11px;
   border:1px solid rgba(255,211,77,.45);background:rgba(255,211,77,.14);color:#ffe28a;cursor:pointer}
 .msBtn:disabled{opacity:.45;filter:grayscale(.6)}
 .msBtn.done{border-color:rgba(155,242,75,.4);background:rgba(155,242,75,.14);color:#c8ff9a}
 
 /* ══════════ v2.1: skin filters ══════════ */
 .filters{display:flex;flex-wrap:wrap;gap:5px;margin-top:9px}
-.fChip{font-family:inherit;font-size:10.5px;padding:5px 10px;border-radius:999px;cursor:pointer;
+.fChip{font-family:inherit;font-size:12.5px;padding:6px 11px;border-radius:999px;cursor:pointer;
   border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.05);color:#c9dcf2}
 .fChip.on{background:rgba(155,242,75,.16);border-color:rgba(155,242,75,.55);color:#eaffd9}
 .fChip.own{margin-left:auto;border-color:rgba(255,211,77,.35);color:#ffe9a8}
-.skinCount{font-size:9.5px;color:#7e94b1;text-align:right;margin-top:5px}
-.skinSkillTag{font-size:9px;color:#8fe9ff;margin-top:3px}
+.skinCount{font-size:12px;color:#8fa9c8;text-align:right;margin-top:5px}
+.skinSkillTag{font-size:12.5px;color:#8fe9ff;margin-top:4px;line-height:1.3}
 .skinCard.leg{border-color:rgba(255,211,77,.5)}
 .skinCard.myth{border-color:rgba(255,95,162,.6);background:linear-gradient(120deg,rgba(60,14,40,.6),rgba(20,16,30,.6))}
 #lobbyBtn{margin-top:8px;width:100%;pointer-events:auto;border:1.5px solid rgba(255,255,255,.22);cursor:pointer;
@@ -571,7 +576,7 @@ canvas#cv{position:fixed;inset:0;width:100%;height:100%;display:block;touch-acti
 /* ══════════ v2.2: 폴드/넓은 화면 대응 ══════════ */
 #hud .hudCol{display:flex;flex-direction:column;width:100%;max-width:560px;margin:0 auto}
 #toast{top:auto;bottom:24%;max-width:82%;text-align:center}
-.skinLvLine{font-size:9.5px;color:#ffd873;margin-top:3px}
+.skinLvLine{font-size:12.5px;color:#ffd873;margin-top:4px}
 .skinLvLine b{letter-spacing:1px}
 #hitFlash{position:fixed;inset:0;z-index:16;pointer-events:none;opacity:0;
   background:radial-gradient(circle at 50% 50%,rgba(255,40,60,0) 32%,rgba(255,26,48,.62) 100%)}
@@ -621,13 +626,13 @@ canvas#cv{position:fixed;inset:0;width:100%;height:100%;display:block;touch-acti
   background:linear-gradient(140deg,rgba(74,46,12,.55),rgba(18,20,34,.78));
   border:1.5px solid rgba(255,211,77,.38);box-shadow:inset 0 0 24px rgba(255,190,60,.10)}
 .gachaTop{display:flex;align-items:center;gap:6px;font-family:"Black Han Sans",sans-serif;font-size:13.5px;color:#ffe9a8}
-.gachaTop .odds{margin-left:auto;font-family:"Jua",sans-serif;font-size:9px;color:#b9cfe6;letter-spacing:.3px}
+.gachaTop .odds{margin-left:auto;font-family:"Jua",sans-serif;font-size:11.5px;color:#c9d9ec;letter-spacing:.3px}
 .gachaBtns{display:flex;gap:7px;margin-top:8px}
 .gachaBtns button{flex:1;border:none;cursor:pointer;border-radius:13px;padding:8px 6px;
   font-family:"Black Han Sans",sans-serif;font-size:13px;color:#2b1500;
   background:linear-gradient(180deg,#ffe98a,#ffcf4d 55%,#f5a623);box-shadow:0 4px 0 #a66a00;
   display:flex;flex-direction:column;align-items:center;gap:1px;line-height:1.15}
-.gachaBtns button small{font-family:"Jua",sans-serif;font-size:8.5px;color:#6a3b00}
+.gachaBtns button small{font-family:"Jua",sans-serif;font-size:11px;color:#6a3b00}
 .gachaBtns button#gacha10{background:linear-gradient(180deg,#ffd6f2,#ff8fd0 55%,#e055a8);
   box-shadow:0 4px 0 #8a2a62;color:#3a0018}
 .gachaBtns button#gacha10 small{color:#5a0a34}
@@ -740,22 +745,22 @@ canvas#cv{position:fixed;inset:0;width:100%;height:100%;display:block;touch-acti
 /* ══════════ v2.3: 무기고 ══════════ */
 #armory{z-index:26;background:radial-gradient(120% 80% at 50% 20%,rgba(10,20,40,.93),rgba(3,6,14,.98))}
 .armoryCard{max-width:520px;max-height:90vh}
-.armoryMeta{font-size:11px;color:#b9cfe6;margin-top:6px}
+.armoryMeta{font-size:12.5px;color:#cfe4ff;margin-top:6px;line-height:1.35}
 .armoryMeta b{color:#ffe28a}
 .armoryGrid{overflow-y:auto;-webkit-overflow-scrolling:touch;display:flex;flex-direction:column;gap:8px;
   margin-top:9px;padding:2px 2px 4px;max-height:58vh}
-.armCard{display:flex;gap:9px;align-items:center;padding:9px;border-radius:15px;
+.armCard{display:flex;gap:10px;align-items:center;padding:11px 10px;border-radius:15px;
   background:rgba(255,255,255,.04);border:1.5px solid rgba(255,255,255,.12)}
 .armCard.equipped{border-color:#9bf24b;background:rgba(155,242,75,.10);box-shadow:0 0 18px rgba(155,242,75,.2)}
-.armPrev{width:52px;height:52px;border-radius:50%;flex:0 0 auto;box-shadow:inset 0 0 12px rgba(0,0,0,.7),0 0 14px rgba(120,220,255,.2)}
+.armPrev{width:60px;height:60px;border-radius:50%;flex:0 0 auto;box-shadow:inset 0 0 12px rgba(0,0,0,.7),0 0 14px rgba(120,220,255,.2)}
 .armInfo{flex:1;min-width:0}
-.armName{font-family:"Black Han Sans",sans-serif;font-size:13px;display:flex;gap:5px;align-items:center;flex-wrap:wrap}
-.armStars{font-size:10px;color:#ffd34d;margin-top:2px;letter-spacing:.5px}
+.armName{font-family:"Black Han Sans",sans-serif;font-size:15.5px;display:flex;gap:6px;align-items:center;flex-wrap:wrap;line-height:1.2}
+.armStars{font-size:12.5px;color:#ffd34d;margin-top:3px;letter-spacing:.5px}
 .armStars .dim{color:rgba(255,255,255,.25)}
-.armSkill{font-size:9.5px;color:#9fd0e6;margin-top:3px;line-height:1.35}
-.armSyn{font-size:9.5px;color:#cfe4ff;margin-top:3px;line-height:1.35}
+.armSkill{font-size:12.5px;color:#a9d6e6;margin-top:3px;line-height:1.35}
+.armSyn{font-size:12.5px;color:#cfe4ff;margin-top:4px;line-height:1.35}
 .armSyn b{color:#9bf24b}
-.armBtn{flex:0 0 auto;font-family:"Black Han Sans",sans-serif;font-size:11.5px;padding:8px 10px;border-radius:11px;
+.armBtn{flex:0 0 auto;font-family:"Black Han Sans",sans-serif;font-size:13px;padding:10px 11px;border-radius:12px;
   border:1px solid rgba(155,242,75,.5);background:rgba(155,242,75,.16);color:#d8ffb0;cursor:pointer;white-space:nowrap}
 .armBtn:disabled{opacity:.55;filter:saturate(.6)}
 .armoryBtn{margin-left:auto;border:1px solid rgba(255,211,77,.4);background:rgba(255,211,77,.12);
@@ -763,19 +768,91 @@ canvas#cv{position:fixed;inset:0;width:100%;height:100%;display:block;touch-acti
 
 /* ══════════ v2.3: 홈 시너지 · 소탕 · 오토칩 ══════════ */
 .homeSyn{margin-top:8px;max-width:340px;text-align:center}
-.homeSyn .synLine{font-size:10.5px;color:#cfe4ff;line-height:1.8}
-.homeSyn .synChip{display:inline-block;margin:0 3px;padding:2px 7px;border-radius:999px;
-  background:rgba(255,211,77,.14);border:1px solid rgba(255,211,77,.35);color:#ffe9a8;font-size:9.5px}
+.homeSyn .synLine{font-size:12.5px;color:#cfe4ff;line-height:1.85}
+.homeSyn .synChip{display:inline-block;margin:0 3px;padding:3px 8px;border-radius:999px;
+  background:rgba(255,211,77,.14);border:1px solid rgba(255,211,77,.35);color:#ffe9a8;font-size:11.5px}
 .homeSyn .synChip.eq{background:rgba(155,242,75,.2);border-color:rgba(155,242,75,.6);color:#eaffd9}
-.homeSyn .synWhy{font-size:9px;color:#8fa9c8;margin-top:2px}
+.homeSyn .synWhy{font-size:11.5px;color:#9fb6d6;margin-top:3px}
 .sweepBtn{margin-top:8px;pointer-events:auto;border:1px solid rgba(255,211,77,.5);cursor:pointer;
   font-family:"Black Han Sans",sans-serif;font-size:12px;color:#ffe9a8;padding:8px 16px;border-radius:999px;
   background:linear-gradient(120deg,rgba(70,52,14,.85),rgba(20,26,40,.85))}
 .sweepBtn.locked{opacity:.5;filter:grayscale(.6)}
-.wSyn{font-size:9px;color:#9fb6b0;margin-top:3px;line-height:1.3}
+.wSyn{font-size:12px;color:#a9c6b8;margin-top:3px;line-height:1.35}
 .sweepMini{font-size:10px!important;padding:5px 8px!important}
 .skillBtn.autoBtn{border-color:rgba(255,211,77,.55)}
 .skillBtn.chipped{border-color:#ffd34d;box-shadow:0 0 18px rgba(255,211,77,.6)}
+
+/* ══════════ v2.4: 다이아 → 골드 환전 (직접 입력) ══════════ */
+.exBox{margin-top:9px;border-radius:16px;padding:10px 11px 11px;
+  background:linear-gradient(125deg,rgba(62,46,14,.60),rgba(16,22,38,.80));
+  border:1.5px solid rgba(255,211,77,.42);box-shadow:inset 0 0 22px rgba(255,190,60,.08)}
+.exHead{display:flex;align-items:baseline;gap:6px;font-family:"Black Han Sans",sans-serif;
+  font-size:14.5px;color:#ffe9a8;letter-spacing:.3px}
+.exHead .exRate{margin-left:auto;font-family:"Jua",sans-serif;font-size:11.5px;color:#c9b070;letter-spacing:0}
+.exRow{display:flex;gap:6px;margin-top:8px;align-items:stretch}
+.exInput{flex:1;min-width:0;width:100%;height:46px;border-radius:12px;padding:0 12px;
+  border:1.5px solid rgba(255,255,255,.24);background:rgba(4,8,18,.78);color:#fff;
+  font-family:"Black Han Sans",sans-serif;font-size:21px;text-align:right;letter-spacing:.5px;
+  box-shadow:inset 0 2px 8px rgba(0,0,0,.5);outline:none;-moz-appearance:textfield}
+.exInput::-webkit-outer-spin-button,.exInput::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.exInput:focus{border-color:#7fe0ff;box-shadow:0 0 0 2px rgba(87,230,255,.24)}
+.exQ{flex:0 0 auto;min-width:54px;height:46px;padding:0 9px;border-radius:12px;cursor:pointer;
+  font-family:"Black Han Sans",sans-serif;font-size:13.5px;color:#eaf6ff;
+  border:1px solid rgba(255,255,255,.22);background:rgba(22,32,54,.9)}
+.exQ:active{transform:scale(.95)}
+.exQ.max{min-width:58px;color:#173300;border-color:#a8f060;
+  background:linear-gradient(180deg,#d8ff96,#9bf24b 58%,#6cc72e);box-shadow:0 3px 0 #3f7a15}
+.exPrev{margin-top:8px;font-size:13.5px;color:#ffe28a;text-align:center;font-weight:bold;
+  background:rgba(4,8,18,.5);border-radius:10px;padding:7px 8px;line-height:1.35;
+  font-variant-numeric:tabular-nums}
+.exPrev b{font-family:"Black Han Sans",sans-serif;font-size:16px;color:#fff}
+.exPrev.bad{color:#ff9fb8;background:rgba(60,10,24,.45)}
+.exGo{margin-top:8px;width:100%;height:44px;border-radius:13px;border:none;cursor:pointer;
+  font-family:"Black Han Sans",sans-serif;font-size:15.5px;letter-spacing:.5px;color:#2b1500;
+  background:linear-gradient(180deg,#ffe98a,#ffcf4d 55%,#f5a623);box-shadow:0 4px 0 #a66a00}
+.exGo:active{transform:translateY(3px);box-shadow:0 1px 0 #a66a00}
+.exGo:disabled{filter:saturate(.3) brightness(.85);box-shadow:0 4px 0 #6a4700;cursor:default}
+
+/* ══════════ v2.4: 보상 수령 배너 ══════════ */
+#rewardBanner{position:fixed;inset:0;z-index:29;display:flex;align-items:center;justify-content:center;
+  padding:20px;background:radial-gradient(120% 80% at 50% 40%,rgba(12,22,44,.70),rgba(2,4,10,.92));
+  backdrop-filter:blur(4px);animation:rbFade .18s ease both}
+@keyframes rbFade{from{opacity:0}to{opacity:1}}
+.rbCard{width:100%;max-width:338px;padding:18px 16px 14px;border-radius:24px;text-align:center;
+  background:linear-gradient(165deg,rgba(28,40,66,.99),rgba(8,12,24,.99));
+  border:1.5px solid rgba(255,211,77,.55);
+  box-shadow:0 24px 60px rgba(0,0,0,.72),inset 0 0 34px rgba(255,190,60,.10);
+  animation:rbPop .32s cubic-bezier(.2,1.4,.5,1) both}
+@keyframes rbPop{from{opacity:0;transform:scale(.9) translateY(12px)}to{opacity:1;transform:none}}
+.rbKicker{font-size:11px;letter-spacing:4px;color:#ffd34d}
+.rbTitle{font-family:"Black Han Sans",sans-serif;font-size:24px;line-height:1.15;margin-top:3px;
+  text-shadow:0 0 22px rgba(255,211,77,.5)}
+.rbSub{font-size:12.5px;color:#a9c0da;margin-top:4px;line-height:1.3}
+.rbList{display:flex;flex-direction:column;gap:7px;margin-top:13px}
+.rbRow{display:flex;align-items:center;gap:9px;padding:11px 12px;border-radius:14px;text-align:left;
+  background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.13)}
+.rbRow .rbEmo{font-size:25px;line-height:1;flex:0 0 auto}
+.rbRow .rbTx{display:flex;flex-direction:column;gap:1px;flex:1;min-width:0}
+.rbRow .rbName{font-family:"Black Han Sans",sans-serif;font-size:15px;color:#eaf4ff}
+.rbRow .rbCur{font-size:12px;color:#9fb6d6;font-variant-numeric:tabular-nums}
+.rbRow .rbAdd{font-family:"Black Han Sans",sans-serif;font-size:20px;color:#9bf24b;
+  font-variant-numeric:tabular-nums;text-shadow:0 0 14px rgba(155,242,75,.45);white-space:nowrap}
+.rbRow.skin .rbAdd{color:#ffd34d;font-size:15px}
+.rbRow.ticket{border-color:rgba(143,232,255,.45);background:rgba(87,230,255,.10)}
+.rbRow.ticket .rbAdd{color:#8fe8ff;text-shadow:0 0 14px rgba(87,230,255,.5)}
+.rbGo{margin-top:12px;width:100%;height:48px;border:none;border-radius:14px;cursor:pointer;
+  font-family:"Black Han Sans",sans-serif;font-size:16px;letter-spacing:.3px;color:#0d2400;
+  background:linear-gradient(180deg,#e2ffab,#9bf24b 55%,#5fc22a);
+  box-shadow:0 5px 0 #35720f,0 10px 22px rgba(120,240,60,.28)}
+.rbGo:active{transform:translateY(4px);box-shadow:0 1px 0 #35720f}
+.rbClose{margin-top:8px;width:100%;height:42px;border-radius:13px;cursor:pointer;
+  font-family:"Black Han Sans",sans-serif;font-size:14px;color:#cfe4ff;
+  border:1.5px solid rgba(255,255,255,.22);background:rgba(255,255,255,.06)}
+.rbClose:active{transform:scale(.98)}
+.rbTimer{height:4px;border-radius:3px;background:rgba(255,255,255,.12);overflow:hidden;margin-top:11px}
+.rbTimer i{display:block;height:100%;width:100%;transform-origin:left center;
+  background:linear-gradient(90deg,#ffd34d,#9bf24b);animation:rbDrain linear forwards}
+@keyframes rbDrain{from{transform:scaleX(1)}to{transform:scaleX(0)}}
 
 </style>
 </head>
@@ -901,7 +978,17 @@ canvas#cv{position:fixed;inset:0;width:100%;height:100%;display:block;touch-acti
         <span>🪙 <b id="shopCoins">0</b></span>
         <span>💎 <b id="shopGems">0</b></span>
       </div>
-      <button class="exchangeBtn" id="shopExchange">💎 10 → 🪙 1,000 환전</button>
+      <div class="exBox" id="shopExBox">
+        <div class="exHead"><span>💎 → 🪙 환전</span><span class="exRate">💎 1 = 🪙 100</span></div>
+        <div class="exRow">
+          <input class="exInput" id="shopExInput" type="number" inputmode="numeric" min="10" step="10" value="10" aria-label="환전할 다이아 수량">
+          <button class="exQ" data-ex="10">+10</button>
+          <button class="exQ" data-ex="100">+100</button>
+          <button class="exQ max" data-ex="max">MAX</button>
+        </div>
+        <div class="exPrev" id="shopExPrev">💎 10개 → 🪙 1,000골드로 환전됩니다</div>
+        <button class="exGo" id="shopExchange">환전하기</button>
+      </div>
       <div class="gachaBox">
         <div class="gachaTop">✨ 스킨 뽑기<span class="odds">신화 2% · 전설 6% · 영웅 12%</span></div>
         <div class="gachaBtns">
@@ -932,7 +1019,17 @@ canvas#cv{position:fixed;inset:0;width:100%;height:100%;display:block;touch-acti
         <span>💎 <b id="upGems">0</b></span>
         <span>🎫 <b id="upTickets">0</b></span>
       </div>
-      <button class="exchangeBtn" id="upExchange">💎 10 → 🪙 1,000 환전</button>
+      <div class="exBox" id="upExBox">
+        <div class="exHead"><span>💎 → 🪙 환전</span><span class="exRate">💎 1 = 🪙 100</span></div>
+        <div class="exRow">
+          <input class="exInput" id="upExInput" type="number" inputmode="numeric" min="10" step="10" value="10" aria-label="환전할 다이아 수량">
+          <button class="exQ" data-ex="10">+10</button>
+          <button class="exQ" data-ex="100">+100</button>
+          <button class="exQ max" data-ex="max">MAX</button>
+        </div>
+        <div class="exPrev" id="upExPrev">💎 10개 → 🪙 1,000골드로 환전됩니다</div>
+        <button class="exGo" id="upExchange">환전하기</button>
+      </div>
       <div class="upListWrap">
         <div class="upSec">영구 강화</div>
         <div id="upList"></div>
@@ -1035,6 +1132,19 @@ canvas#cv{position:fixed;inset:0;width:100%;height:100%;display:block;touch-acti
     </div>
   </div>
 
+  <!-- REWARD RECEIPT BANNER -->
+  <div id="rewardBanner" class="hidden">
+    <div class="rbCard">
+      <div class="rbKicker" id="rbKicker">REWARD</div>
+      <div class="rbTitle" id="rbTitle">보상 획득!</div>
+      <div class="rbSub" id="rbSub"></div>
+      <div class="rbList" id="rbList"></div>
+      <button id="rbGo" class="rbGo hidden">⚡ 스킬 강화하러 가기</button>
+      <button id="rbClose" class="rbClose">확인</button>
+      <div class="rbTimer"><i id="rbTimerBar"></i></div>
+    </div>
+  </div>
+
   <!-- INTRO -->
   <div id="intro">
     <div class="vortex"><div class="ring r1"></div><div class="ring r2"></div><div class="ring r3"></div><div class="core"></div><div class="burst"></div></div>
@@ -1088,16 +1198,16 @@ const CFG = {
   CAM_YAW: 11,        // degrees to the side (quarter view)
   GOAL_BASE: 3000,
   STAGES_PER_THEME: 5,
-  BOSS_NEED_R: 5.6,   // 보스를 삼킬 수 있는 최소 크기
-  BOSS_EAT_R: 9.0,
+  BOSS_NEED_R: 12.0,  // 보스를 삼킬 수 있는 최소 크기 — 아르콜로지(10.6)까지 먹은 뒤에야 가능
+  BOSS_EAT_R: 12.5,
   TIME_BONUS_GOLD: 26 // 남은 1초당 보너스 골드
 };
 /* ───────── 한정 맵 ─────────
-   v2.3: 무한 청크 스트리밍을 걷어내고 5×5 블록(135×135) 도시 한 판으로 고정.
+   v2.4: 9×9 블록(243×243) 도시 한 판 — 면적 약 3.2배.
    경계(±HALF) 밖은 어두운 바다/보이드 + 네온 펜스로 마감한다. */
-const MAP_CELLS = 5;                       // 5×5 셀 (중앙 셀 = 보스 광장)
-const MAP_R = (MAP_CELLS - 1) / 2;         // 중심에서 셀 반경 2
-const HALF = CFG.PITCH * (MAP_CELLS / 2);  // 67.5  (= PITCH * 2.5)
+const MAP_CELLS = 9;                       // 9×9 셀 (중앙 셀 = 보스 광장)
+const MAP_R = (MAP_CELLS - 1) / 2;         // 중심에서 셀 반경 4
+const HALF = CFG.PITCH * (MAP_CELLS / 2);  // 121.5 (= PITCH * 4.5)
 const MAP_LIMIT = 3.2;                     // 플레이어가 벽에 닿지 않도록 남기는 여유
 
 const TIER = {
@@ -1603,7 +1713,7 @@ const cars = [];          // moving cars
 const sucking = [];       // animating into hole
 const ripples = [];       // ring pulses
 const poofs = [];         // debris particles
-const mines = [];         // time bombs
+const mines = [];         // v2.4: 지뢰 제거 — 디버그/호환용 빈 배열(아무것도 스폰되지 않는다)
 const zones = [];         // hazard zones (toxic / lava)
 const bolts = [];         // lightning fx
 
@@ -1750,7 +1860,7 @@ function buildClouds(){
 const ROAD_POS = [];
 for(let i=-40;i<=40;i++) ROAD_POS.push((i + 0.5) * CFG.PITCH);
 const ROAD_W = 5.8;
-const GROUND_TILES = MAP_CELLS;            // 5×5 타일 = 135 유닛 — 맵 전체를 딱 덮는다
+const GROUND_TILES = MAP_CELLS;            // 9×9 타일 = 243 유닛 — 맵 전체를 딱 덮는다
 const GROUND_SIZE = CFG.PITCH * GROUND_TILES;
 const VOID_COLOR = 0x05090f;               // 맵 밖 보이드(짙은 바다)
 
@@ -1798,19 +1908,33 @@ function buildGround(){
     }
   }
 
-  /* block sidewalk + plaza (한 칸 중앙) */
+  /* block sidewalk + plaza (한 칸 중앙) — 격자무늬 없이 자연스럽게 */
   const BH=CFG.BLOCK+5.0;
+  /* 잔디 마당 위 보도블록 링 */
   g.fillStyle=G.sidewalk;
-  roundRect(g, px((W-BH)/2), px((W-BH)/2), BH*u, BH*u, 4*u); g.fill();
-  g.strokeStyle='rgba(0,0,0,.16)'; g.lineWidth=2.5; g.stroke();
-  g.fillStyle=G.plaza;
-  roundRect(g, px((W-CFG.BLOCK)/2), px((W-CFG.BLOCK)/2), CFG.BLOCK*u, CFG.BLOCK*u, 2*u); g.fill();
-  g.strokeStyle='rgba(0,0,0,.055)'; g.lineWidth=1.4;
-  for(let k=1;k<6;k++){
-    const o=k*CFG.BLOCK/6;
-    g.beginPath(); g.moveTo(px((W-CFG.BLOCK)/2+o), px((W-CFG.BLOCK)/2)); g.lineTo(px((W-CFG.BLOCK)/2+o), px((W+CFG.BLOCK)/2)); g.stroke();
-    g.beginPath(); g.moveTo(px((W-CFG.BLOCK)/2), px((W-CFG.BLOCK)/2+o)); g.lineTo(px((W+CFG.BLOCK)/2), px((W-CFG.BLOCK)/2+o)); g.stroke();
+  roundRect(g, px((W-BH)/2), px((W-BH)/2), BH*u, BH*u, 5*u); g.fill();
+  /* 연석(curb) */
+  g.strokeStyle=G.curb; g.lineWidth=1.2*u; g.stroke();
+  /* 보도블록 줄눈 — 한 방향으로만 얇게 */
+  g.save();
+  g.beginPath(); roundRect(g, px((W-BH)/2), px((W-BH)/2), BH*u, BH*u, 5*u); g.clip();
+  g.strokeStyle='rgba(0,0,0,.065)'; g.lineWidth=1.1;
+  for(let k=1;k*1.9<BH;k++){
+    const y=px((W-BH)/2 + k*1.9);
+    g.beginPath(); g.moveTo(px((W-BH)/2), y); g.lineTo(px((W+BH)/2), y); g.stroke();
   }
+  g.restore();
+  /* 광장/잔디 바닥 — 부드러운 얼룩으로 자연스럽게(칸 격자 제거) */
+  g.fillStyle=G.plaza;
+  roundRect(g, px((W-CFG.BLOCK)/2), px((W-CFG.BLOCK)/2), CFG.BLOCK*u, CFG.BLOCK*u, 3.2*u); g.fill();
+  for(let i=0;i<30;i++){
+    const px0=px((W-CFG.BLOCK)/2), py0=px((W-CFG.BLOCK)/2), bw=CFG.BLOCK*u;
+    const x=px0+gr()*bw, y=py0+gr()*bw;
+    g.fillStyle = gr()>.5 ? G.plaza2 : 'rgba(255,255,255,.05)';
+    g.globalAlpha=0.16+gr()*0.18;
+    g.beginPath(); g.ellipse(x,y,2+gr()*8,2+gr()*6,gr()*3,0,7); g.fill();
+  }
+  g.globalAlpha=1;
 
   /* roads — 타일 왼쪽/위 모서리에 절반씩(이웃 타일과 이어짐) */
   const half=ROAD_W/2;
@@ -2346,6 +2470,7 @@ function renderShop(){
 function openShop(){
   renderShop();
   ui.shop.classList.remove('hidden');
+  if(typeof exRefresh==='function') exRefresh('shop');
   Sound.card();
 }
 function closeShop(){ ui.shop.classList.add('hidden'); }
@@ -2605,11 +2730,84 @@ function upgradeSkill(id){
   showToast('⚡ '+s.name+' Lv.'+(lv+1)+'!', useTicket?'🎫 스킬 강화권 사용':('쿨타임 '+(s.cd(lv)-s.cd(lv+1))+'초 감소'), '#ffd34d');
   renderSkills(); syncCurrency(); updateHUD(true); renderSkillBar();
 }
-function exchangeGems(){
-  if(Wallet.gems<10){ showToast('💎 부족','광고로 젬을 모아 보세요','#ff5fa2'); return; }
-  Wallet.gems-=10; Wallet.coins+=1000; Wallet.save();
+/* ── 다이아 → 골드 환전 (직접 입력 · 실시간 미리보기) ──
+   💎 1 = 🪙 100 · 최소 10개 · +10 / +100 / MAX 보조 버튼 */
+const EXCHANGE_RATE = 100;
+const EXCHANGE_MIN = 10;
+function exEls(which){
+  const p = which==='up' ? 'up' : 'shop';
+  return { input:$(p+'ExInput'), prev:$(p+'ExPrev'), go:$(p+'Exchange'), box:$(p+'ExBox') };
+}
+function exAmount(which){
+  const e=exEls(which);
+  if(!e.input) return 0;
+  const n=parseInt(e.input.value,10);
+  return isFinite(n)?n:0;
+}
+function exMax(){ return Math.max(0, Math.floor((Wallet.gems||0)/10)*10); }
+function exRefresh(which){
+  const e=exEls(which);
+  if(!e.prev) return;
+  const gems=Wallet.gems||0;
+  const n=exAmount(which);
+  e.prev.classList.remove('bad');
+  if(n<=0){
+    e.prev.textContent='환전할 다이아를 입력하세요 (💎 1 = 🪙 100)';
+  } else if(n<EXCHANGE_MIN){
+    e.prev.innerHTML='최소 💎 '+EXCHANGE_MIN+'개부터 환전할 수 있어요';
+    e.prev.classList.add('bad');
+  } else if(n>gems){
+    e.prev.innerHTML='보유 💎 <b>'+fmt(gems)+'</b>개 — 💎 '+fmt(n)+'개는 부족해요';
+    e.prev.classList.add('bad');
+  } else {
+    e.prev.innerHTML='💎 <b>'+fmt(n)+'</b>개 → 🪙 <b>'+fmt(n*EXCHANGE_RATE)+'</b>골드로 환전됩니다';
+  }
+  if(e.go) e.go.disabled = !(n>=EXCHANGE_MIN && n<=gems);
+  if(e.go) e.go.textContent = (n>=EXCHANGE_MIN && n<=gems) ? ('💎 '+fmt(n)+' 환전하기') : '환전하기';
+}
+function exAll(){ exRefresh('shop'); exRefresh('up'); }
+function exSet(which, n){
+  const e=exEls(which);
+  if(!e.input) return;
+  const gems=Wallet.gems||0;
+  let v=Math.floor(n);
+  if(!isFinite(v)||v<0) v=0;
+  if(gems>0) v=Math.min(v, Math.max(gems, EXCHANGE_MIN));
+  e.input.value=String(v);
+  exRefresh(which);
+}
+function exStep(which, kind){
+  const cur=exAmount(which);
+  if(kind==='max') exSet(which, exMax()||EXCHANGE_MIN);
+  else exSet(which, (cur||0)+Number(kind));
+  Sound.card();
+}
+function exchangeGems(which){
+  which = which==='up' ? 'up' : 'shop';
+  const gems=Wallet.gems||0;
+  let n=Math.floor(exAmount(which));
+  if(!isFinite(n)||n<=0) n=0;
+  if(n<EXCHANGE_MIN){ showToast('💎 부족','최소 💎'+EXCHANGE_MIN+'개부터 환전할 수 있어요','#ff5fa2'); return; }
+  if(n>gems){ showToast('💎 부족','보유 다이아는 💎'+fmt(gems)+'개예요','#ff5fa2'); return; }
+  const gain=n*EXCHANGE_RATE;
+  Wallet.gems-=n; Wallet.coins+=gain; Wallet.save();
   syncCurrency(); renderUpgrades(); renderSkills(); renderUpgradeBalance(); updateHUD(true);
-  Sound.card(); showToast('환전 완료!','💎 10 → 🪙 1,000','#ffd34d');
+  if(typeof renderShop==='function' && ui.shop && !ui.shop.classList.contains('hidden')) renderShop();
+  exAll();
+  Sound.coin();
+  showToast('환전 완료!','💎 '+fmt(n)+' → 🪙 '+fmt(gain),'#ffd34d');
+}
+function initExchange(which){
+  const e=exEls(which);
+  if(!e.input) return;
+  e.input.addEventListener('input', ()=>exRefresh(which));
+  e.input.addEventListener('focus', ()=>{ try{ e.input.select(); }catch(err){} });
+  e.input.addEventListener('change', ()=>exSet(which, exAmount(which)));
+  if(e.box) e.box.querySelectorAll('.exQ').forEach(b=>{
+    b.addEventListener('click', ()=>exStep(which, b.dataset.ex==='max' ? 'max' : parseInt(b.dataset.ex,10)));
+  });
+  if(e.go) e.go.addEventListener('click', ()=>exchangeGems(which));
+  exRefresh(which);
 }
 
 /* ── skill bar ── */
@@ -2747,6 +2945,7 @@ function updateSkillBar(){
 function openUpgrade(){
   renderUpgrades(); renderSkills(); renderUpgradeBalance();
   document.getElementById('upgrade').classList.remove('hidden');
+  exRefresh('up');
   Sound.card();
 }
 function closeUpgrade(){ document.getElementById('upgrade').classList.add('hidden'); }
@@ -2759,9 +2958,11 @@ function initMeta(){
   const ug=document.getElementById('upgrade');
   if(ug) ug.addEventListener('click', e=>{ if(e.target===ug) closeUpgrade(); });
   const se=document.getElementById('shopExchange');
-  if(se) se.addEventListener('click', exchangeGems);
+  if(se) se.addEventListener('click', ()=>exchangeGems('shop'));
   const ue=document.getElementById('upExchange');
-  if(ue) ue.addEventListener('click', exchangeGems);
+  if(ue) ue.addEventListener('click', ()=>exchangeGems('up'));
+  initExchange('shop');
+  initExchange('up');
   renderSkillBar();
   renderUpgradeBalance();
   syncCurrency();
@@ -2787,17 +2988,20 @@ function chestReward(){
   if(r<CHEST_ODDS.gold){
     const gold=Math.round((320+Math.random()*760)*(1+state.stage*0.14)*(big?2.4:1)/50)*50;
     Wallet.addCoins(gold);
-    return {kind:'gold', emoji:'🪙', label:fmt(gold)+' 골드', color:'#ffd34d'};
+    return {kind:'gold', emoji:'🪙', label:fmt(gold)+' 골드', color:'#ffd34d',
+      name:'골드', add:'+'+fmt(gold), cur:'현재 '+fmt(Wallet.coins)};
   }
   if(r<CHEST_ODDS.gold+CHEST_ODDS.ticket){
     const n=big?2:1;
     Wallet.tickets=(Wallet.tickets||0)+n; Wallet.save();
-    return {kind:'ticket', emoji:'🎫', label:'스킬 강화권'+(n>1?' ×'+n:''), color:'#9fe8ff'};
+    return {kind:'ticket', emoji:'🎫', label:'스킬 강화권'+(n>1?' ×'+n:''), color:'#9fe8ff',
+      name:'스킬 강화권', add:'+'+n+'장', cur:'보유 '+(Wallet.tickets||0)+'장', ticket:true};
   }
   if(r<CHEST_ODDS.gold+CHEST_ODDS.ticket+CHEST_ODDS.gems){
     const gems=(big?14:5)+Math.floor(Math.random()*(big?16:11));
     Wallet.addGems(gems);
-    return {kind:'gems', emoji:'💎', label:gems+' 젬', color:'#7fe0ff'};
+    return {kind:'gems', emoji:'💎', label:gems+' 젬', color:'#7fe0ff',
+      name:'다이아', add:'+'+gems, cur:'현재 '+fmt(Wallet.gems)};
   }
   const roll=Math.random();
   const tier = roll<0.55?'epic':(roll<0.88?'legendary':'mythic');
@@ -2806,7 +3010,10 @@ function chestReward(){
   const nm=res.skin?res.skin.name:'스킨';
   const label = res.isNew ? nm
     : (res.maxed ? nm+' MAX · 💎+'+res.refund : nm+' ★Lv.'+res.lv+' 강화');
-  return {kind:'skin', emoji:res.skin?res.skin.emoji:'✨', label:label, color:'#ffd34d'};
+  return {kind:'skin', emoji:res.skin?res.skin.emoji:'✨', label:label, color:'#ffd34d',
+    name:res.skin?res.skin.name:'스킨',
+    add: res.isNew ? 'NEW!' : (res.maxed ? 'MAX' : '★ Lv.'+res.lv),
+    cur:'보유 스킨 '+((Wallet.owned&&Wallet.owned.length)||0)+'종'};
 }
 
 /* 미선택 3칸 공개용 미끼 — 실제 확률과 무관, 상위 보상 위주로 구성 */
@@ -2845,6 +3052,9 @@ function renderChestRow(){
 }
 function openChests(opts){
   opts=opts||{};
+  ['shop','upgrade','armory','settings','gacha'].forEach(id=>{
+    const el=document.getElementById(id); if(el) el.classList.add('hidden');
+  });
   chestData=new Array(CHEST_N).fill(null);
   state.chest={round:1,picked:false,adUsed:false,locked:false,big:!!opts.big,sweep:!!opts.sweep,opened:[false,false,false,false]};
   ui.chestKicker.textContent = opts.big ? ('THEME '+(theme.themeIndex)+' CLEAR · 대형 보상') : ('STAGE '+theme.code+' CLEAR');
@@ -2885,6 +3095,7 @@ function pickChest(i){
   celebrate(reward.kind,i);
   ui.chestMsg.innerHTML='<b style="color:'+reward.color+'">'+reward.emoji+' '+reward.label+'</b> 획득!';
   dailyAdd('chest',1);
+  showChestBanner(reward);
   if(TEST_OPEN_ALL_CHESTS){
     const n=C.opened.filter(Boolean).length;
     ui.chestSub.textContent = n>=CHEST_N ? '4개 모두 열었어요! 결과를 확인하세요'
@@ -2986,30 +3197,40 @@ function runChestAd(){
     btn.textContent='🎬 광고 시청 중… '+Math.round(p)+'%';
     if(p>=100){
       clearInterval(iv);
-      setTimeout(()=>shuffleChests(),240);
+      setTimeout(()=>grantExtraChestPick(),240);
     }
   },200);
 }
-function shuffleChests(){
-  ui.chestMsg.textContent='상자를 섞는 중…';
-  ui.chestRow.classList.add('shuffling');
-  Sound.card();
-  setTimeout(()=>{
-    ui.chestRow.classList.remove('shuffling');
-    chestData=new Array(CHEST_N).fill(null);
-    renderChestRow();
-    state.chest.picked=false;
-    state.chest.locked=false;
-    state.chest.round++;
-    state.chest.opened=[false,false,false,false];
-    ui.chestSub.textContent=TEST_OPEN_ALL_CHESTS?'섞였어요! 다시 4개를 열어 보세요':'섞였어요! 다시 1개를 선택하세요';
-    ui.chestMsg.textContent='';
+/* 광고 보상 — 상자를 섮지 않고, 이미 열린 칸은 그대로 둔 채 남은 칸에서 하나 더 고른다 */
+function grantExtraChestPick(){
+  const C=state.chest;
+  if(!C) return;
+  C.picked=false;
+  C.locked=false;
+  if(ui.chestAdBtn){
     ui.chestAdBtn.classList.add('hidden');
     ui.chestAdBtn.disabled=false;
     ui.chestAdBtn.textContent='🎬 광고 보고 1개 더 뽑기 (데모)';
-    ui.chestDone.classList.add('hidden');
-    Sound.level();
-  }, 950);
+  }
+  ui.chestSub.textContent='광고 보상! 남은 상자 중 1개를 더 골라 보세요';
+  ui.chestMsg.textContent='';
+  ui.chestDone.classList.remove('hidden');
+  Sound.level();
+}
+/* 상자 보상 수령 배너 — “무엇이 얼마나 늘었는지 + 현재 보유”를 명확히 */
+function showChestBanner(reward){
+  if(!reward || typeof showRewardBanner!=='function') return;
+  const row={emoji:reward.emoji, name:reward.name||'보상', add:reward.add||reward.label||'',
+    cur:reward.cur||'', ticket:!!reward.ticket, kind:reward.kind};
+  const big=!!(state.chest && state.chest.big);
+  setTimeout(()=>{
+    showRewardBanner([row], {
+      kicker: big ? 'BIG CHEST REWARD' : 'CHEST REWARD',
+      title: '🎁 '+row.name+' 획득!',
+      ms: reward.ticket ? 8000 : 3400,
+      silent: true   /* celebrate()가 이미 축하 사운드를 재생한다 */
+    });
+  }, 600);
 }
 function finishChests(){
   ui.chest.classList.add('hidden');
@@ -4419,12 +4640,27 @@ function makeVolcanoChildren(g){
 function pavedPatch(cx,cz,w,d,c1,c2,tile){
   const S=256, cv=document.createElement('canvas'); cv.width=S; cv.height=S;
   const g=cv.getContext('2d'); const n=tile||8; const step=S/n;
+  const pr=mulberry32(Math.round(Math.abs(cx*37+cz*91))+13);
   g.fillStyle=c1; g.fillRect(0,0,S,S);
-  g.fillStyle=c2;
-  for(let i=0;i<n;i++) for(let j=0;j<n;j++) if((i+j)%2===0) g.fillRect(i*step,j*step,step,step);
-  g.strokeStyle='rgba(0,0,0,.08)'; g.lineWidth=2;
-  for(let i=0;i<=n;i++){ g.beginPath(); g.moveTo(i*step,0); g.lineTo(i*step,S); g.stroke();
-    g.beginPath(); g.moveTo(0,i*step); g.lineTo(S,i*step); g.stroke(); }
+  /* 타일별 아주 옅은 톤 차이 — 바둑판이 아니라 자연스러운 포장 느낌 */
+  for(let i=0;i<n;i++) for(let j=0;j<n;j++){
+    if(pr()<0.40){
+      g.fillStyle=c2; g.globalAlpha=0.08+pr()*0.10;
+      g.fillRect(i*step+0.6, j*step+0.6, step-1.2, step-1.2);
+    }
+  }
+  g.globalAlpha=1;
+  /* 이음선 */
+  g.strokeStyle='rgba(0,0,0,.045)'; g.lineWidth=1.2;
+  for(let i=0;i<=n;i++){
+    g.beginPath(); g.moveTo(i*step,0); g.lineTo(i*step,S); g.stroke();
+    g.beginPath(); g.moveTo(0,i*step); g.lineTo(S,i*step); g.stroke();
+  }
+  /* 얼룩·마모 — 인공적인 격자가 눈에 띄지 않게 */
+  for(let i=0;i<36;i++){
+    g.fillStyle = pr()>.5 ? 'rgba(255,255,255,.055)' : 'rgba(0,0,0,.05)';
+    g.beginPath(); g.ellipse(pr()*S, pr()*S, 4+pr()*16, 3+pr()*12, pr()*3, 0, 7); g.fill();
+  }
   const t=new THREE.CanvasTexture(cv); t.encoding=THREE.sRGBEncoding; t.anisotropy=4;
   const m=new THREE.Mesh(new THREE.PlaneGeometry(w,d), new THREE.MeshLambertMaterial({map:t}));
   m.rotation.x=-Math.PI/2; m.position.set(cx,0.036,cz); m.receiveShadow=true;
@@ -5838,7 +6074,8 @@ function updateBolts(dt){
 }
 
 /* ═══════════════════════════════════════════════════════════
-   HAZARDS — mines + danger zones (stage 2+)
+   HAZARDS — 위험 장판(독성·용암)만 남긴다
+   · v2.4: 지뢰(폭탄) 완전 제거 — 밟으면 구멍이 줄어드는 불쾌 요소 없음
    ═══════════════════════════════════════════════════════════ */
 function roadSpot(minDist){
   const lim=HALF-8;
@@ -5856,9 +6093,8 @@ function roadSpot(minDist){
 function buildStageHazards(){
   if(state.stage<2) return;
   const mul=theme.hazardMul;
-  const nMine=Math.min(32, Math.round((2.5+state.stage*2.0)*mul));
+  /* v2.4: 지뢰는 스폰하지 않는다(불쾌 요소 제거) */
   const nZone=Math.min(16, Math.round((1.8+state.stage*1.0)*mul));
-  for(let i=0;i<nMine;i++){ const p=roadSpot(15); spawnMine(p.x,p.z); }
   for(let i=0;i<nZone;i++){
     for(let t=0;t<30;t++){
       const p=roadSpot(22);
@@ -5867,27 +6103,6 @@ function buildStageHazards(){
       if(ok){ spawnZone(p.x,p.z, rnd(3.2,5.4)); break; }
     }
   }
-}
-function spawnMine(x,z){
-  const g=new THREE.Group();
-  const base=cyl(0.62,0.78,0.26,12,mat(0x2a2f36)); base.position.y=0.13; g.add(base);
-  const body=sph(0.46,10,mat(0x3f4752)); body.position.y=0.48; body.scale.y=0.82; g.add(body);
-  for(let i=0;i<8;i++){
-    const a=i/8*Math.PI*2;
-    const spike=cone(0.09,0.34,4,mat(0x6a727c));
-    spike.position.set(Math.cos(a)*0.44,0.5,Math.sin(a)*0.44);
-    spike.rotation.z=Math.PI/2; spike.rotation.y=-a; g.add(spike);
-  }
-  const led=sphereGlow(0.19,0xff2a3a,1.0); led.position.y=0.86; g.add(led);
-  const ring=new THREE.Mesh(new THREE.TorusGeometry(1.15,0.055,6,30),
-    new THREE.MeshBasicMaterial({color:C(0xff2a3a), transparent:true, opacity:0.8, blending:THREE.AdditiveBlending, depthWrite:false}));
-  ring.rotation.x=-Math.PI/2; ring.position.y=0.06; ring.renderOrder=18; g.add(ring);
-  const ring2=new THREE.Mesh(new THREE.TorusGeometry(1.42,0.025,6,30),
-    new THREE.MeshBasicMaterial({color:C(0xff6a6a), transparent:true, opacity:0.45, blending:THREE.AdditiveBlending, depthWrite:false}));
-  ring2.rotation.x=-Math.PI/2; ring2.position.y=0.05; g.add(ring2);
-  g.position.set(x,0,z);
-  hazardGroup.add(g);
-  mines.push({group:g, x:x, z:z, led:led, ring:ring, ring2:ring2, phase:RNG()*6.28, alive:true, r:0.95});
 }
 function spawnZone(x,z,r){
   const lava = theme.id==='volcano' || theme.id==='desert';
@@ -5915,17 +6130,8 @@ function spawnZone(x,z,r){
 function updateHazards(dt){
   const t=performance.now()*0.001;
   state.hazardSlow=1;
-  for(let i=mines.length-1;i>=0;i--){
-    const m=mines[i];
-    if(!m.alive){ mines.splice(i,1); continue; }
-    const ph=t*4+m.phase;
-    m.led.material.opacity=0.35+0.65*Math.abs(Math.sin(ph));
-    m.led.scale.setScalar(0.8+0.4*Math.abs(Math.sin(ph)));
-    m.ring.scale.setScalar(1+0.08*Math.sin(ph));
-    m.ring2.scale.setScalar(1+0.14*Math.sin(ph*0.8));
-    const d=Math.hypot(m.x-player.pos.x, m.z-player.pos.z);
-    if(d < state.R + 1.0) triggerMine(m);
-  }
+  /* 지뢰는 더 이상 존재하지 않는다 — 남은 참조가 있으면 정리만 한다 */
+  for(let i=mines.length-1;i>=0;i--){ if(!mines[i]||!mines[i].alive) mines.splice(i,1); }
   for(let i=zones.length-1;i>=0;i--){
     const z=zones[i];
     if(!z.alive){ zones.splice(i,1); continue; }
@@ -5959,40 +6165,6 @@ function updateHazards(dt){
       }
     }
   }
-}
-function triggerMine(m){
-  if(!m.alive) return;
-  m.alive=false;
-  hazardGroup.remove(m.group);
-  disposeTree(m.group);
-  const shielded = state.aug.shield>0 || state.feverActive>0 || state.skillDur.dash>0;
-  if(shielded){
-    state.score += Math.round(900*scoreMul());
-    gainXP(40);
-    popupAt(new THREE.Vector3(m.x,0,m.z), '위험물 분쇄 +'+fmt(Math.round(900*scoreMul())), '#9bf24b');
-    spawnRipple(0x9bf24b, state.R*1.4, false);
-    spawnPoof(m.x,m.z,0xffd34d,10);
-    Sound.card();
-    showToast('🛡️ 지뢰 분쇄!', '방어막이 폭발을 점수로 바꿨어요', '#9bf24b');
-  } else {
-    const before=state.R;
-    state.mass *= 0.68; recalcR();
-    if(state.R > before*0.94) state.sizeMul *= 0.94;
-    recalcR();
-    state.score = Math.max(0, state.score - Math.round(150));
-    state.hurtCd=1.4;
-    const kx=player.pos.x-m.x, kz=player.pos.z-m.z, kl=Math.hypot(kx,kz)||1;
-    player.pos.x=clamp(player.pos.x+kx/kl*3.2,-CFG.BOUND,CFG.BOUND);
-    player.pos.z=clamp(player.pos.z+kz/kl*3.2,-CFG.BOUND,CFG.BOUND);
-    spawnPoof(m.x,m.z,0xff6a3a,18);
-    spawnRipple(0xff2a3a, state.R*2.2, true);
-    popupAt(new THREE.Vector3(m.x,0,m.z), '💣 폭발!', '#ff5a5a');
-    Sound.boom(); vibrate([70,40,90]);
-    state.shake=1.0;
-    state.flash=0.55;
-    showToast('💣 지뢰 폭발!', '구멍이 줄어들었어요', '#ff5a5a');
-  }
-  updateHUD(true);
 }
 function destroyZone(z, score){
   z.alive=false;
@@ -6347,6 +6519,7 @@ function updateRespawns(dt){
   /* 팝업 애니메이션 */
   for(let i=respawnLive.length-1;i>=0;i--){
     const e=respawnLive[i];
+    if(!e) continue;
     const o=e.obj;
     if(!o || !o.alive || o.sucking || !o.group){ respawnLive.splice(i,1); continue; }
     e.pop=Math.min(1, e.pop + dt/0.36);
@@ -6375,6 +6548,7 @@ function purgeSuckGroup(obj){
 function updateSucking(dt){
   for(let i=sucking.length-1;i>=0;i--){
     const s=sucking[i];
+    if(!s) continue;                    /* 배열이 도중에 비워져도 안전 */
     const obj=s.obj;
     if(!obj || !obj.group || !obj.group.parent){   // 이미 사라졌으면 목록에서만 정리
       sucking.splice(i,1); continue;
@@ -6494,11 +6668,14 @@ function updateFade(dt){
     const ox=o.group.position.x, oz=o.group.position.z;
     const dx=ox-player.pos.x, dz=oz-player.pos.z;
     const dist=Math.hypot(dx,dz);
-    if(o.eatR > R*bonus){
+    /* 거대 목표물은 카메라를 바로 가리는 근거리에서만 반투명 —
+       멀리서는 웅장하게 불투명하게 보이도록 페이드 대상에서 제외한다. */
+    const nearGiant = o.isGiant ? (dist < 22) : true;
+    if(o.eatR > R*bonus && nearGiant){
       if(dist < R + Math.min(9, o.eatR*0.9) + 1.5) target=0.34;
     }
     // camera-to-player occlusion fade (keeps hole visible without moving camera)
-    if(o.tier>=3 && camState.init){
+    if(o.tier>=3 && nearGiant && camState.init){
       const vx=camState.pos.x-player.pos.x, vz=camState.pos.z-player.pos.z;
       const vl=Math.hypot(vx,vz)||1;
       const ux=vx/vl, uz=vz/vl;
@@ -6611,10 +6788,6 @@ function updatePlaying(dt){
     for(let i=zones.length-1;i>=0;i--){
       const z=zones[i];
       if(z.alive && Math.hypot(z.x-player.pos.x,z.z-player.pos.z) < state.R+5) destroyZone(z,true);
-    }
-    for(let i=mines.length-1;i>=0;i--){
-      const m=mines[i];
-      if(m.alive && Math.hypot(m.x-player.pos.x,m.z-player.pos.z) < state.R+4) triggerMine(m);
     }
   }
 
@@ -6823,6 +6996,9 @@ function startStage(n, opts){
   ui.result.classList.add('hidden');
   ui.augment.classList.add('hidden');
   if(ui.chest) ui.chest.classList.add('hidden');
+  ['shop','upgrade','armory','settings','gacha'].forEach(id=>{
+    const el=document.getElementById(id); if(el) el.classList.add('hidden');
+  });
   ui.hint.classList.add('gone');
   appEl.classList.add('playing');
   appEl.classList.remove('lobby');
@@ -7558,6 +7734,9 @@ window.__BH = {
     if(!best) return null;
     return {name:best.name, tier:best.tier, eatR:best.eatR, x:best.group.position.x, z:best.group.position.z, opacity:best.op, dist:bd};
   },
+  tierCounts(){ const out={}; for(let i=0;i<objects.length;i++){ const o=objects[i]; if(!o.alive||o.debris) continue; const t=o.tier||1; out[t]=(out[t]||0)+1; } return out; },
+  smashStats(){ let sum=0; for(let i=0;i<defenseList.length;i++) sum+=(defenseList[i].smashed||0); return {smashed:sum, chunks:smashChunks.length}; },
+  giantOp(){ return giantList.filter(g=>g&&g.alive).map(g=>({kind:g.giantKind, op:+(g.op||1).toFixed(2), tier:g.tier})); },
   hazards(){ return {mines:mines.map(m=>({x:+m.x.toFixed(1),z:+m.z.toFixed(1)})), zones:zones.map(z=>({x:+z.x.toFixed(1),z:+z.z.toFixed(1),r:z.r,kind:z.kind}))}; },
   goToHazard(kind){
     const list=kind==='zone'?zones:mines;
@@ -7638,14 +7817,16 @@ function defenseMarkerTex(){
 
 function bossNeedRFor(n){
   const si=stageInfo(n);
-  return Math.round((CFG.BOSS_NEED_R + (si.sub-1)*0.32 + si.cycle*0.9) * 100)/100;
+  return Math.round((CFG.BOSS_NEED_R + (si.sub-1)*0.36 + si.cycle*1.1) * 100)/100;
 }
 function bossMaxHpFor(n){
   const si=stageInfo(n);
-  return Math.round(2200 + si.sub*750 + si.cycle*4200);
+  return Math.round(4200 + si.sub*1600 + si.cycle*7800);
 }
 
 /* ───────── 보스 랜드마크 ───────── */
+/* 보스 타워는 맵의 심장 — 거대하고 웅장하게 (스케일은 그룹에 균일 적용) */
+const BOSS_SCALE = 1.45;
 function buildBoss(){
   if(BOSS.group){ scene.remove(BOSS.group); disposeTree(BOSS.group); }
   BOSS.group=null; BOSS.rings=[]; BOSS.spinners=[];
@@ -7710,6 +7891,7 @@ function buildBoss(){
   g.add(spr); BOSS.marker=spr;
 
   g.position.set(0,0,0);
+  g.scale.setScalar(BOSS_SCALE);
   scene.add(g);
   BOSS.group=g;
   BOSS.pos.set(0,0,0);
@@ -7739,7 +7921,7 @@ function animateBoss(dt){
     BOSS.group.position.x=damp(BOSS.group.position.x, player.pos.x, 6, dt);
     BOSS.group.position.z=damp(BOSS.group.position.z, player.pos.z, 6, dt);
     BOSS.group.position.y=-ease*30;
-    BOSS.group.scale.setScalar(Math.max(0.02, 1-ease*0.98));
+    BOSS.group.scale.setScalar(BOSS_SCALE*Math.max(0.02, 1-ease*0.98));
     BOSS.group.rotation.y += dt*ease*3.5;
     if(k>=1){ finishBossEat(); }
   }
@@ -7976,8 +8158,87 @@ function updateTelegraphs(dt){
     }
   }
 }
+/* ═══════════════════════════════════════════════════════════
+   황금 약탈차 — 진행 경로의 소·중형 오브젝트(Tier 1~3)를 들이받아 부순다
+   · Tier 4 이상 대형/초대형 건물 · 거대 목표물 · 보스는 부수지 않고 회피
+   · 부서진 물체는 리스폰 큐에 등록되고, 잔해 파편이 떨어져 쌓인다
+   ═══════════════════════════════════════════════════════════ */
+const smashChunks=[];
+const SMASH_CHUNK_MAX=80;
+function spawnSmashChunks(x,z,col,n,size){
+  const spread=Math.max(0.6,(size||1)*0.55);
+  for(let i=0;i<n;i++){
+    const sz=rnd(0.34,0.74);
+    const m=box(sz, sz*0.82, sz, mat(col));
+    m.position.set(x+rnd(-spread,spread), rnd(1.3,3.8), z+rnd(-spread,spread));
+    m.rotation.set(rnd(0,3), rnd(0,3), rnd(0,3));
+    objectsGroup.add(m);
+    smashChunks.push({m:m, vx:rnd(-3.6,3.6), vy:rnd(2.2,7.2), vz:rnd(-3.6,3.6),
+      rx:rnd(-7,7), rz:rnd(-7,7), floor:sz*0.45, life:rnd(1.4,2.4)});
+  }
+  while(smashChunks.length>SMASH_CHUNK_MAX){
+    const d=smashChunks.shift();
+    if(d.m.parent) d.m.parent.remove(d.m);
+    if(d.m.geometry) d.m.geometry.dispose();
+    if(d.m.material) d.m.material.dispose();
+  }
+}
+function updateSmashChunks(dt){
+  if(!smashChunks.length) return;
+  for(let i=smashChunks.length-1;i>=0;i--){
+    const d=smashChunks[i], m=d.m;
+    if(!m.parent){ smashChunks.splice(i,1); continue; }
+    d.vy -= 26*dt;
+    m.position.x += d.vx*dt;
+    m.position.y += d.vy*dt;
+    m.position.z += d.vz*dt;
+    m.rotation.x += d.rx*dt;
+    m.rotation.z += d.rz*dt;
+    if(m.position.y <= d.floor){
+      m.position.y=d.floor;
+      d.vy = d.vy < -1.4 ? d.vy*-0.32 : 0;
+      d.vx*=0.62; d.vz*=0.62; d.rx*=0.55; d.rz*=0.55;
+    }
+    d.life -= dt;
+    if(d.life<=0){
+      if(m.parent) m.parent.remove(m);
+      if(m.geometry) m.geometry.dispose();
+      if(m.material) m.material.dispose();
+      smashChunks.splice(i,1);
+    }
+  }
+}
+/* 차체 반경 안의 Tier 1~3 오브젝트를 부순다 (프레임당 1개 · 0.1초 간격) */
+function smashAlongPath(d, dt){
+  d.smashCd = Math.max(0, (d.smashCd||0) - dt);
+  if(d.smashCd>0) return 0;
+  const hitR = d.size*0.95 + 1.5;
+  const r2 = hitR*hitR;
+  let broke=0;
+  for(let i=objects.length-1;i>=0;i--){
+    const o=objects[i];
+    if(!o || !o.alive || !o.group) continue;
+    if(o.debris || o.hazard || o.isGiant) continue;
+    const t=o.tier||1;
+    if(t>3) continue;                       /* Tier 4+ 대형 건물·보스는 부수지 않는다 */
+    const ox=o.group.position.x-d.pos.x, oz=o.group.position.z-d.pos.z;
+    if(ox*ox+oz*oz > r2) continue;
+    shatterObject(o, {reward:false, fall:true, silent:true});
+    d.smashCd=0.10;
+    d.smashed=(d.smashed||0)+1;
+    broke++;
+    break;                                  /* 한 프레임에 하나만 */
+  }
+  if(broke){
+    Sound.noise(0.20, 0.055, 700);
+    if(d.smashed%3===0) Sound.boom();
+    spawnRipple(0xffd34d, Math.max(2.0, d.size*0.55), false);
+  }
+  return broke;
+}
 function updateDefense(dt){
   state.defSlow=1;
+  if(typeof updateSmashChunks==='function') updateSmashChunks(dt);
   const R=state.R, dom=state.aug.dominator;
   let alive=0;
   /* 장판 피격 이속 저하 */
@@ -8004,10 +8265,11 @@ function updateDefense(dt){
       rx=Math.cos(d.phase); rz=Math.sin(d.phase);
       sp*=0.55;
     }
-    /* 큰 건물은 피해서 간다(도로를 따르지는 않지만 벽을 뚫고 지나가지도 않게) */
+    /* 큰 건물은 피해서 간다(도로를 따르지는 않지만 벽을 뚫고 지나가지도 않게)
+       — Tier 4 이상 대형/초대형 건물·거대 목표물만 회피한다 */
     for(let oi=0;oi<objects.length;oi+=2){
       const o=objects[oi];
-      if(!o.alive || o.tier<3 || o.eatR<3) continue;
+      if(!o.alive || o.debris || o.isGiant || o.tier<4) continue;
       const ox=o.group.position.x-d.pos.x, oz=o.group.position.z-d.pos.z;
       const od=Math.hypot(ox,oz);
       if(od<0.01) continue;
@@ -8037,6 +8299,8 @@ function updateDefense(dt){
       d.pos.z = clamp(d.pos.z + dz/dist*7*dt, -wall, wall);
     }
     d.group.position.x=d.pos.x; d.group.position.z=d.pos.z;
+    /* 황금 약탈차 — 진행 경로의 소·중형 오브젝트(Tier 1~3)는 그대로 들이받아 부순다 */
+    if(d.kind!=='heli' && typeof smashAlongPath==='function') smashAlongPath(d, dt);
     if(d.group){
       const want=Math.atan2(rx,rz);
       let diff=((want-d.group.rotation.y+Math.PI*3)%(Math.PI*2))-Math.PI;
@@ -8130,7 +8394,8 @@ function damageObject(o, dmg){
   if(o.hp<=0){ shatterObject(o); return true; }
   return false;
 }
-function shatterObject(o){
+function shatterObject(o, opts){
+  opts=opts||{};
   if(!o || !o.alive) return;
   const p=o.group.position.clone();
   const tier=o.tier||1;
@@ -8143,24 +8408,34 @@ function shatterObject(o){
   if(!holdForRespawn(o) && o.group) disposeTree(o.group);   // 파괴된 것도 일정 시간 뒤 리스폰
   spawnPoof(p.x,p.z,col, Math.min(12, 4+tier*2));
   spawnRipple(col, Math.max(2.2,o.eatR*0.8), false);
-  Sound.boom();
-  state.score += Math.round(TIER[tier].score*0.22*scoreMul());
-  state.eaten++;
-  const pieces=Math.min(9, Math.round((2+Math.floor(tier*0.8))*Math.min(1.8,fxMul())));
-  for(let i=0;i<pieces;i++){
-    const g=new THREE.Group();
-    const sz=0.42+Math.random()*0.42;
-    g.add(box(sz,sz,sz,mat(col)));
-    g.position.set(p.x+(Math.random()-0.5)*o.eatR*0.9, 0.6+Math.random()*2.2, p.z+(Math.random()-0.5)*o.eatR*0.9);
-    objectsGroup.add(g);
-    const dobj={group:g, eatR:0.5, tier:1, name:'잔해', emoji:'🧱', alive:true, op:1,
-      mats:[], kind:'prop', hazard:false, top:0, blockR:0, debris:true};
-    g.traverse(m=>{ if(m.isMesh) m.castShadow=false; });
-    objects.push(dobj);
-    startSuck(dobj,true);
+  if(!opts.silent) Sound.boom();
+  const scored = opts.reward!==false;
+  if(scored){
+    state.score += Math.round(TIER[tier].score*0.22*scoreMul());
+    state.eaten++;
   }
-  gainXP(TIER[tier].xp*0.35);
-  checkGoal();
+  if(opts.fall){
+    /* 들이받혀 부서진 경우 — 잔해 파편이 중력을 받아 떨어진다 */
+    spawnSmashChunks(p.x, p.z, col, Math.min(9, 3+tier*2), o.eatR||1);
+  } else {
+    const pieces=Math.min(9, Math.round((2+Math.floor(tier*0.8))*Math.min(1.8,fxMul())));
+    for(let i=0;i<pieces;i++){
+      const g=new THREE.Group();
+      const sz=0.42+Math.random()*0.42;
+      g.add(box(sz,sz,sz,mat(col)));
+      g.position.set(p.x+(Math.random()-0.5)*o.eatR*0.9, 0.6+Math.random()*2.2, p.z+(Math.random()-0.5)*o.eatR*0.9);
+      objectsGroup.add(g);
+      const dobj={group:g, eatR:0.5, tier:1, name:'잔해', emoji:'🧱', alive:true, op:1,
+        mats:[], kind:'prop', hazard:false, top:0, blockR:0, debris:true};
+      g.traverse(m=>{ if(m.isMesh) m.castShadow=false; });
+      objects.push(dobj);
+      startSuck(dobj,true);
+    }
+  }
+  if(scored){
+    gainXP(TIER[tier].xp*0.35);
+    checkGoal();
+  }
 }
 function targetPos(t){
   if(!t) return null;
@@ -8566,8 +8841,7 @@ function claimDaily(id){
   Wallet.daily.claimed[id]=1;
   grantReward(m.reward);
   renderMissions();
-  Sound.jackpot();
-  showToast('🎯 미션 완료!', rewardText(m.reward)+' 획득', '#9bf24b');
+  showRewardBanner(rewardRows(m.reward), {kicker:'MISSION CLEAR', title:'🎯 미션 완료!', sub:m.name});
 }
 function claimAch(id){
   const a=ACHIEVEMENTS.find(x=>x.id===id);
@@ -8578,8 +8852,7 @@ function claimAch(id){
   Wallet.stats.achClaimed[id]=1;
   grantReward(a.reward);
   renderMissions();
-  Sound.bossKill();
-  showToast('🏆 업적 달성!', a.name+' · '+rewardText(a.reward), '#ffd34d');
+  showRewardBanner(rewardRows(a.reward), {kicker:'ACHIEVEMENT', title:'🏆 업적 달성!', sub:a.name});
 }
 function rewardText(r){
   const out=[];
@@ -8593,6 +8866,75 @@ function grantReward(r){
   if(r.gems) Wallet.addGems(r.gems);
   if(r.tickets){ Wallet.tickets=(Wallet.tickets||0)+r.tickets; Wallet.save(); }
   syncCurrency(); Wallet.save();
+}
+
+/* ───────── 보상 수령 배너 — 무엇이 얼마나 늘었는지 + 현재 보유 ───────── */
+let rbHideT=null;
+function rewardRows(r){
+  const out=[];
+  if(r.coins) out.push({emoji:'🪙', name:'골드', add:'+'+fmt(r.coins), cur:'현재 '+fmt(Wallet.coins)});
+  if(r.gems) out.push({emoji:'💎', name:'다이아', add:'+'+fmt(r.gems), cur:'현재 '+fmt(Wallet.gems)});
+  if(r.tickets) out.push({emoji:'🎫', name:'스킬 강화권', add:'+'+r.tickets+'장', cur:'보유 '+(Wallet.tickets||0)+'장', ticket:true});
+  return out;
+}
+function showRewardBanner(rows, opts){
+  opts=opts||{};
+  const box=document.getElementById('rewardBanner');
+  if(!box || !rows || !rows.length) return;
+  const kick=document.getElementById('rbKicker');
+  const title=document.getElementById('rbTitle');
+  const sub=document.getElementById('rbSub');
+  const list=document.getElementById('rbList');
+  if(kick) kick.textContent=opts.kicker||'REWARD';
+  if(title) title.textContent=opts.title||'보상 획득!';
+  if(sub){ sub.textContent=opts.sub||''; sub.classList.toggle('hidden', !opts.sub); }
+  if(list) list.innerHTML=rows.map(r=>
+    '<div class="rbRow'+(r.ticket?' ticket':'')+(r.kind==='skin'?' skin':'')+'">'+
+      '<span class="rbEmo">'+r.emoji+'</span>'+
+      '<span class="rbTx"><span class="rbName">'+r.name+'</span>'+
+        (r.cur?'<span class="rbCur">'+r.cur+'</span>':'')+'</span>'+
+      '<span class="rbAdd">'+r.add+'</span>'+
+    '</div>').join('');
+  const hasTicket=rows.some(r=>r.ticket);
+  const go=document.getElementById('rbGo');
+  if(go) go.classList.toggle('hidden', !hasTicket);
+  const close=document.getElementById('rbClose');
+  if(close) close.textContent = hasTicket ? '나중에' : '확인';
+  const ms=opts.ms || (hasTicket ? 9000 : 4600);
+  const bar=document.getElementById('rbTimerBar');
+  if(bar){
+    bar.style.animation='none';
+    void bar.offsetWidth;
+    bar.style.animation='rbDrain '+(ms/1000).toFixed(2)+'s linear forwards';
+  }
+  box.classList.remove('hidden');
+  if(!opts.silent){
+    Sound.init();
+    if(rows.length>1 || hasTicket) Sound.jackpot(); else Sound.coin();
+  }
+  clearTimeout(rbHideT);
+  rbHideT=setTimeout(hideRewardBanner, ms);
+}
+function hideRewardBanner(){
+  clearTimeout(rbHideT); rbHideT=null;
+  const box=document.getElementById('rewardBanner');
+  if(box) box.classList.add('hidden');
+}
+/* 배너의 [⚡ 스킬 강화하러 가기] — 로비 강화 탭으로 즉시 이동 */
+function goEnhance(){
+  hideRewardBanner();
+  if(state.chest) state.chest.locked=true;
+  const chest=document.getElementById('chest'); if(chest) chest.classList.add('hidden');
+  if(ui.result) ui.result.classList.add('hidden');
+  if(ui.augment) ui.augment.classList.add('hidden');
+  if(ui.title) ui.title.classList.remove('hidden');
+  state.mode='title';
+  appEl.classList.remove('playing','augment','paused');
+  appEl.classList.add('lobby');
+  Sound.stopMusic();
+  state.tab='upgrade';
+  setTab('upgrade');
+  updateHome();
 }
 
 /* ───────── 탭 ───────── */
@@ -8788,6 +9130,12 @@ function initLobby(){
   }
   if(ui.tpClose) ui.tpClose.addEventListener('click', ()=>setTab('home'));
   if(ui.offlineBtn) ui.offlineBtn.addEventListener('click', claimOffline);
+  const rb=document.getElementById('rbClose');
+  if(rb) rb.addEventListener('click', hideRewardBanner);
+  const rg=document.getElementById('rbGo');
+  if(rg) rg.addEventListener('click', goEnhance);
+  const rbBox=document.getElementById('rewardBanner');
+  if(rbBox) rbBox.addEventListener('click', e=>{ if(e.target===rbBox) hideRewardBanner(); });
   const lb=document.getElementById('lobbyBtn');
   if(lb) lb.addEventListener('click', ()=>returnToLobby());
   updateHome();

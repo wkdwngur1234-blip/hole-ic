@@ -6000,10 +6000,10 @@ function updatePlaying(dt){
         const l=Math.hypot(aim.x,aim.z)||1;
         state.input.x=aim.x/l; state.input.z=aim.z/l;
       } else { state.input.x=0; state.input.z=0; }
-      const range=30;
+      const range=30, maxEat=state.R*eatBonus();
       for(let i=0;i<objects.length;i++){
         const o=objects[i];
-        if(!o.alive || !o.group) continue;
+        if(!o.alive || !o.group || o.eatR > maxEat) continue;
         const dx=player.pos.x-o.group.position.x, dz=player.pos.z-o.group.position.z;
         const d=Math.hypot(dx,dz);
         if(d<range && d>0.3){
@@ -6027,8 +6027,8 @@ function updatePlaying(dt){
     * (state.defSlow||1) * speedUpMul() * (dashOn ? 1.85 : 1);
   const hasInput = (Math.abs(mov.x)>0.004 || Math.abs(mov.z)>0.004);
   if(hasInput){
-    state.velocity.x = damp(state.velocity.x, mov.x*spd, 34, dt);
-    state.velocity.y = damp(state.velocity.y, mov.z*spd, 34, dt);
+    state.velocity.x = damp(state.velocity.x, mov.x*spd, 22, dt);
+    state.velocity.y = damp(state.velocity.y, mov.z*spd, 22, dt);
   } else {
     state.velocity.set(0,0);
   }
@@ -6441,7 +6441,11 @@ function updateHUD(force){
     ui.bossWrap.classList.toggle('ready', !!state.bossUnlocked);
   }
   if(force) updateThreatBoard();
-  drawMinimap();
+  const nowMs=performance.now();
+  if(force || !state._mmAt || nowMs-state._mmAt>=100){
+    state._mmAt=nowMs;
+    drawMinimap();
+  }
 }
 function drawMinimap(){
   const cv=document.getElementById('minimap');
@@ -7530,13 +7534,13 @@ function fireShards(n){
   const dmg = 62 + 9*state.R + 26*state.aug.shard + 40*state.aug.pierce;
   targets.forEach((t,i)=>{
     const g=new THREE.Group();
-    const core=new THREE.Mesh(new THREE.OctahedronGeometry(0.26,0), basicMat(0x9ff0ff));
+    const core=new THREE.Mesh(new THREE.OctahedronGeometry(0.68,0), basicMat(0x57e6ff));
     core.userData.noFade=true;
-    const glow=sphereGlow(0.55,0x9ff0ff,0.75);
+    const glow=sphereGlow(1.45,0x57e6ff,0.92);
     g.add(core); g.add(glow);
-    g.position.set(player.pos.x, 1.3, player.pos.z);
+    g.position.set(player.pos.x, 1.8, player.pos.z);
     fxGroup.add(g);
-    shots.push({mesh:g, target:t, dmg:dmg, speed:72, life:1.6,
+    shots.push({mesh:g, target:t, dmg:dmg, speed:38, life:2.0,
       pierce:state.aug.pierce||0, blast:state.aug.blast||0, hitSet:[], kind:'shard'});
   });
   Sound.zap();
@@ -7552,8 +7556,8 @@ function nextTargetFor(shot){
 function updateShots(dt){
   state.shotCd=(state.shotCd||0)-dt;
   if(state.shotCd<=0 && state.mode==='playing'){
-    state.shotCd=Math.max(0.26, 1.15 - 0.11*(state.aug.shard||0));
-    fireShards(1+(state.aug.shard||0));
+    state.shotCd=Math.max(0.26, 0.85 - 0.09*(state.aug.shard||0));
+    fireShards(2+(state.aug.shard||0));
   }
   for(let i=shots.length-1;i>=0;i--){
     const s=shots[i];

@@ -6542,7 +6542,8 @@ function updateCells(){
   });
   for(let i=0;i<dropList.length;i++) dropCell(dropList[i]);
 }
-function buildCellProps(i,j){
+function buildCellProps(i,j){ return;
+
   const cx=i*CFG.PITCH, cz=j*CFG.PITCH;
   const off = CFG.BLOCK/2 + 1.15;
   [[-off,-off],[off,-off],[-off,off],[off,off]].forEach((p,k)=>{
@@ -16793,7 +16794,7 @@ function applyMonsterSkin(o){
   /* 크기 스케일업 — 내가 커질수록 몬스터도 커진다 */
   const grow=0.88+0.26*clamp(state.R/6,0.5,3.2);
   base.scale.multiplyScalar(clamp(grow,0.88,1.8));
-  o.group.children.forEach(ch=>{ ch.visible=false; });
+  while(o.group.children.length){ const ch=o.group.children[0]; o.group.remove(ch); try{ if(typeof disposeTree==="function") disposeTree(ch); }catch(e){} }
   /* 인스턴스별 머티리얼 — 흡입 페이드가 다른 몬스터에 번지지 않게 */
   base.traverse(n=>{ if(n.isMesh && n.material) n.material = Array.isArray(n.material) ? n.material.map(m=>m.clone()) : n.material.clone(); });
   base.position.y=0;

@@ -6918,10 +6918,10 @@ const defenseList = [];
 const shots = [];
 const skinFx = [];
 const DEF_KINDS = {
-  police:{size:3.4, hp:240,  speed:8.4, score:520,  xp:60,  name:'경찰차', view:1.55},
-  van:   {size:4.6, hp:520,  speed:6.6, score:900,  xp:95,  name:'장갑차', view:1.62},
-  tank:  {size:6.2, hp:1200, speed:5.2, score:1800, xp:160, name:'탱크',   view:1.58},
-  heli:  {size:4.4, hp:420,  speed:9.6, score:1100, xp:110, name:'헬기',   view:1.5}
+  police:{size:3.4, hp:240,  speed:5.8, score:520,  xp:60,  name:'경찰차', view:1.55},
+  van:   {size:4.6, hp:520,  speed:4.8, score:900,  xp:95,  name:'장갑차', view:1.62},
+  tank:  {size:6.2, hp:1200, speed:4.0, score:1800, xp:160, name:'탱크',   view:1.58},
+  heli:  {size:4.4, hp:420,  speed:6.4, score:1100, xp:110, name:'헬기',   view:1.5}
 };
 /* 경고 마커 — 멀리서도 방어군이 눈에 띄게 */
 let DEF_MARK_TEX=null;
@@ -7228,8 +7228,8 @@ function updateDefense(dt){
       d.pos.z -= dz/dist*sp*0.82*dt;
       if(d.group) d.group.rotation.y=Math.atan2(-dx,-dz);
     } else {
-      // 적극 추격 + 근접 돌진
-      const lunge = dist<13 ? 1.7 : (dist<20 ? 1.30 : 1.0);
+      // 추격 (플레이어가 보고 피해 다닐 수 있는 적정 속도)
+      const lunge = dist<13 ? 1.12 : (dist<20 ? 1.05 : 1.0);
       d.pos.x += dx/dist*sp*lunge*dt;
       d.pos.z += dz/dist*sp*lunge*dt;
       if(d.group) d.group.rotation.y=Math.atan2(dx,dz);

@@ -9285,15 +9285,50 @@ function updatePlaying(dt){
   }
 
   const R=state.R, bonus=eatBonus(), sMul=suctionMul();
-  // normal eat
+  // normal eat + slightly bigger nibble + huge bump damage
   for(let i=objects.length-1;i>=0;i--){
     const o=objects[i];
     if(!o.alive) continue;
-    if(o.eatR > R*bonus) continue;
     const dx=o.group.position.x-player.pos.x, dz=o.group.position.z-player.pos.z;
     const d=Math.hypot(dx,dz);
     const reach=(R*(1+0.10*sMul) + o.eatR*0.10);
-    if(d < reach*0.98) startSuck(o,true);
+    if(o.eatR <= R*bonus){
+      if(d < reach*0.98) startSuck(o,true);
+    } else if(o.eatR <= R*bonus*1.32){
+      if(d < reach*1.06){
+        const shrink = (1.85 + R*0.32)*dt;
+        const prevR = o.eatR;
+        o.eatR = Math.max(R*bonus*0.88, o.eatR - shrink);
+        if(o.group && prevR>0.1) o.group.scale.multiplyScalar(clamp(o.eatR/prevR, 0.92, 1.0));
+        o._nibT = (o._nibT||0) - dt;
+        if(o._nibT<=0){
+          o._nibT=0.32;
+          spawnRipple(0xffd34d, Math.max(0.9, R*0.55), false);
+          popupAt(new THREE.Vector3(o.group.position.x,1.6,o.group.position.z), '💢 갉아먹기!', '#ffd34d');
+        }
+        if(o.eatR <= R*bonus) startSuck(o,true);
+      }
+    } else if(state.feverActive<=0 && !o.isBoss && d < R*0.85 + Math.min(3.0, o.eatR*0.36)){
+      const nx = -dx/Math.max(0.2,d), nz = -dz/Math.max(0.2,d);
+      player.pos.x += nx*1.8; player.pos.z += nz*1.8;
+      if((state.invuln||0)<=0){
+        state.invuln=0.75;
+        const _red=Math.min(0.6, typeof augSum==="function"?augSum("dmgRed"):0);
+        const _dmg=Math.max(4, Math.round(12*(1-_red)));
+        state.hearts=Math.max(0,(state.hearts|0)-_dmg);
+        state.hitFlash=Math.max(state.hitFlash||0,0.65);
+        state.shake=Math.max(state.shake,0.45);
+        if(ui.hitFlash) ui.hitFlash.style.opacity=0.65;
+        Sound.hurt(); vibrate([45,25]);
+        popupAt(new THREE.Vector3(player.pos.x,1.8,player.pos.z), '💥 너무 커요! -'+_dmg+' HP', '#ff453a');
+        updateHUD(true);
+        if(state.hearts<=0){
+          showToast('💀 체력이 모두 사라졌다', '더 작은 몬스터부터 삼켜보세요!', '#ff453a');
+          endStage('dead');
+          break;
+        }
+      }
+    }
   }
 
   // fever auto suction (no size limit)
@@ -10116,10 +10151,11 @@ function updateHUD(force){
         : '⚔️ 보스 공격을 피하세요! 모은 증강들이 보스를 공격합니다';
     }
   }
-  /* ── ❤️ 하트 (보스전에서만) ── */
+  /* ── 💚 HP 바 (파밍·보스전 상시 표시) ── */
   if(ui.hearts){
-    ui.hearts.style.display = state.hasBoss ? '' : 'none';
-    if(state.hasBoss){
+    const showHp = (state.mode==='playing' || state.mode==='arena' || state.hasBoss);
+    ui.hearts.style.display = showHp ? '' : 'none';
+    if(showHp){
       const hMax=state.heartsMax||100, hNow=Math.max(0,state.hearts|0);
       const tag=hNow+'/'+hMax;
       if(hudCache.hearts!==tag){

@@ -2081,7 +2081,7 @@ const CFG = {
   GAME_TIME: 300,         // v3.5 — 연속 스테이지 기준 시간(초). 제한시간 없음(경과 표시용)
   STAGE_MINI_AT: 0.45,    // 진행도 45% — 미니보스 강림 지점
   STAGE_FINAL_AT: 1.00,   // 진행도 100% — 대보스 결투장 소환 지점
-  START_R: 2.0,
+  START_R: 2.6,
   PITCH: 27,
   GRID: 5,
   BLOCK: 18,
@@ -6641,8 +6641,6 @@ function buildBlock(type,cx,cz,seed){
       makeApartment(cx-4.7,cz-4.4,0,seed);
       makeApartment(cx+4.5,cz+4.4,Math.PI,seed+1);
       makeParkingLot(cx+4.6,cz-4.8,0);
-      makeCar(cx+3.8,cz-4.2,Math.PI/2,false,false);
-      if(r()<0.7) makeCar(cx+5.6,cz-4.2,Math.PI/2,true,false);
       makeTree(cx-7.4,cz+6.4,1.1*S);
       makeHydrant(cx-7.4,cz-0.2);
       makeBush(cx+rnd(-8,8),cz+rnd(-8,8));
@@ -7109,7 +7107,7 @@ function buildCars(){
   for(let i=0;i<10;i++) spawnRoamingCar(true);
 }
 function spawnRoamingCar(anywhere){
-  /* v3.2 — 1:1 결투장에서는 일반 차량을 만들지 않는다 */
+  return null;
   if(typeof ARENA!=='undefined' && (ARENA.on || ARENA.active)) return null;
   const vertical=RNG()<0.5;
   const px=player.pos.x, pz=player.pos.z;
@@ -8403,7 +8401,7 @@ function gainXP(amount){
    ═══════════════════════════════════════════════════════════ */
 function bossFightOn(){
   if(typeof ARENA!=='undefined' && (ARENA.active || ARENA.on)) return true;
-  return !!(typeof BOSS!=='undefined' && BOSS.revealed && BOSS.alive);
+  return !!(typeof BOSS!=='undefined' && BOSS.revealed && BOSS.alive && !BOSS.mini);
 }
 function bossFightBonus(lv, from){
   const gain=Math.max(1, lv-from);
@@ -10470,7 +10468,7 @@ const YAW=THREE.MathUtils.degToRad(CFG.CAM_YAW);
    v4.2.4 — 카메라 비율 (평소 1.5배 / 보스전 2.1배)
    두 배율은 damp 로 부드럽게 오가고, 각도(64°→40°)도 같이 보간한다.
    ═══════════════════════════════════════════════════════════ */
-const CAM_ZOOM_FARM = 1.5, CAM_ZOOM_BOSS = 2.1;
+const CAM_ZOOM_FARM = 1.15, CAM_ZOOM_BOSS = 1.65;
 function updateCamera(dt, immediate, intro){
   const R=state.R;
   const span = Math.min(185, 22 + R*7.8) * (intro?1.18:1);
@@ -11428,7 +11426,7 @@ const BOSS = {
   shield:0, shieldMax:0, stagger:0, staggerDur:7.0, hitCd:0,
   spikes:[], queue:[], eye:null, kit:null, atkT:0, atkStep:0, mini:false, glowed:0,
   /* v3.0 — 3단 기믹 공략: 동력 기둥 → 흡수 폭탄 반사 → 약점 갉아먹기 */
-  pillars:[], pillarGroup:null, pillarNeed:3, inv:0,
+  pillars:[], pillarGroup:null, pillarNeed:0, inv:0,
   bombs:[], barbs:[], bolts:null, carry:null, fireT:4.0,
   groggy:0, groggyDur:5.5, bites:0, bitesNeed:4, biteCd:0, weak:null,
   baseScale:1, scaleMul:1, defeated:false, arenaStarted:false, lastFire:0,
@@ -12733,9 +12731,9 @@ function triggerBossArrival(atX, atZ){
   }
   BOSS.revealed=true; BOSS.riseT=0; BOSS.riseDur=2.6; BOSS.atkTimer=6.5;
   BOSS.shield=BOSS.shieldMax; BOSS.stagger=0; BOSS.hitCd=0; BOSS.queue.length=0;
-  BOSS.inv=BOSS.pillarNeed; BOSS.bites=0; BOSS.biteCd=0; BOSS.groggy=0;
+  BOSS.pillarNeed=0; BOSS.inv=0; BOSS.bites=0; BOSS.biteCd=0; BOSS.groggy=0;
   BOSS.defeated=false; BOSS.scaleMul=1; BOSS.fireT=5.2;
-  if(BOSS.pillarNeed>0) try{ buildBossPillars(BOSS.pillarNeed); }catch(e){ console.error(e); }
+  BOSS.weak=true;
   if(!BOSS.mini) try{ buildBossSpikes(2); }catch(e){}
   BOSS.core.visible=true; BOSS.core.position.y=-72;
   BOSS.seal.visible=true; BOSS.seal.scale.setScalar(0.25);
@@ -12744,7 +12742,7 @@ function triggerBossArrival(atX, atZ){
   /* ── 경고 사이렌 + 화면 흔들림 + 붉은 번개/충격파 + 토스트 ── */
   Sound.bossArrival();
   const kitv=BOSS.kit||bossTheme();
-  showToast(kitv.emoji+' '+kitv.name+' 강림!', '동력 기둥 '+BOSS.pillarNeed+'개를 뽑아 무적을 풀어라', '#ff2b46');
+  showToast(kitv.emoji+' '+kitv.name+' 강림!', '공격을 피해 증강과 갉아먹기로 처치하세요!', '#ff2b46');
   state.flash=Math.max(state.flash,0.85);
   state.shake=Math.max(state.shake,1.4);
   vibrate([80,60,140,60,220]);
@@ -16255,7 +16253,7 @@ function endArenaTransition(){
   if(fx) fx.classList.remove('on');
   setTimeout(()=>{ const f=document.getElementById('arenaFx'); if(f) f.className=''; }, 420);
   camState.init=false;
-  showToast('⚔️ 1:1 결투!', '기둥 '+BOSS.pillarNeed+'개를 뽑고 🟡 폭탄을 반사해라', '#ffd34d');
+  showToast('⚔️ 1:1 결투!', '보스 공격을 피해 증강과 갉아먹기로 처치하세요!', '#ffd34d');
   Sound.level();
 }
 
@@ -17420,14 +17418,14 @@ function monsterSpawnDecision(o){
     if(t===2) return roll<6 ? 2 : 0;
     return roll<82 ? 2 : 0;
   }
-  /* tier 4+ — 초반엔 2~3마리만 두고, 나머지는 성장하면 깨어나는 '잠복' 상태 */
+  /* tier 4+ — 초반엔 2~3마리만 두고, 나머지는 제거(빌딩 잔존 금지) */
   if(early){
     if((state.earlyBig||0) < 3){ state.earlyBig=(state.earlyBig||0)+1; return 0; }
-    return 1;
+    return 2;
   }
   /* 초반을 지난 뒤에도 한 번에 쏟아지지 않게 — 내 크기에 비례한 대형 몬스터 상한 */
   const bigCap = 3 + Math.floor(Math.max(0, state.R-3.0)*2.0);
-  if(bigMonstersNear(150) >= bigCap) return 1;
+  if(bigMonstersNear(150) >= bigCap) return 2;
   return roll<8 ? 2 : 0;
 }
 /* 기존 도시 오브젝트를 몬스터로 치환 (1회) */
@@ -17452,7 +17450,7 @@ function applyMonsterSkin(o){
   if(o.isArenaDebris) return;
   const t=o.tier||1;
   const origEatR=o.eatR||1.2;
-  const footprint=Math.max(2.6, origEatR*2.4);
+  const footprint=Math.max(3.2, origEatR*2.6);
   const kind=monsterKindFor(o);
   const base=monsterTemplate(kind).clone(true);
   const boxS=new THREE.Box3().setFromObject(base);

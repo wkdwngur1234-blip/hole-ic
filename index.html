@@ -10666,7 +10666,7 @@ function bindUI(){
     ui.title.classList.add('hidden');
     if(ui.tabPage) ui.tabPage.classList.add('hidden');
     appEl.classList.remove('lobby');
-    startStage(Wallet.progress.maxStage||1);
+    startStage(window.__selectedStage || Wallet.progress.maxStage || 1);
   });
   ui.retryBtn.addEventListener('click', ()=>{
     state.score=state.stageStartScore;
